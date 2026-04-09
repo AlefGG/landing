@@ -6,6 +6,7 @@ import Services from "./components/Services";
 import About from "./components/About";
 import Partners from "./components/Partners";
 import Events from "./components/Events";
+import Advantages from "./components/Advantages";
 
 export default function App() {
   return (
@@ -21,6 +22,7 @@ export default function App() {
         <About />
         <Partners />
         <Events />
+        <Advantages />
       </main>
     </HelmetProvider>
   );
