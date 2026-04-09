@@ -8,6 +8,7 @@ import Partners from "./components/Partners";
 import Events from "./components/Events";
 import Advantages from "./components/Advantages";
 import Cabins from "./components/Cabins";
+import CtaBanner from "./components/CtaBanner";
 
 export default function App() {
   return (
@@ -25,6 +26,7 @@ export default function App() {
         <Events />
         <Advantages />
         <Cabins />
+        <CtaBanner />
       </main>
     </HelmetProvider>
   );
