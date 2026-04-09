@@ -15,7 +15,7 @@ type FormData = {
 
 type FormErrors = Partial<Record<keyof FormData, string>>;
 
-export default function ContactForm({ onSuccess, onClose }: ContactFormProps) {
+export default function ContactForm({ onSuccess, onClose: _onClose }: ContactFormProps) {
   const { t } = useTranslation();
   const [data, setData] = useState<FormData>({ name: "", phone: "", service: "" });
   const [errors, setErrors] = useState<FormErrors>({});
