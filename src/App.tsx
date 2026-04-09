@@ -10,6 +10,7 @@ import Advantages from "./components/Advantages";
 import Cabins from "./components/Cabins";
 import CtaBanner from "./components/CtaBanner";
 import Faq from "./components/Faq";
+import Footer from "./components/Footer";
 
 export default function App() {
   return (
@@ -30,6 +31,7 @@ export default function App() {
         <CtaBanner />
         <Faq />
       </main>
+      <Footer />
     </HelmetProvider>
   );
 }
