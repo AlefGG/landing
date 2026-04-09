@@ -1,0 +1,22 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="icon-extreme-athletics 1" clip-path="url(#clip0_0_4)">
+<g id="Vector" opacity="0.1" filter="url(#filter0_f_0_4)">
+<path d="M52.0026 90.9994C71.1485 90.9994 86.6693 75.4786 86.6693 56.3327C86.6693 37.1868 71.1485 21.666 52.0026 21.666C32.8567 21.666 17.3359 37.1868 17.3359 56.3327C17.3359 75.4786 32.8567 90.9994 52.0026 90.9994Z" fill="var(--fill-0, #EF4444)"/>
+</g>
+<path id="Vector_2" d="M52.0026 90.9994C71.1485 90.9994 86.6693 75.4786 86.6693 56.3327C86.6693 37.1868 71.1485 21.666 52.0026 21.666C32.8567 21.666 17.3359 37.1868 17.3359 56.3327C17.3359 75.4786 32.8567 90.9994 52.0026 90.9994Z" stroke="var(--stroke-0, #EF4444)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M52 8.66602V21.666" stroke="var(--stroke-0, #EF4444)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_4" d="M43.3359 8.66602H60.6693" stroke="var(--stroke-0, #EF4444)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_5" d="M77 31L81 27" stroke="var(--stroke-0, #EF4444)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_6" d="M56.3359 39L43.3359 56.3333H60.6693L50 72.5" stroke="var(--stroke-0, #EF4444)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<filter id="filter0_f_0_4" x="-2.66406" y="1.66602" width="109.333" height="109.333" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="10" result="effect1_foregroundBlur_0_4"/>
+</filter>
+<clipPath id="clip0_0_4">
+<rect width="104" height="104" fill="white"/>
+</clipPath>
+</defs>
+</svg>

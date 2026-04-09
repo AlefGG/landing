@@ -1,0 +1,22 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="icon-nature-festivals 1" clip-path="url(#clip0_0_4)">
+<g id="Vector" opacity="0.1" filter="url(#filter0_f_0_4)">
+<path d="M52.0026 90.9994C71.1485 90.9994 86.6693 75.4786 86.6693 56.3327C86.6693 37.1868 71.1485 21.666 52.0026 21.666C32.8567 21.666 17.3359 37.1868 17.3359 56.3327C17.3359 75.4786 32.8567 90.9994 52.0026 90.9994Z" fill="var(--fill-0, #59B002)"/>
+</g>
+<path id="Vector_2" d="M8.67188 91L30.3385 52L43.8359 76.5" stroke="var(--stroke-0, #59B002)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M95.3333 91L73.6667 52L60.8359 76.5" stroke="var(--stroke-0, #59B002)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_4" d="M34.6719 91L52.0052 65L69.3385 91" stroke="var(--stroke-0, #59B002)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_5" d="M8.67188 91H95.3385" stroke="var(--stroke-0, #59B002)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_6" d="M68.0026 30.3333C72.7891 30.3333 76.6693 26.4531 76.6693 21.6667C76.6693 16.8802 72.7891 13 68.0026 13C63.2161 13 59.3359 16.8802 59.3359 21.6667C59.3359 26.4531 63.2161 30.3333 68.0026 30.3333Z" stroke="var(--stroke-0, #FFC62A)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<filter id="filter0_f_0_4" x="-2.66406" y="1.66602" width="109.333" height="109.333" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="10" result="effect1_foregroundBlur_0_4"/>
+</filter>
+<clipPath id="clip0_0_4">
+<rect width="104" height="104" fill="white"/>
+</clipPath>
+</defs>
+</svg>

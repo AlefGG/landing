@@ -1,0 +1,21 @@
+<svg preserveAspectRatio="none" width="100%" height="100%" overflow="visible" style="display: block;" viewBox="0 0 104 104" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="icon-marathons 1" clip-path="url(#clip0_0_4)">
+<g id="Vector" opacity="0.1" filter="url(#filter0_f_0_4)">
+<path d="M52.0026 90.9994C71.1485 90.9994 86.6693 75.4786 86.6693 56.3327C86.6693 37.1868 71.1485 21.666 52.0026 21.666C32.8567 21.666 17.3359 37.1868 17.3359 56.3327C17.3359 75.4786 32.8567 90.9994 52.0026 90.9994Z" fill="var(--fill-0, #3B82F6)"/>
+</g>
+<path id="Vector_2" d="M19.1641 57C22.7539 57 25.6641 59.9101 25.6641 63.5C25.6641 67.0899 22.7539 70 19.1641 70C15.5742 70 12.6641 67.0899 12.6641 63.5C12.6641 59.9101 15.5742 57 19.1641 57Z" stroke="var(--stroke-0, #3B82F6)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector 1389" d="M25.6641 63L43.2401 63C46.2019 63 48.1365 66.1069 46.8297 68.7649L40.6985 81.2351C39.3916 83.8931 41.3262 87 44.2881 87H86.6641" stroke="var(--stroke-0, #3B82F6)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M86.6641 9V87" stroke="var(--stroke-0, #3B82F6)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_4" d="M86.6641 16L60.6641 29L86.6641 42" stroke="var(--stroke-0, #3B82F6)" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<defs>
+<filter id="filter0_f_0_4" x="-2.66406" y="1.66602" width="109.333" height="109.333" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+<feFlood flood-opacity="0" result="BackgroundImageFix"/>
+<feBlend mode="normal" in="SourceGraphic" in2="BackgroundImageFix" result="shape"/>
+<feGaussianBlur stdDeviation="10" result="effect1_foregroundBlur_0_4"/>
+</filter>
+<clipPath id="clip0_0_4">
+<rect width="104" height="104" fill="white"/>
+</clipPath>
+</defs>
+</svg>
