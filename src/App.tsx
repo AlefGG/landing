@@ -1,4 +1,5 @@
 import { HelmetProvider } from "react-helmet-async";
+import Header from "./components/Header";
 
 export default function App() {
   return (
@@ -6,9 +7,8 @@ export default function App() {
       <a href="#main" className="skip-to-content">
         Перейти к содержимому
       </a>
-      <main id="main">
-        <p>Эко-Ресурс</p>
-      </main>
+      <Header />
+      <main id="main">{/* Sections will be added here */}</main>
     </HelmetProvider>
   );
 }
