@@ -17,7 +17,7 @@ export default function Footer() {
         <div className="bg-white rounded-full p-2 shadow-md">
           <img
             src="/assets/logos/footer-badge.svg"
-            alt="Эко-Ресурс"
+            alt={t("a11y.brandLogo")}
             className="w-28 h-28"
           />
         </div>

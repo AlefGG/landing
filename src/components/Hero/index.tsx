@@ -1,13 +1,16 @@
 import { useTranslation } from "react-i18next";
-import { motion, useInView } from "framer-motion";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import { useCountUp } from "../../hooks/useCountUp";
 
-const fadeUp = (delay: number) => ({
-  initial: { opacity: 0, y: 30 },
-  animate: { opacity: 1, y: 0 },
-  transition: { duration: 0.6, delay },
-});
+const fadeUp = (delay: number, reduced: boolean) =>
+  reduced
+    ? { initial: false, animate: { opacity: 1, y: 0 }, transition: { duration: 0 } }
+    : {
+        initial: { opacity: 0, y: 30 },
+        animate: { opacity: 1, y: 0 },
+        transition: { duration: 0.6, delay },
+      };
 
 function StatCard({
   value,
@@ -24,9 +27,10 @@ function StatCard({
 }) {
   const ref = useRef(null);
   const inView = useInView(ref, { once: true });
+  const prefersReducedMotion = useReducedMotion() ?? false;
   const count = useCountUp({
     end: numericEnd ?? 0,
-    duration: 2000,
+    duration: prefersReducedMotion ? 0 : 2000,
     enabled: inView && numericEnd !== undefined,
   });
 
@@ -34,7 +38,7 @@ function StatCard({
     <motion.div
       ref={ref}
       className="bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] p-6 flex flex-col gap-2 w-[176px] shrink-0"
-      {...fadeUp(1)}
+      {...fadeUp(1, prefersReducedMotion)}
     >
       <span className="font-heading font-light text-[28px] lg:text-[36px] leading-[36px] lg:leading-[56px] text-cta-main">
         {numericEnd !== undefined ? `${prefix}${count}${suffix}` : value}
@@ -46,14 +50,15 @@ function StatCard({
 
 export default function Hero() {
   const { t } = useTranslation();
+  const prefersReducedMotion = useReducedMotion() ?? false;
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#f5f8f5]">
+    <section className="relative w-full overflow-hidden bg-[#f5f8f5]" aria-labelledby="hero-heading">
       {/* Background image */}
       <div className="absolute inset-0 lg:left-0 lg:w-[60%]">
         <img
           src="/assets/images/hero-bg.png"
-          alt="Алматы — Байтерек"
+          alt={t("a11y.heroCity")}
           className="w-full h-full object-cover object-center"
         />
       </div>
@@ -62,8 +67,9 @@ export default function Hero() {
         {/* Content — right side on desktop */}
         <div className="lg:ml-auto lg:w-1/2 flex flex-col gap-6 items-center lg:items-end text-center lg:text-right">
           <motion.h1
+            id="hero-heading"
             className="font-heading font-extrabold text-[32px] leading-[36px] lg:text-[56px] lg:leading-[56px] text-cta-main"
-            {...fadeUp(0.4)}
+            {...fadeUp(0.4, prefersReducedMotion)}
           >
             {t("hero.title1")}
             <span className="text-cta-blue">{t("hero.titleHighlight")}</span>
@@ -72,7 +78,7 @@ export default function Hero() {
 
           <motion.p
             className="font-body text-base lg:text-xl text-neutral-700 max-w-[384px]"
-            {...fadeUp(0.6)}
+            {...fadeUp(0.6, prefersReducedMotion)}
           >
             {t("hero.subtitle")}
           </motion.p>
@@ -80,7 +86,7 @@ export default function Hero() {
           {/* 24/7 emergency card */}
           <motion.div
             className="bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] p-6 flex gap-4 items-center w-[280px]"
-            {...fadeUp(0.8)}
+            {...fadeUp(0.8, prefersReducedMotion)}
           >
             <div>
               <p className="font-heading font-light text-2xl text-neutral-700">
@@ -95,7 +101,7 @@ export default function Hero() {
             </div>
             <img
               src="/assets/images/cabin-hero.png"
-              alt="Биотуалет"
+              alt={t("a11y.heroCabin")}
               className="h-[180px] w-auto object-contain"
             />
           </motion.div>

@@ -1,11 +1,12 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button, LanguageSwitcher } from "../ui";
 
 export default function Header() {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const prefersReducedMotion = useReducedMotion();
 
   const navLinks = [
     { label: t("nav.about"), href: "#about" },
@@ -16,7 +17,7 @@ export default function Header() {
   const scrollTo = (href: string) => {
     setMenuOpen(false);
     const el = document.querySelector(href);
-    el?.scrollIntoView({ behavior: "smooth" });
+    el?.scrollIntoView({ behavior: prefersReducedMotion ? "auto" : "smooth" });
   };
 
   return (
@@ -51,10 +52,10 @@ export default function Header() {
       <nav className="bg-white/80 backdrop-blur-sm sticky top-0 z-40">
         <div className="max-w-[1216px] mx-auto px-4 lg:px-8 flex items-center justify-between h-16">
           {/* Logo */}
-          <a href="/" className="shrink-0">
+          <a href="/" className="shrink-0" aria-label={t("meta.brandName")}>
             <img
               src="/assets/logos/logo.svg"
-              alt="Эко-Ресурс"
+              alt={t("a11y.brandLogo")}
               className="h-12 w-auto"
             />
           </a>
@@ -80,9 +81,9 @@ export default function Header() {
           {/* Desktop CTA buttons */}
           <motion.div
             className="hidden lg:flex items-center gap-4"
-            initial={{ opacity: 0, y: -10 }}
+            initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.8, duration: 0.4 }}
+            transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.8, duration: 0.4 }}
           >
             <Button variant="ghost" size="md" href="#">
               {t("buttons.sale")}
@@ -97,10 +98,12 @@ export default function Header() {
 
           {/* Mobile burger */}
           <button
+            type="button"
             className="lg:hidden p-2"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-expanded={menuOpen}
-            aria-label="Меню"
+            aria-controls="mobile-menu"
+            aria-label={menuOpen ? t("a11y.closeMenu") : t("a11y.openMenu")}
           >
             <img src="/assets/icons/menu.svg" alt="" className="w-6 h-6" />
           </button>
@@ -116,19 +119,22 @@ export default function Header() {
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
+              transition={prefersReducedMotion ? { duration: 0 } : undefined}
               onClick={() => setMenuOpen(false)}
             />
             <motion.div
+              id="mobile-menu"
               className="fixed top-0 right-0 bottom-0 w-72 bg-white z-50 p-6 flex flex-col gap-6 lg:hidden"
-              initial={{ x: "100%" }}
+              initial={prefersReducedMotion ? { x: 0 } : { x: "100%" }}
               animate={{ x: 0 }}
-              exit={{ x: "100%" }}
-              transition={{ type: "tween", duration: 0.3 }}
+              exit={prefersReducedMotion ? { x: 0 } : { x: "100%" }}
+              transition={prefersReducedMotion ? { duration: 0 } : { type: "tween", duration: 0.3 }}
             >
               <button
+                type="button"
                 onClick={() => setMenuOpen(false)}
                 className="self-end text-neutral-500"
-                aria-label="Закрыть меню"
+                aria-label={t("a11y.closeMenu")}
               >
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                   <path d="M18 6L6 18M6 6l12 12" />

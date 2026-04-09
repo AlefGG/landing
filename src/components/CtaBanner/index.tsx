@@ -47,10 +47,7 @@ export default function CtaBanner() {
       </section>
 
       <Modal isOpen={modalOpen} onClose={() => setModalOpen(false)}>
-        <ContactForm
-          onSuccess={() => setTimeout(() => setModalOpen(false), 2000)}
-          onClose={() => setModalOpen(false)}
-        />
+        <ContactForm onSuccess={() => setTimeout(() => setModalOpen(false), 2000)} />
       </Modal>
     </>
   );
