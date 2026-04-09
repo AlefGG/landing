@@ -1,4 +1,5 @@
 import { HelmetProvider } from "react-helmet-async";
+import Seo from "./components/Seo";
 import Header from "./components/Header";
 import Hero from "./components/Hero";
 import StatsBanner from "./components/StatsBanner";
@@ -15,6 +16,7 @@ import Footer from "./components/Footer";
 export default function App() {
   return (
     <HelmetProvider>
+      <Seo />
       <a href="#main" className="skip-to-content">
         Перейти к содержимому
       </a>
