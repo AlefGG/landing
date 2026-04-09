@@ -1,5 +1,6 @@
 import { HelmetProvider } from "react-helmet-async";
 import Header from "./components/Header";
+import Hero from "./components/Hero";
 
 export default function App() {
   return (
@@ -8,7 +9,9 @@ export default function App() {
         Перейти к содержимому
       </a>
       <Header />
-      <main id="main">{/* Sections will be added here */}</main>
+      <main id="main">
+        <Hero />
+      </main>
     </HelmetProvider>
   );
 }
