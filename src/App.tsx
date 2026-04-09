@@ -5,6 +5,7 @@ import StatsBanner from "./components/StatsBanner";
 import Services from "./components/Services";
 import About from "./components/About";
 import Partners from "./components/Partners";
+import Events from "./components/Events";
 
 export default function App() {
   return (
@@ -19,6 +20,7 @@ export default function App() {
         <Services />
         <About />
         <Partners />
+        <Events />
       </main>
     </HelmetProvider>
   );
