@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { SectionTitle, Tag, Button } from "../ui";
+import { Tag, Button } from "../ui";
 
 const cabins = [
   { key: "standard", image: "/assets/images/cabin-standard.png" },
@@ -12,18 +12,21 @@ export default function Cabins() {
   const { t } = useTranslation();
 
   return (
-    <section className="w-full py-16 lg:py-24" id="cabins">
-      <div className="max-w-[1216px] mx-auto px-4 lg:px-8">
-        <SectionTitle>{t("cabins.title")}</SectionTitle>
-        <p className="font-body text-base text-neutral-500 text-center mt-4 max-w-[800px] mx-auto">
+    <section className="w-full bg-[#efefef] py-[88px]" id="cabins">
+      <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
+        <h2 className="font-heading font-extrabold text-[32px] leading-[36px] lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center">
+          {t("cabins.title1")}
+          <span className="text-cta-main">{t("cabins.titleHighlight")}</span>
+        </h2>
+        <p className="font-body text-base lg:text-xl leading-6 text-neutral-700 text-center mt-8 whitespace-pre-line">
           {t("cabins.subtitle")}
         </p>
 
-        <div className="flex lg:grid lg:grid-cols-3 gap-8 mt-10 overflow-x-auto lg:overflow-visible snap-x snap-mandatory pb-4 lg:pb-0">
+        <div className="mt-8 flex lg:grid lg:grid-cols-3 gap-8 overflow-x-auto lg:overflow-visible snap-x snap-mandatory pb-4 lg:pb-0">
           {cabins.map((cabin, i) => (
             <motion.div
               key={cabin.key}
-              className="relative bg-white rounded-3xl border border-neutral-200 p-0 min-w-[300px] lg:min-w-0 snap-center flex flex-col"
+              className="relative bg-white rounded-[24px] min-w-[304px] lg:min-w-0 lg:w-[384px] lg:h-[520px] snap-center flex flex-col items-center justify-between px-10 py-6"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
@@ -33,62 +36,78 @@ export default function Cabins() {
                 boxShadow: "0px 8px 20px 0px rgba(94,117,138,0.18)",
               }}
             >
-              {/* Tag */}
+              {/* Tag — top-right */}
               <div className="absolute top-2 right-2 z-10">
-                <Tag className="bg-cta-main/10 text-cta-main">
-                  {t(`cabins.${cabin.key}.tag`)}
-                </Tag>
+                <Tag>{t(`cabins.${cabin.key}.tag`)}</Tag>
               </div>
 
-              {/* Photo */}
-              <div className="flex justify-center pt-6 px-10">
+              {/* Top content: photo + text */}
+              <div className="flex flex-col items-center gap-6 w-full">
+                {/* Photo */}
                 <img
                   src={cabin.image}
                   alt={t(`cabins.${cabin.key}.name`)}
-                  className="h-[248px] w-auto object-contain"
+                  width={150}
+                  height={252}
+                  className="h-[252px] w-[150px] object-contain"
                   loading="lazy"
                 />
+
+                {/* Info block */}
+                <div className="flex flex-col gap-4 w-full">
+                  {/* Title + price */}
+                  <div className="text-center text-neutral-800 w-full">
+                    <h3 className="font-heading font-extrabold text-2xl leading-6">
+                      {t(`cabins.${cabin.key}.name`)}
+                    </h3>
+                    <p className="font-body font-semibold text-base leading-6">
+                      {t(`cabins.${cabin.key}.price`)}
+                    </p>
+                  </div>
+
+                  {/* Features */}
+                  <ul className="flex flex-col w-full">
+                    {(
+                      t(`cabins.${cabin.key}.features`, {
+                        returnObjects: true,
+                      }) as string[]
+                    ).map((feature) => (
+                      <li
+                        key={feature}
+                        className="flex items-center gap-1 font-body font-normal text-sm leading-4 text-neutral-500"
+                      >
+                        <img
+                          src="/assets/icons/check.svg"
+                          alt=""
+                          width={16}
+                          height={16}
+                          className="w-4 h-4 shrink-0"
+                        />
+                        <span>{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
               </div>
 
-              {/* Info */}
-              <div className="p-6 pt-4 flex flex-col flex-1">
-                <h4 className="font-heading font-bold text-xl text-neutral-800">
-                  {t(`cabins.${cabin.key}.name`)}
-                </h4>
-                <p className="font-body text-base text-neutral-600 mt-1">
-                  {t(`cabins.${cabin.key}.price`)}
-                </p>
-
-                {/* Features */}
-                <ul className="mt-4 flex flex-col gap-1 flex-1">
-                  {(
-                    t(`cabins.${cabin.key}.features`, {
-                      returnObjects: true,
-                    }) as string[]
-                  ).map((feature) => (
-                    <li
-                      key={feature}
-                      className="flex items-start gap-2 text-sm font-body text-neutral-700"
-                    >
-                      <img
-                        src="/assets/icons/check.svg"
-                        alt=""
-                        className="w-4 h-4 mt-0.5 shrink-0"
-                      />
-                      {feature}
-                    </li>
-                  ))}
-                </ul>
-
-                {/* Buttons */}
-                <div className="flex gap-4 mt-6">
-                  <Button variant="cta" size="sm" href="#" className="flex-1">
-                    {t("buttons.buy")}
-                  </Button>
-                  <Button variant="ghost" size="sm" href="#" className="flex-1">
-                    {t("buttons.rent")}
-                  </Button>
-                </div>
+              {/* Buttons */}
+              <div className="flex gap-4 w-full">
+                <Button
+                  variant="blue-ghost"
+                  size="sm"
+                  href="#"
+                  className="flex-1 h-8"
+                >
+                  {t("buttons.buy")}
+                </Button>
+                <Button
+                  variant="blue"
+                  size="sm"
+                  href="#"
+                  className="flex-1 h-8"
+                >
+                  {t("buttons.rent")}
+                </Button>
               </div>
             </motion.div>
           ))}

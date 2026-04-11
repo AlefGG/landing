@@ -6,7 +6,7 @@ type TagProps = {
 export default function Tag({ children, className = "" }: TagProps) {
   return (
     <span
-      className={`inline-block px-3 py-1 text-xs font-semibold font-body rounded-full ${className}`}
+      className={`inline-flex items-center h-6 px-2 text-sm leading-4 font-normal font-body rounded-[16px] bg-blue-20 text-neutral-800 ${className}`}
     >
       {children}
     </span>

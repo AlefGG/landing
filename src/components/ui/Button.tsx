@@ -1,6 +1,6 @@
 import { type ButtonHTMLAttributes, type AnchorHTMLAttributes } from "react";
 
-type ButtonVariant = "cta" | "ghost" | "text";
+type ButtonVariant = "cta" | "ghost" | "text" | "blue" | "blue-ghost";
 type ButtonSize = "sm" | "md";
 
 type BaseProps = {
@@ -26,6 +26,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   ghost:
     "border-[1.5px] border-cta-main text-cta-main bg-white/20 rounded-[40px]",
   text: "text-neutral-600 bg-transparent",
+  blue: "bg-gradient-to-b from-[#20B7FB] to-[#0295CB] text-white rounded-[40px]",
+  "blue-ghost":
+    "border-[1.5px] border-[#20B7FB] text-[#20B7FB] bg-white/20 rounded-[40px]",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {
