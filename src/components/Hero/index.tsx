@@ -54,22 +54,36 @@ export default function Hero() {
 
   return (
     <section
-      className="relative w-full overflow-hidden bg-white"
+      className="relative w-full overflow-x-clip bg-white mb-10 lg:mb-16"
       aria-labelledby="hero-heading"
     >
-      {/* Background photo — absolutely positioned on desktop, hidden on mobile */}
+      {/* Decorative background shape */}
       <div className="hidden lg:block absolute inset-0 pointer-events-none">
-        <img
-          src="/assets/images/hero-bg.png"
-          alt={t("a11y.heroCity")}
-          className="absolute left-[4.75%] top-[23.4%] w-[57.87%] h-[69.8%] object-cover rounded-[32px]"
-        />
+        <div className="max-w-[1216px] mx-auto relative h-full">
+          <img
+            src="/assets/images/hero-shape.svg"
+            alt=""
+            className="absolute top-0 left-0 w-full h-[712px] object-fill"
+            aria-hidden="true"
+          />
+        </div>
       </div>
 
-      {/* Desktop layout (absolute positioning) */}
-      <div className="hidden lg:block relative max-w-[1216px] mx-auto px-8 min-h-[752px]">
+      {/* City photo — positioned to overflow left of container */}
+      <div className="hidden lg:block absolute inset-0 pointer-events-none">
+        <div className="max-w-[1216px] mx-auto relative h-full">
+          <img
+            src="/assets/images/hero-bg.png"
+            alt={t("a11y.heroCity")}
+            className="absolute left-[-116px] top-[176px] w-[926px] h-[525px] object-cover"
+          />
+        </div>
+      </div>
+
+      {/* Desktop layout */}
+      <div className="hidden lg:block relative max-w-[1216px] mx-auto px-8 min-h-[712px]">
         {/* Right column: H1, subtitle */}
-        <div className="absolute right-8 top-[120px] w-full max-w-[592px] text-right">
+        <div className="absolute right-[104px] top-[120px] w-[592px] text-right">
           <motion.h1
             id="hero-heading"
             className="font-heading font-extrabold text-[56px] leading-[56px] text-cta-main"
@@ -81,16 +95,16 @@ export default function Hero() {
           </motion.h1>
 
           <motion.p
-            className="font-body text-xl leading-6 text-neutral-700 max-w-[384px] ml-auto mt-4"
+            className="font-body font-normal text-xl leading-6 text-neutral-700 max-w-[384px] ml-auto mt-4"
             {...fadeUp(0.6, prefersReducedMotion)}
           >
             {t("hero.subtitle")}
           </motion.p>
         </div>
 
-        {/* 24/7 card — bottom-right, standalone 280x380 */}
+        {/* 24/7 card */}
         <motion.div
-          className="absolute right-8 top-[332px] w-[280px] h-[380px] bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] overflow-hidden"
+          className="absolute right-[104px] top-[332px] w-[280px] h-[380px] bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] overflow-hidden"
           {...fadeUp(0.8, prefersReducedMotion)}
         >
           <div className="absolute top-6 left-6">
@@ -101,7 +115,7 @@ export default function Hero() {
               {t("hero.emergencyBadge")}
             </p>
           </div>
-          <p className="absolute top-5 right-6 font-body text-base leading-6 text-neutral-700 text-right whitespace-pre-line">
+          <p className="absolute top-5 right-6 font-body font-normal text-base leading-6 text-neutral-700 text-right whitespace-pre-line">
             {t("hero.emergencyTime")}
           </p>
           <img
@@ -113,7 +127,7 @@ export default function Hero() {
           />
         </motion.div>
 
-        {/* Stats row — 3 cards floating over bottom of bg */}
+        {/* Stats row */}
         <div className="absolute left-[104px] top-[528px] flex gap-8 items-start">
           <StatCard value={t("stats.years")} label={t("stats.yearsLabel")} />
           <StatCard
@@ -130,22 +144,20 @@ export default function Hero() {
           />
         </div>
 
-        {/* Spacer to give the section its min-height */}
+        {/* Spacer */}
         <div className="invisible" aria-hidden="true">
-          <div className="h-[752px]" />
+          <div className="h-[712px]" />
         </div>
       </div>
 
-      {/* Mobile layout (flow-based) */}
+      {/* Mobile layout */}
       <div className="lg:hidden max-w-[1216px] mx-auto px-4 py-8">
-        {/* Hero bg as top decoration on tablet, hidden on small mobile */}
         <img
           src="/assets/images/hero-bg.png"
           alt={t("a11y.heroCity")}
           className="hidden sm:block w-full h-[200px] object-cover rounded-[24px] mb-6"
         />
 
-        {/* H1 + subtitle */}
         <motion.h1
           id="hero-heading-mobile"
           className="font-heading font-extrabold text-[32px] leading-[36px] text-cta-main text-center"
@@ -163,7 +175,6 @@ export default function Hero() {
           {t("hero.subtitle")}
         </motion.p>
 
-        {/* 24/7 card */}
         <motion.div
           className="relative w-full max-w-[280px] h-[380px] mx-auto mt-8 bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] overflow-hidden"
           {...fadeUp(0.8, prefersReducedMotion)}
@@ -188,7 +199,6 @@ export default function Hero() {
           />
         </motion.div>
 
-        {/* Stats row */}
         <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-8 items-center sm:justify-center">
           <StatCard value={t("stats.years")} label={t("stats.yearsLabel")} />
           <StatCard

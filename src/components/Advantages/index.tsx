@@ -26,8 +26,7 @@ export default function Advantages() {
                 <div className="hidden lg:block w-px bg-neutral-300 self-stretch" />
               )}
               <motion.div
-                className="flex flex-col items-center text-center px-[32px] py-[40px] rounded-[24px] flex-1 lg:w-[280px] lg:shrink-0"
-                style={i === 3 ? { boxShadow: "0px 8px 20px 0px rgba(94,117,138,0.18)" } : undefined}
+                className="flex flex-col items-center text-center px-[32px] py-[40px] flex-1 lg:w-[280px] lg:shrink-0"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}

@@ -1,12 +1,12 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
-const partners = [
+const partners: { name: string; logo: string; opacity?: number }[] = [
   { name: "Everest Development", logo: "/assets/logos/partner-everest.svg" },
   { name: "Kusto Group", logo: "/assets/logos/partner-kusto.png" },
-  { name: "RAM Construction", logo: "/assets/logos/partner-ram.png" },
-  { name: "Dial Stroy", logo: "/assets/logos/partner-dialstroy.svg" },
-  { name: "Hayat Construction", logo: "/assets/logos/partner-hayat.svg" },
+  { name: "RAM Construction", logo: "/assets/logos/partner-ram.png", opacity: 0.6 },
+  { name: "Everest Development 2", logo: "/assets/logos/partner-everest.svg" },
+  { name: "Kusto Group 2", logo: "/assets/logos/partner-kusto.png" },
 ];
 
 export default function Partners() {
@@ -35,6 +35,7 @@ export default function Partners() {
                 src={partner.logo}
                 alt={partner.name}
                 className="h-10 lg:h-12 w-auto object-contain grayscale hover:grayscale-0 transition-all"
+                style={partner.opacity ? { opacity: partner.opacity } : undefined}
                 loading="lazy"
               />
             </motion.div>

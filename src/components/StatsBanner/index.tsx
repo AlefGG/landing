@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 
 export default function StatsBanner() {
   return (
-    <section className="w-full py-4 lg:py-4">
+    <section className="w-full py-4">
       <motion.p
         className="font-heading font-extrabold text-[28px] leading-[32px] lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center"
         initial={{ opacity: 0, y: 20 }}
