@@ -37,13 +37,13 @@ function StatCard({
   return (
     <motion.div
       ref={ref}
-      className="bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] p-6 flex flex-col gap-2 w-[176px] shrink-0"
+      className="bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] pt-6 pb-8 px-6 flex flex-col gap-[7px] w-[176px] h-[151px] shrink-0"
       {...fadeUp(1, prefersReducedMotion)}
     >
-      <span className="font-heading font-light text-[28px] lg:text-[36px] leading-[36px] lg:leading-[56px] text-cta-main">
+      <span className="font-heading font-light text-[36px] leading-[56px] text-cta-main">
         {numericEnd !== undefined ? `${prefix}${count}${suffix}` : value}
       </span>
-      <span className="font-body text-sm text-neutral-700">{label}</span>
+      <span className="font-body text-sm leading-4 text-neutral-700">{label}</span>
     </motion.div>
   );
 }
@@ -53,19 +53,22 @@ export default function Hero() {
   const prefersReducedMotion = useReducedMotion() ?? false;
 
   return (
-    <section className="relative w-full overflow-hidden bg-[#f5f8f5]" aria-labelledby="hero-heading">
-      {/* Background image */}
-      <div className="absolute inset-0 lg:left-0 lg:w-[60%]">
+    <section
+      className="relative w-full overflow-hidden bg-white"
+      aria-labelledby="hero-heading"
+    >
+      {/* Background photo — absolutely positioned, offset from left edge */}
+      <div className="absolute inset-0 pointer-events-none">
         <img
           src="/assets/images/hero-bg.png"
           alt={t("a11y.heroCity")}
-          className="w-full h-full object-cover object-center"
+          className="absolute left-[4.75%] top-[23.4%] w-[57.87%] h-[69.8%] object-cover rounded-[32px]"
         />
       </div>
 
-      <div className="relative max-w-[1216px] mx-auto px-4 lg:px-8 py-16 lg:py-0 lg:min-h-[700px] flex flex-col justify-center">
-        {/* Content — right side on desktop */}
-        <div className="lg:ml-auto lg:w-1/2 flex flex-col gap-6 items-center lg:items-end text-center lg:text-right">
+      <div className="relative max-w-[1216px] mx-auto px-4 lg:px-8 min-h-[752px]">
+        {/* Right column: H1, subtitle, 24/7 card */}
+        <div className="absolute right-4 lg:right-8 top-[120px] w-full max-w-[592px] text-right">
           <motion.h1
             id="hero-heading"
             className="font-heading font-extrabold text-[32px] leading-[36px] lg:text-[56px] lg:leading-[56px] text-cta-main"
@@ -77,42 +80,44 @@ export default function Hero() {
           </motion.h1>
 
           <motion.p
-            className="font-body text-base lg:text-xl text-neutral-700 max-w-[384px]"
+            className="font-body text-base lg:text-xl leading-6 text-neutral-700 max-w-[384px] ml-auto mt-4"
             {...fadeUp(0.6, prefersReducedMotion)}
           >
             {t("hero.subtitle")}
           </motion.p>
-
-          {/* 24/7 emergency card */}
-          <motion.div
-            className="bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] p-6 flex gap-4 items-center w-[280px]"
-            {...fadeUp(0.8, prefersReducedMotion)}
-          >
-            <div>
-              <p className="font-heading font-light text-2xl text-neutral-700">
-                {t("hero.emergency")}
-              </p>
-              <p className="font-heading font-light text-[40px] text-cta-main leading-tight">
-                {t("hero.emergencyBadge")}
-              </p>
-            </div>
-            <div className="text-right text-sm text-neutral-700 whitespace-pre-line">
-              {t("hero.emergencyTime")}
-            </div>
-            <img
-              src="/assets/images/cabin-hero.png"
-              alt={t("a11y.heroCabin")}
-              className="h-[180px] w-auto object-contain"
-            />
-          </motion.div>
         </div>
 
-        {/* Stat cards */}
-        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 mt-8 lg:mt-12 items-center lg:items-start">
-          <StatCard
-            value={t("stats.years")}
-            label={t("stats.yearsLabel")}
+        {/* 24/7 card — bottom-right, standalone 280x380 */}
+        <motion.div
+          className="absolute right-4 lg:right-8 top-[332px] w-[280px] h-[380px] bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] overflow-hidden"
+          {...fadeUp(0.8, prefersReducedMotion)}
+        >
+          {/* Top-left: "Выезд" + "24/7" stacked */}
+          <div className="absolute top-6 left-6">
+            <p className="font-heading font-light text-2xl leading-[56px] text-neutral-700">
+              {t("hero.emergency")}
+            </p>
+            <p className="font-heading font-light text-[40px] leading-[56px] text-cta-main -mt-4">
+              {t("hero.emergencyBadge")}
+            </p>
+          </div>
+          {/* Top-right: "форс-мажор / за 2 часа" */}
+          <p className="absolute top-5 right-6 font-body text-base leading-6 text-neutral-700 text-right whitespace-pre-line">
+            {t("hero.emergencyTime")}
+          </p>
+          {/* Cabin image bottom-centered */}
+          <img
+            src="/assets/images/cabin-hero.png"
+            alt={t("a11y.heroCabin")}
+            width={150}
+            height={252}
+            className="absolute left-1/2 -translate-x-1/2 bottom-3 h-[252px] w-[150px] object-contain"
           />
+        </motion.div>
+
+        {/* Stats row — 3 cards floating over bottom of bg */}
+        <div className="absolute left-1/2 -translate-x-1/2 lg:left-[104px] lg:translate-x-0 top-[528px] flex gap-8 items-start">
+          <StatCard value={t("stats.years")} label={t("stats.yearsLabel")} />
           <StatCard
             value={t("stats.partners")}
             label={t("stats.partnersLabel")}
@@ -125,6 +130,11 @@ export default function Hero() {
             numericEnd={3500}
             suffix="+"
           />
+        </div>
+
+        {/* Spacer to give the section its min-height */}
+        <div className="invisible" aria-hidden="true">
+          <div className="h-[752px]" />
         </div>
       </div>
     </section>
