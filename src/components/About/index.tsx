@@ -13,7 +13,7 @@ export default function About() {
 
   return (
     <section
-      className="relative w-full h-[768px] overflow-hidden bg-white"
+      className="relative w-full min-h-[500px] lg:h-[768px] overflow-hidden bg-white"
       id="about"
       aria-labelledby="about-heading"
     >
@@ -39,9 +39,9 @@ export default function About() {
       />
 
       {/* Left content column, vertically centered */}
-      <div className="relative max-w-[1216px] mx-auto px-4 lg:px-0 h-full flex items-center">
+      <div className="relative max-w-[1216px] mx-auto px-4 lg:px-0 h-full flex items-center py-12 lg:py-0">
         <motion.div
-          className="w-full lg:w-[592px] flex flex-col gap-[72px]"
+          className="w-full lg:w-[592px] flex flex-col gap-10 lg:gap-[72px]"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -49,27 +49,27 @@ export default function About() {
         >
           <h2
             id="about-heading"
-            className="font-heading font-extrabold text-[40px] leading-[40px] text-neutral-900"
+            className="font-heading font-extrabold text-[28px] leading-[32px] lg:text-[40px] lg:leading-[40px] text-neutral-900"
           >
             {t("about.heading")}
           </h2>
 
-          <div className="flex flex-col gap-[80px]">
-            <div className="flex flex-wrap gap-y-[40px] gap-x-[32px]">
+          <div className="flex flex-col gap-10 lg:gap-[80px]">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-8 gap-x-8">
               {facts.map((fact) => (
                 <div
                   key={fact.value}
-                  className="flex flex-col items-start gap-2 w-[280px]"
+                  className="flex flex-col items-start gap-2"
                 >
-                  <span className="font-heading font-extrabold text-[40px] leading-[40px] text-cta-main">
+                  <span className="font-heading font-extrabold text-[32px] leading-[36px] lg:text-[40px] lg:leading-[40px] text-cta-main">
                     {t(fact.value)}
                     {"unit" in fact && (
-                      <span className="ml-2 text-[24px] leading-[24px] align-baseline">
+                      <span className="ml-2 text-[20px] leading-[24px] lg:text-[24px] lg:leading-[24px] align-baseline">
                         {t(fact.unit)}
                       </span>
                     )}
                   </span>
-                  <p className="font-body font-normal text-[20px] leading-[24px] text-neutral-800">
+                  <p className="font-body font-normal text-base leading-6 lg:text-[20px] lg:leading-[24px] text-neutral-800">
                     {t(fact.desc)}
                   </p>
                 </div>

@@ -35,7 +35,7 @@ export default function Faq() {
                 <button
                   type="button"
                   onClick={() => toggle(i)}
-                  className="w-full flex items-center justify-between p-6 text-left"
+                  className="w-full flex items-center justify-between p-4 lg:p-6 text-left"
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-${i}`}
                 >
@@ -43,7 +43,7 @@ export default function Faq() {
                     <span className="font-body font-semibold text-xl leading-6 text-cta-main w-8 shrink-0">
                       {i + 1}.
                     </span>
-                    <span className="font-body font-semibold text-xl leading-6 text-neutral-800">
+                    <span className="font-body font-semibold text-base lg:text-xl leading-6 text-neutral-800">
                       {t(`faq.${key}.question`)}
                     </span>
                   </span>
@@ -74,7 +74,7 @@ export default function Faq() {
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <p className="px-6 pb-6 pl-14 font-body text-base leading-6 text-neutral-500">
+                      <p className="px-4 pb-4 pl-10 lg:px-6 lg:pb-6 lg:pl-14 font-body text-sm lg:text-base leading-6 text-neutral-500">
                         {t(`faq.${key}.answer`)}
                       </p>
                     </motion.div>

@@ -9,7 +9,7 @@ export default function CtaBanner() {
 
   return (
     <>
-      <section className="relative w-full h-[424px] overflow-hidden" id="cta">
+      <section className="relative w-full min-h-[424px] overflow-hidden" id="cta">
         {/* Dark gradient bg + city overlay image */}
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-b from-[#3c4449] to-[#21272b]" />
@@ -23,13 +23,13 @@ export default function CtaBanner() {
 
         {/* Content */}
         <motion.div
-          className="relative max-w-[1216px] mx-auto px-4 lg:px-8 h-full flex items-end py-[152px]"
+          className="relative max-w-[1216px] mx-auto px-4 lg:px-0 h-full flex items-center lg:items-end py-12 lg:py-[152px]"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <div className="flex flex-col lg:flex-row items-start lg:items-end justify-between gap-8 w-full">
+          <div className="flex flex-col lg:flex-row items-center lg:items-end justify-between gap-8 w-full text-center lg:text-left">
             {/* Left: heading */}
             <h2 className="font-heading font-extrabold text-[32px] leading-[36px] lg:text-[56px] lg:leading-[56px] text-white max-w-[486px]">
               {t("cta.title")}

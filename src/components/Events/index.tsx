@@ -15,7 +15,7 @@ export default function Events() {
       className="w-full bg-gradient-to-b from-neutral-800 to-[#21272b] py-[88px]"
       id="events"
     >
-      <div className="max-w-[1216px] mx-auto px-4 lg:px-8">
+      <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
         <h2 className="font-heading font-extrabold text-[28px] leading-[32px] lg:text-[40px] lg:leading-[40px] text-white text-center">
           {t("events.title")}
         </h2>

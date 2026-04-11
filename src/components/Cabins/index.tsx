@@ -26,7 +26,7 @@ export default function Cabins() {
           {cabins.map((cabin, i) => (
             <motion.div
               key={cabin.key}
-              className="relative bg-white rounded-[24px] min-w-[304px] lg:min-w-0 lg:w-[384px] lg:h-[520px] snap-center flex flex-col items-center justify-between px-10 py-6"
+              className="relative bg-white rounded-[24px] min-w-[280px] sm:min-w-[304px] lg:min-w-0 lg:w-[384px] lg:h-[520px] snap-center flex flex-col items-center justify-between px-6 sm:px-10 py-6"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}

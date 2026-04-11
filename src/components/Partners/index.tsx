@@ -21,7 +21,7 @@ export default function Partners() {
           {t("partners.title2")}
         </h2>
 
-        <div className="flex flex-wrap justify-center items-start gap-8">
+        <div className="flex flex-wrap justify-center items-start gap-4 lg:gap-8">
           {partners.map((partner, i) => (
             <motion.div
               key={partner.name}

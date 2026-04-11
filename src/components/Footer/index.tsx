@@ -30,7 +30,7 @@ export default function Footer() {
 
       <div className="bg-white border-t border-neutral-200 pt-[96px] pb-[40px] mt-[64px]">
         <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
-          <div className="flex flex-col lg:flex-row gap-4 items-start">
+          <div className="flex flex-col lg:flex-row gap-8 lg:gap-4 items-start">
             {/* Description */}
             <div className="w-full lg:w-[280px] shrink-0">
               <p className="font-body text-sm leading-4 text-neutral-600">
