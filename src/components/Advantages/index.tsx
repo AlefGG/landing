@@ -1,6 +1,5 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { SectionTitle } from "../ui";
 
 const advantages = [
   { key: "fast", icon: "/assets/icons/icon-fast.svg" },
@@ -13,18 +12,22 @@ export default function Advantages() {
   const { t } = useTranslation();
 
   return (
-    <section className="w-full py-16 lg:py-24" id="advantages">
-      <div className="max-w-[1216px] mx-auto px-4 lg:px-8">
-        <SectionTitle>{t("advantages.title")}</SectionTitle>
+    <section className="w-full py-[88px] bg-white" id="advantages">
+      <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
+        <h2 className="font-heading font-extrabold text-[28px] leading-[32px] lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center">
+          {t("advantages.title1")}
+          <span className="text-cta-main">{t("advantages.titleHighlight")}</span>
+        </h2>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-0 mt-10">
+        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:flex lg:gap-[16px] lg:mt-[32px]">
           {advantages.map((adv, i) => (
-            <div key={adv.key} className="flex">
+            <div key={adv.key} className="flex lg:contents">
               {i > 0 && (
                 <div className="hidden lg:block w-px bg-neutral-300 self-stretch" />
               )}
               <motion.div
-                className="flex flex-col items-center text-center px-6 py-8 flex-1"
+                className="flex flex-col items-center text-center px-[32px] py-[40px] rounded-[24px] flex-1 lg:w-[280px] lg:shrink-0"
+                style={i === 3 ? { boxShadow: "0px 8px 20px 0px rgba(94,117,138,0.18)" } : undefined}
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
@@ -33,13 +36,15 @@ export default function Advantages() {
                 <img
                   src={adv.icon}
                   alt=""
-                  className="w-[104px] h-[104px] mb-6"
+                  width={104}
+                  height={104}
+                  className="w-[104px] h-[104px]"
                   loading="lazy"
                 />
-                <h4 className="font-heading font-extrabold text-[20px] lg:text-[24px] text-neutral-800">
+                <h4 className="font-heading font-extrabold text-[24px] leading-[24px] text-neutral-800 mt-[24px]">
                   {t(`advantages.${adv.key}.title`)}
                 </h4>
-                <p className="font-body text-base text-neutral-500 mt-4">
+                <p className="font-body text-[16px] leading-[24px] text-neutral-500 mt-[16px]">
                   {t(`advantages.${adv.key}.description`)}
                 </p>
               </motion.div>
