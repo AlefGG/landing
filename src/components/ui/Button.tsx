@@ -22,9 +22,9 @@ type AsLink = BaseProps &
 type ButtonProps = AsButton | AsLink;
 
 const variantClasses: Record<ButtonVariant, string> = {
-  cta: "bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white rounded-full",
+  cta: "bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white rounded-[24px]",
   ghost:
-    "border-[1.5px] border-cta-main text-cta-main bg-transparent rounded-full",
+    "border-[1.5px] border-cta-main text-cta-main bg-white/20 rounded-[40px]",
   text: "text-neutral-600 bg-transparent",
 };
 

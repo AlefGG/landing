@@ -24,23 +24,23 @@ export default function Header() {
     <header className="w-full">
       {/* Top bar */}
       <div className="bg-white border-b border-neutral-200">
-        <div className="max-w-[1216px] mx-auto px-4 lg:px-8 flex items-center justify-end h-12 gap-6">
+        <div className="max-w-[1216px] mx-auto px-4 lg:px-8 flex items-center justify-end h-12 gap-8">
           <a
             href="tel:+77025672091"
-            className="flex items-center gap-2 text-sm font-body text-neutral-700"
+            className="flex items-center gap-1 text-sm font-semibold font-body text-neutral-500"
           >
-            <img src="/assets/icons/phone.svg" alt="" className="w-6 h-6" />
             {t("nav.phone")}
+            <img src="/assets/icons/phone.svg" alt="" className="w-6 h-6" />
           </a>
           <a
             href="https://wa.me/77025672091"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-2 text-sm font-body text-neutral-700"
+            className="flex items-center gap-1 text-sm font-semibold font-body text-[#25D366]"
             aria-label="WhatsApp"
           >
-            <img src="/assets/icons/whatsapp.svg" alt="" className="w-8 h-8" />
             {t("nav.whatsapp")}
+            <img src="/assets/icons/whatsapp.svg" alt="" className="w-8 h-8" />
           </a>
           <div className="hidden lg:block">
             <LanguageSwitcher />
@@ -80,7 +80,7 @@ export default function Header() {
 
           {/* Desktop CTA buttons */}
           <motion.div
-            className="hidden lg:flex items-center gap-4"
+            className="hidden lg:flex items-center gap-6"
             initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
             animate={{ opacity: 1, y: 0 }}
             transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.8, duration: 0.4 }}
