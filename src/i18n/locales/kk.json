@@ -70,14 +70,14 @@
     "heading": "Компания туралы",
     "years": "10",
     "yearsUnit": "жыл",
-    "yearsLabel": "тазалық нарығында",
+    "yearsLabel": "Тазалық нарығында 10 жыл",
     "cabinsCount": "3500+",
-    "cabinsLabel": "техника бірлігі қызмет көрсетілді",
+    "cabinsLabel": "3500+ орындалған тапсырыс",
     "people": "50 000+",
-    "peopleLabel": "адам сервис алды",
+    "peopleLabel": "Жыл сайын 50 000+ адам",
     "partnersCount": "~50",
-    "partnersLabel": "B2B серіктестер",
-    "link": "Толығырақ"
+    "partnersLabel": "50 тұрақты B2B клиент",
+    "link": "Компания туралы"
   },
   "partners": {
     "title": "Бізді құрылыс компаниялары таңдайды"

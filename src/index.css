@@ -5,12 +5,15 @@
   --color-cta-blue: #036CB5;
   --color-cta-gradient-from: #6AC112;
   --color-cta-gradient-to: #4C9702;
+  --color-neutral-900: #222A2F;
   --color-neutral-800: #3C4449;
   --color-neutral-700: #596267;
   --color-neutral-600: #798286;
   --color-neutral-500: #949DA1;
   --color-neutral-300: #CED8DC;
   --color-neutral-200: #E2E8F0;
+  --color-blue-20: #CADEF1;
+  --color-status-rated: #FFC62A;
 
   --font-heading: "Nunito Sans", sans-serif;
   --font-body: "Noto Sans", sans-serif;

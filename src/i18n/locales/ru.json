@@ -70,14 +70,14 @@
     "heading": "О компании",
     "years": "10",
     "yearsUnit": "лет",
-    "yearsLabel": "на рынке чистоты",
+    "yearsLabel": "10 лет на рынке чистоты",
     "cabinsCount": "3500+",
-    "cabinsLabel": "единиц техники обслужено",
+    "cabinsLabel": "3500+ выполненных заказов",
     "people": "50 000+",
-    "peopleLabel": "человек получили сервис",
+    "peopleLabel": "50 000+ человек ежегодно",
     "partnersCount": "~50",
-    "partnersLabel": "B2B партнёров",
-    "link": "Подробнее"
+    "partnersLabel": "50 постоянных B2B клиентов",
+    "link": "О компании"
   },
   "partners": {
     "title": "Нас выбирают застройщики"
