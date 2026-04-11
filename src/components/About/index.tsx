@@ -1,88 +1,113 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
-import { SectionTitle } from "../ui";
 
 const facts = [
-  { key: "years", valueKey: "years", unitKey: "yearsUnit" },
-  { key: "cabins", valueKey: "cabinsCount" },
-  { key: "people", valueKey: "people" },
-  { key: "partners", valueKey: "partnersCount" },
+  { value: "about.years" as const, unit: "about.yearsUnit" as const, desc: "about.yearsDesc" as const },
+  { value: "about.cabinsCount" as const, desc: "about.cabinsDesc" as const },
+  { value: "about.people" as const, desc: "about.peopleDesc" as const },
+  { value: "about.partnersCount" as const, desc: "about.partnersDesc" as const },
 ] as const;
 
 export default function About() {
   const { t } = useTranslation();
 
   return (
-    <section className="relative w-full py-16 lg:py-24 overflow-hidden" id="about">
-      {/* Background image — desktop only */}
-      <div className="absolute inset-0 hidden lg:block">
+    <section
+      className="relative w-full h-[768px] overflow-hidden bg-white"
+      id="about"
+      aria-labelledby="about-heading"
+    >
+      {/* Blurred background photo with right-fade gradient */}
+      <div className="absolute inset-0 pointer-events-none">
         <img
           src="/assets/images/about-bg.jpg"
           alt=""
-          className="w-full h-full object-cover"
+          className="absolute -top-[14px] -left-[23px] w-[1635px] h-[1031px] object-cover blur-[5.5px]"
           loading="lazy"
         />
+        <div className="absolute inset-0 bg-gradient-to-l from-transparent from-[34.3%] to-white/50 to-[72.2%]" />
       </div>
 
-      <div className="relative max-w-[1216px] mx-auto px-4 lg:px-8">
+      {/* Decorative circular badge top-right */}
+      <img
+        src="/assets/logos/footer-badge.svg"
+        alt=""
+        width={128}
+        height={128}
+        className="absolute top-[82px] right-[162px] w-32 h-32 hidden lg:block pointer-events-none"
+        loading="lazy"
+      />
+
+      {/* Left content column, vertically centered */}
+      <div className="relative max-w-[1216px] mx-auto px-4 lg:px-0 h-full flex items-center">
         <motion.div
-          className="lg:w-1/2"
+          className="w-full lg:w-[592px] flex flex-col gap-[72px]"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
           transition={{ duration: 0.6 }}
         >
-          <SectionTitle className="text-left">{t("about.heading")}</SectionTitle>
+          <h2
+            id="about-heading"
+            className="font-heading font-extrabold text-[40px] leading-[40px] text-neutral-900"
+          >
+            {t("about.heading")}
+          </h2>
 
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
-            {facts.map((fact, i) => {
-              const unitKey = "unitKey" in fact ? fact.unitKey : undefined;
-              return (
-                <motion.div
-                  key={fact.key}
-                  className="bg-white/90 backdrop-blur-sm rounded-2xl p-6"
-                  initial={{ opacity: 0, y: 20 }}
-                  whileInView={{ opacity: 1, y: 0 }}
-                  viewport={{ once: true }}
-                  transition={{ duration: 0.5, delay: i * 0.1 }}
+          <div className="flex flex-col gap-[80px]">
+            <div className="flex flex-wrap gap-y-[40px] gap-x-[32px]">
+              {facts.map((fact) => (
+                <div
+                  key={fact.value}
+                  className="flex flex-col items-start gap-2 w-[280px]"
                 >
-                  <span className="font-heading font-light text-[36px] leading-[56px] text-cta-main">
-                    {t(`about.${fact.valueKey}`)}
-                    {unitKey && (
-                      <span className="text-[24px] ml-1">
-                        {t(`about.${unitKey}`)}
+                  <span className="font-heading font-extrabold text-[40px] leading-[40px] text-cta-main">
+                    {t(fact.value)}
+                    {"unit" in fact && (
+                      <span className="ml-2 text-[24px] leading-[24px] align-baseline">
+                        {t(fact.unit)}
                       </span>
                     )}
                   </span>
-                  <p className="font-body text-sm text-neutral-700 mt-1">
-                    {t(`about.${fact.key}Label`)}
+                  <p className="font-body font-normal text-[20px] leading-[24px] text-neutral-800">
+                    {t(fact.desc)}
                   </p>
-                </motion.div>
-              );
-            })}
+                </div>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              className="inline-flex items-center gap-2 font-body font-semibold text-[16px] leading-[24px] text-cta-blue underline hover:no-underline"
+            >
+              {t("about.link")}
+              <svg
+                width="16"
+                height="16"
+                viewBox="0 0 16 16"
+                fill="none"
+                aria-hidden="true"
+              >
+                <path
+                  d="M9.62 3.95L13.67 8L9.62 12.05"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeMiterlimit="10"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+                <path
+                  d="M2.33 8H13.55"
+                  stroke="currentColor"
+                  strokeWidth="1.5"
+                  strokeMiterlimit="10"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </button>
           </div>
-
-          <motion.a
-            href="#"
-            className="inline-flex items-center gap-2 mt-6 text-cta-main font-body font-semibold hover:underline"
-            initial={{ opacity: 0 }}
-            whileInView={{ opacity: 1 }}
-            viewport={{ once: true }}
-            transition={{ delay: 0.6 }}
-          >
-            {t("about.link")} →
-          </motion.a>
         </motion.div>
-      </div>
-
-      {/* Footer badge — desktop only */}
-      <div className="absolute top-20 right-8 hidden lg:block">
-        <img
-          src="/assets/logos/footer-badge.svg"
-          alt=""
-          className="w-32 h-32"
-          loading="lazy"
-        />
       </div>
     </section>
   );

@@ -77,7 +77,11 @@
     "peopleLabel": "50 000+ человек ежегодно",
     "partnersCount": "~50",
     "partnersLabel": "50 постоянных B2B клиентов",
-    "link": "О компании"
+    "link": "О компании",
+    "yearsDesc": "на рынке чистоты",
+    "cabinsDesc": "выполненных заказов",
+    "peopleDesc": "человек ежегодно",
+    "partnersDesc": "постоянных B2B клиентов"
   },
   "partners": {
     "title": "Нас выбирают застройщики"
