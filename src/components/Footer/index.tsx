@@ -12,14 +12,20 @@ function Divider() {
   );
 }
 
+function MobileDivider() {
+  return (
+    <div className="lg:hidden h-px w-full bg-neutral-200" />
+  );
+}
+
 export default function Footer() {
   const { t } = useTranslation();
 
   return (
-    <footer className="relative bg-[#efefef] pt-[88px]">
+    <footer className="relative bg-[#f8fafc] lg:bg-[#efefef] pt-[72px] lg:pt-[88px]">
       {/* Circular badge */}
-      <div className="absolute left-1/2 -translate-x-1/2 top-[24px] z-10">
-        <div className="bg-white rounded-full w-[128px] h-[128px] flex items-center justify-center">
+      <div className="absolute left-1/2 -translate-x-1/2 top-[40px] lg:top-[24px] z-10">
+        <div className="bg-white rounded-full w-[64px] h-[64px] lg:w-[128px] lg:h-[128px] flex items-center justify-center shadow-[0px_5px_14px_0px_rgba(93,96,120,0.2)] lg:shadow-none">
           <img
             src="/assets/logos/footer-badge.svg"
             alt={t("a11y.brandLogo")}
@@ -28,9 +34,9 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="bg-white border-t border-neutral-200 pt-[96px] pb-[40px]">
-        <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
-          <div className="flex flex-col lg:flex-row gap-8 lg:gap-4 items-start">
+      <div className="bg-[#f8fafc] lg:bg-white border-t border-neutral-200 pt-[48px] pb-[72px] px-6 lg:pt-[96px] lg:pb-[40px] lg:px-0">
+        <div className="max-w-[1216px] mx-auto lg:px-0">
+          <div className="flex flex-col lg:flex-row gap-4 lg:gap-4 items-start">
             {/* Description */}
             <div className="w-full lg:w-[280px] shrink-0">
               <p className="font-body text-sm leading-4 text-neutral-600">
@@ -39,9 +45,10 @@ export default function Footer() {
             </div>
 
             <Divider />
+            <MobileDivider />
 
             {/* Services */}
-            <div className="flex flex-col gap-2 flex-1 min-w-0">
+            <div className="flex flex-col gap-2 w-full lg:flex-1 lg:min-w-0">
               <span className="font-body text-sm leading-4 text-neutral-600">
                 {t("buttons.sale")}
               </span>
@@ -60,6 +67,7 @@ export default function Footer() {
             </div>
 
             <Divider />
+            <MobileDivider />
 
             {/* Info links */}
             <div className="flex flex-col gap-2 w-full lg:w-[280px] shrink-0">
@@ -75,6 +83,7 @@ export default function Footer() {
             </div>
 
             <Divider />
+            <MobileDivider />
 
             {/* Contacts */}
             <div className="flex flex-col gap-2 w-full lg:w-[280px] shrink-0">
@@ -108,7 +117,7 @@ export default function Footer() {
           </div>
 
           {/* Copyright */}
-          <p className="font-body text-sm leading-4 text-neutral-300 text-center mt-12">
+          <p className="font-body text-sm leading-4 text-neutral-300 text-center mt-8 lg:mt-12">
             {t("footer.copyright")}
           </p>
         </div>
