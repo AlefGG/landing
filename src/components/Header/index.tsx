@@ -22,8 +22,8 @@ export default function Header() {
 
   return (
     <header className="w-full">
-      {/* Top bar — phone + whatsapp + lang */}
-      <div className="bg-white">
+      {/* Top bar — phone + whatsapp + lang (desktop only) */}
+      <div className="hidden lg:block bg-white">
         <div className="max-w-[1216px] mx-auto px-4 lg:px-8 flex items-center justify-end h-12 gap-8">
           <a
             href="tel:+77025672091"
@@ -50,13 +50,13 @@ export default function Header() {
 
       {/* Main nav */}
       <nav className="bg-white/80 backdrop-blur-sm sticky top-0 z-40">
-        <div className="max-w-[1216px] mx-auto px-4 lg:px-8 flex items-center justify-between h-16">
+        <div className="max-w-[1216px] mx-auto px-3 lg:px-8 flex items-center justify-between gap-4 h-10 lg:h-16">
           {/* Logo */}
           <a href="/" className="shrink-0" aria-label={t("meta.brandName")}>
             <img
               src="/assets/logos/logo.svg"
               alt={t("a11y.brandLogo")}
-              className="h-12 w-auto"
+              className="h-10 w-auto lg:h-12"
             />
           </a>
 
@@ -96,17 +96,48 @@ export default function Header() {
             </Button>
           </motion.div>
 
-          {/* Mobile burger */}
-          <button
-            type="button"
-            className="lg:hidden p-2"
-            onClick={() => setMenuOpen(!menuOpen)}
-            aria-expanded={menuOpen}
-            aria-controls="mobile-menu"
-            aria-label={menuOpen ? t("a11y.closeMenu") : t("a11y.openMenu")}
-          >
-            <img src="/assets/icons/menu.svg" alt="" className="w-6 h-6" />
-          </button>
+          {/* Mobile phone + whatsapp + burger */}
+          <div className="flex lg:hidden items-center gap-4 ml-auto">
+            <a
+              href="tel:+77025672091"
+              className="flex items-center gap-1 text-[13px] leading-4 font-semibold font-body text-neutral-800"
+            >
+              <img src="/assets/icons/phone.svg" alt="" className="w-6 h-6" />
+              {t("nav.phone")}
+            </a>
+            <a
+              href="https://wa.me/77025672091"
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="WhatsApp"
+              className="shrink-0"
+            >
+              <img src="/assets/icons/whatsapp.svg" alt="" className="w-8 h-8" />
+            </a>
+            <button
+              type="button"
+              className="shrink-0"
+              onClick={() => setMenuOpen(!menuOpen)}
+              aria-expanded={menuOpen}
+              aria-controls="mobile-menu"
+              aria-label={menuOpen ? t("a11y.closeMenu") : t("a11y.openMenu")}
+            >
+              <img src="/assets/icons/menu.svg" alt="" className="w-6 h-6" />
+            </button>
+          </div>
+        </div>
+
+        {/* Mobile sub-nav buttons */}
+        <div className="lg:hidden flex items-center justify-between px-3 pt-6 pb-0 gap-2">
+          <Button variant="cta" size="sm" href="#" className="rounded-[40px] w-[94px]">
+            {t("buttons.rental")}
+          </Button>
+          <Button variant="ghost" size="sm" href="#" className="w-[128px]">
+            {t("buttons.sanitation")}
+          </Button>
+          <Button variant="ghost" size="sm" href="#" className="w-[100px]">
+            {t("buttons.sale")}
+          </Button>
         </div>
       </nav>
 
