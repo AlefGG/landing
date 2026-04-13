@@ -2,10 +2,10 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 
 const facts = [
-  { value: "about.years" as const, unit: "about.yearsUnit" as const, desc: "about.yearsDesc" as const },
-  { value: "about.cabinsCount" as const, desc: "about.cabinsDesc" as const },
-  { value: "about.people" as const, desc: "about.peopleDesc" as const },
-  { value: "about.partnersCount" as const, desc: "about.partnersDesc" as const },
+  { value: "about.years" as const, unit: "about.yearsUnit" as const, desc: "about.yearsDesc" as const, label: "about.yearsLabel" as const },
+  { value: "about.cabinsCount" as const, desc: "about.cabinsDesc" as const, label: "about.cabinsLabel" as const },
+  { value: "about.people" as const, desc: "about.peopleDesc" as const, label: "about.peopleLabel" as const },
+  { value: "about.partnersCount" as const, desc: "about.partnersDesc" as const, label: "about.partnersLabel" as const },
 ] as const;
 
 export default function About() {
@@ -13,26 +13,64 @@ export default function About() {
 
   return (
     <section
-      className="relative w-full min-h-[500px] lg:h-[clamp(600px,45vw,900px)] overflow-hidden bg-white"
+      className="relative w-full bg-[#ecece8] lg:bg-white lg:min-h-[500px] lg:h-[clamp(600px,45vw,900px)] lg:overflow-hidden"
       id="about"
-      aria-labelledby="about-heading"
+      aria-labelledby="about-heading-mobile about-heading"
     >
-      {/* Background photo — NO blur, stretches full width */}
-      <div className="absolute inset-0 pointer-events-none">
+      {/* Mobile layout */}
+      <div className="lg:hidden flex flex-col items-center pt-12 px-3">
+        <h2
+          id="about-heading-mobile"
+          className="font-heading font-semibold text-[24px] leading-[24px] text-neutral-900 w-full"
+        >
+          {t("about.heading")}
+        </h2>
+
+        <div className="mt-4 grid grid-cols-2 gap-x-4 gap-y-4 w-full pb-4">
+          {facts.map((fact) => (
+            <div key={fact.value} className="flex flex-col items-start w-[160px]">
+              <div className="flex items-start h-[56px]">
+                <span className="font-heading font-extrabold text-[40px] leading-[56px] text-cta-main">
+                  {t(fact.value)}
+                </span>
+                {"unit" in fact && (
+                  <span className="ml-1 mt-[6px] font-heading font-extrabold text-[20px] leading-[24px] text-cta-main">
+                    {t(fact.unit)}
+                  </span>
+                )}
+              </div>
+              <p className="font-body font-normal text-[13px] leading-4 text-neutral-800">
+                {t(fact.label)}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        <div className="w-screen h-[227px] relative overflow-hidden">
+          <img
+            src="/assets/images/about-bg.jpg"
+            alt=""
+            className="absolute inset-0 w-full h-full object-cover object-top"
+            loading="lazy"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-transparent from-[88%] to-[#ecece8]" />
+        </div>
+      </div>
+
+      {/* Desktop layout — unchanged */}
+      <div className="hidden lg:block absolute inset-0 pointer-events-none">
         <img
           src="/assets/images/about-bg.jpg"
           alt=""
           className="absolute inset-0 w-full h-full object-cover object-top"
           loading="lazy"
         />
-        {/* Gradient overlay: solid white on the left fading to transparent on the right */}
         <div className="absolute inset-0 bg-gradient-to-r from-white from-[10%] via-white/90 via-[35%] to-transparent to-[65%]" />
       </div>
 
-      {/* Left content column, vertically centered */}
-      <div className="relative max-w-[1600px] mx-auto px-4 sm:px-8 lg:px-[192px] h-full flex items-center py-12 lg:py-0">
+      <div className="hidden lg:flex relative max-w-[1600px] mx-auto px-[192px] h-full items-center">
         <motion.div
-          className="w-full sm:w-[min(592px,60vw)] lg:w-[592px] flex flex-col gap-10 lg:gap-[72px]"
+          className="w-[592px] flex flex-col gap-[72px]"
           initial={{ opacity: 0, y: 20 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true }}
@@ -40,29 +78,29 @@ export default function About() {
         >
           <h2
             id="about-heading"
-            className="font-heading font-extrabold text-[28px] leading-[32px] lg:text-[40px] lg:leading-[40px] text-neutral-900"
+            className="font-heading font-extrabold text-[40px] leading-[40px] text-neutral-900"
           >
             {t("about.heading")}
           </h2>
 
-          <div className="flex flex-col gap-10 lg:gap-[80px]">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-y-10 gap-x-8 lg:w-[592px]">
+          <div className="flex flex-col gap-[80px]">
+            <div className="grid grid-cols-2 gap-y-10 gap-x-8 w-[592px]">
               {facts.map((fact) => (
                 <div
                   key={fact.value}
                   className="flex flex-col items-start gap-2 w-[280px]"
                 >
                   <div className="flex items-start">
-                    <span className="font-heading font-extrabold text-[48px] leading-[56px] lg:text-[64px] lg:leading-[72px] text-cta-main">
+                    <span className="font-heading font-extrabold text-[64px] leading-[72px] text-cta-main">
                       {t(fact.value)}
                     </span>
                     {"unit" in fact && (
-                      <span className="ml-1 mt-[2px] lg:mt-[4px] font-heading font-extrabold text-[24px] leading-[28px] lg:text-[32px] lg:leading-[36px] text-cta-main">
+                      <span className="ml-1 mt-[4px] font-heading font-extrabold text-[32px] leading-[36px] text-cta-main">
                         {t(fact.unit)}
                       </span>
                     )}
                   </div>
-                  <p className="font-body font-normal text-base leading-6 lg:text-[20px] lg:leading-[24px] text-neutral-800">
+                  <p className="font-body font-normal text-[20px] leading-[24px] text-neutral-800">
                     {t(fact.desc)}
                   </p>
                 </div>
