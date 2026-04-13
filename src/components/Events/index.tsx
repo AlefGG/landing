@@ -12,15 +12,45 @@ export default function Events() {
 
   return (
     <section
-      className="w-full bg-gradient-to-b from-neutral-800 to-[#21272b] py-[88px]"
+      className="w-full bg-gradient-to-b from-neutral-800 to-[#21272b] py-[40px] lg:py-[88px]"
       id="events"
     >
-      <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
-        <h2 className="font-heading font-extrabold text-[28px] leading-[32px] lg:text-[40px] lg:leading-[40px] text-white text-center">
+      <div className="max-w-[1216px] mx-auto px-3 lg:px-0">
+        <h2 className="font-heading font-semibold lg:font-extrabold text-[24px] leading-[24px] lg:text-[40px] lg:leading-[40px] text-white text-center">
           {t("events.title")}
         </h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-[32px] mt-[32px]">
+        {/* Mobile: stacked horizontal cards */}
+        <div className="flex flex-col lg:hidden mt-[32px]">
+          {events.map((event) => (
+            <div
+              key={event.key}
+              className="flex flex-row items-start justify-center gap-4 px-4 py-6"
+            >
+              <img
+                src={event.icon}
+                alt=""
+                width={56}
+                height={56}
+                className="w-14 h-14 shrink-0 object-contain"
+                loading="lazy"
+              />
+              <div className="flex flex-1 flex-col gap-2 min-w-0">
+                <h3 className="font-body font-extrabold text-[16px] leading-[16px] text-white">
+                  {t(`events.${event.key}`)}
+                </h3>
+                {event.key === "festivals" && (
+                  <p className="font-body font-normal text-[13px] leading-4 text-neutral-200">
+                    {t("events.festivalsSubtitle")}
+                  </p>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: 3-column grid */}
+        <div className="hidden lg:grid grid-cols-3 gap-[32px] mt-[32px]">
           {events.map((event, i) => (
             <motion.div
               key={event.key}
