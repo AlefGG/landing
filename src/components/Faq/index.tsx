@@ -13,9 +13,9 @@ export default function Faq() {
   };
 
   return (
-    <section className="w-full bg-[#efefef] py-[88px]" id="faq">
-      <div className="max-w-[1216px] mx-auto px-4 lg:px-0 flex flex-col items-center gap-8">
-        <h2 className="font-heading font-extrabold text-[28px] leading-[32px] lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center">
+    <section className="w-full bg-[#efefef] py-[40px] lg:py-[88px]" id="faq">
+      <div className="max-w-[1216px] mx-auto px-3 lg:px-0 flex flex-col items-center gap-8">
+        <h2 className="font-heading font-semibold lg:font-extrabold text-[24px] leading-[24px] lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center">
           {t("faq.title")}
           <span className="text-cta-main">{t("faq.titleHighlight")}</span>
         </h2>
@@ -35,15 +35,15 @@ export default function Faq() {
                 <button
                   type="button"
                   onClick={() => toggle(i)}
-                  className="w-full flex items-center justify-between p-4 lg:p-6 text-left"
+                  className="w-full flex items-start justify-between p-6 text-left"
                   aria-expanded={isOpen}
                   aria-controls={`faq-answer-${i}`}
                 >
-                  <span className="flex items-start gap-0">
+                  <span className="flex items-start gap-0 flex-1 min-w-0">
                     <span className="font-body font-semibold text-xl leading-6 text-cta-main w-8 shrink-0">
                       {i + 1}.
                     </span>
-                    <span className="font-body font-semibold text-base lg:text-xl leading-6 text-neutral-800">
+                    <span className="font-heading font-medium text-base leading-4 lg:leading-6 lg:text-xl text-neutral-800">
                       {t(`faq.${key}.question`)}
                     </span>
                   </span>
@@ -74,7 +74,7 @@ export default function Faq() {
                       transition={{ duration: 0.3 }}
                       className="overflow-hidden"
                     >
-                      <p className="px-4 pb-4 pl-10 lg:px-6 lg:pb-6 lg:pl-14 font-body text-sm lg:text-base leading-6 text-neutral-500">
+                      <p className="pl-14 pr-6 pb-6 -mt-2 font-body text-[13px] leading-4 lg:text-base lg:leading-6 text-neutral-500">
                         {t(`faq.${key}.answer`)}
                       </p>
                     </motion.div>
