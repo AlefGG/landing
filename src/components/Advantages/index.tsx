@@ -12,21 +12,51 @@ export default function Advantages() {
   const { t } = useTranslation();
 
   return (
-    <section className="w-full py-[88px] bg-white" id="advantages">
-      <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
-        <h2 className="font-heading font-extrabold text-[28px] leading-[32px] lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center">
+    <section className="w-full py-[40px] lg:py-[88px] bg-white" id="advantages">
+      <div className="max-w-[1216px] mx-auto px-3 lg:px-0">
+        <h2 className="font-heading font-semibold lg:font-extrabold text-[24px] leading-[24px] lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center">
           {t("advantages.title1")}
           <span className="text-cta-main">{t("advantages.titleHighlight")}</span>
         </h2>
 
-        <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:flex lg:gap-[16px] lg:mt-[32px]">
+        {/* Mobile: stacked horizontal cards with dividers */}
+        <div className="flex flex-col lg:hidden mt-[32px] gap-[16px]">
           {advantages.map((adv, i) => (
-            <div key={adv.key} className="flex lg:contents">
+            <div key={adv.key}>
               {i > 0 && (
-                <div className="hidden lg:block w-px bg-neutral-300 self-stretch" />
+                <div className="h-px w-full bg-neutral-300 mb-[16px]" />
+              )}
+              <div className="flex flex-row items-start justify-center gap-[16px] px-[12px] py-[8px]">
+                <img
+                  src={adv.icon}
+                  alt=""
+                  width={48}
+                  height={48}
+                  className="w-12 h-12 shrink-0 object-contain"
+                  loading="lazy"
+                />
+                <div className="flex flex-1 flex-col gap-[16px] min-w-0">
+                  <h3 className="font-heading font-extrabold text-[16px] leading-[16px] text-neutral-900">
+                    {t(`advantages.${adv.key}.title`)}
+                  </h3>
+                  <p className="font-body font-normal text-[13px] leading-4 text-neutral-500">
+                    {t(`advantages.${adv.key}.description`)}
+                  </p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        {/* Desktop: horizontal row with vertical dividers */}
+        <div className="hidden lg:flex lg:gap-[16px] lg:mt-[32px]">
+          {advantages.map((adv, i) => (
+            <div key={adv.key} className="contents">
+              {i > 0 && (
+                <div className="w-px bg-neutral-300 self-stretch" />
               )}
               <motion.div
-                className="flex flex-col items-center text-center px-[32px] py-[40px] flex-1 lg:w-[280px] lg:shrink-0"
+                className="flex flex-col items-center text-center px-[32px] py-[40px] w-[280px] shrink-0"
                 initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
