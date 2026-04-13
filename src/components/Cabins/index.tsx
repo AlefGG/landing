@@ -14,19 +14,19 @@ export default function Cabins() {
   return (
     <section className="w-full bg-[#efefef] py-[88px]" id="cabins">
       <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
-        <h2 className="font-heading font-extrabold text-[32px] leading-[36px] lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center">
+        <h2 className="font-heading font-extrabold text-2xl leading-6 lg:text-[40px] lg:leading-[40px] text-neutral-800 text-left lg:text-center">
           {t("cabins.title1")}
           <span className="text-cta-main">{t("cabins.titleHighlight")}</span>
         </h2>
-        <p className="font-body text-base lg:text-xl leading-6 text-neutral-700 text-center mt-8 whitespace-pre-line">
+        <p className="font-body text-base lg:text-xl leading-6 text-neutral-700 text-left lg:text-center mt-8 whitespace-pre-line">
           {t("cabins.subtitle")}
         </p>
 
-        <div className="mt-8 flex lg:grid lg:grid-cols-3 gap-8 overflow-x-auto lg:overflow-visible snap-x snap-mandatory pb-4 lg:pb-0">
+        <div className="mt-8 flex flex-col lg:grid lg:grid-cols-3 gap-8 lg:pb-0">
           {cabins.map((cabin, i) => (
             <motion.div
               key={cabin.key}
-              className="relative bg-white rounded-[24px] min-w-[280px] sm:min-w-[304px] lg:min-w-0 snap-center flex flex-col items-center px-6 sm:px-10 pt-6 pb-8"
+              className="relative bg-white rounded-[24px] w-full flex flex-col items-center px-6 sm:px-10 pt-6 pb-8"
               initial={{ opacity: 0, y: 20 }}
               whileInView={{ opacity: 1, y: 0 }}
               viewport={{ once: true }}
