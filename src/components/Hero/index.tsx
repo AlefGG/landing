@@ -48,6 +48,44 @@ function StatCard({
   );
 }
 
+function MobileStat({
+  value,
+  label,
+  numericEnd,
+  prefix = "",
+  suffix = "",
+}: {
+  value: string;
+  label: string;
+  numericEnd?: number;
+  prefix?: string;
+  suffix?: string;
+}) {
+  const ref = useRef(null);
+  const inView = useInView(ref, { once: true });
+  const prefersReducedMotion = useReducedMotion() ?? false;
+  const count = useCountUp({
+    end: numericEnd ?? 0,
+    duration: prefersReducedMotion ? 0 : 2000,
+    enabled: inView && numericEnd !== undefined,
+  });
+
+  return (
+    <motion.div
+      ref={ref}
+      className="flex-1 min-w-0 flex flex-col gap-2 items-start bg-white rounded-[12px] p-2 shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)]"
+      {...fadeUp(1, prefersReducedMotion)}
+    >
+      <span className="font-heading font-light text-2xl leading-6 text-cta-main w-full">
+        {numericEnd !== undefined ? `${prefix}${count}${suffix}` : value}
+      </span>
+      <span className="font-body text-[10px] leading-3 text-neutral-700 w-full">
+        {label}
+      </span>
+    </motion.div>
+  );
+}
+
 export default function Hero() {
   const { t } = useTranslation();
   const prefersReducedMotion = useReducedMotion() ?? false;
@@ -151,63 +189,73 @@ export default function Hero() {
       </div>
 
       {/* Mobile layout */}
-      <div className="lg:hidden max-w-[1216px] mx-auto px-4 py-8">
-        <img
-          src="/assets/images/hero-bg.png"
-          alt={t("a11y.heroCity")}
-          className="hidden sm:block w-full h-[200px] object-cover rounded-[24px] mb-6"
-        />
+      <div className="lg:hidden flex flex-col items-center gap-4 pt-6 pb-4">
+        {/* Title + subtitle/24-7 card row */}
+        <div className="w-full px-3 flex flex-col gap-4 items-start">
+          <motion.h1
+            id="hero-heading-mobile"
+            className="font-heading font-extrabold text-[32px] leading-[32px] text-cta-main text-left w-full"
+            {...fadeUp(0.4, prefersReducedMotion)}
+          >
+            {t("hero.title1")}
+            <span className="text-cta-blue">{t("hero.titleHighlight")}</span>
+            {t("hero.title2")}
+          </motion.h1>
 
-        <motion.h1
-          id="hero-heading-mobile"
-          className="font-heading font-extrabold text-[32px] leading-[36px] text-cta-main text-center"
-          {...fadeUp(0.4, prefersReducedMotion)}
-        >
-          {t("hero.title1")}
-          <span className="text-cta-blue">{t("hero.titleHighlight")}</span>
-          {t("hero.title2")}
-        </motion.h1>
+          <div className="flex gap-4 items-start w-full">
+            <motion.div
+              className="flex flex-col gap-2 w-[182px] shrink-0"
+              {...fadeUp(0.6, prefersReducedMotion)}
+            >
+              <p className="font-body font-semibold text-base leading-6 text-neutral-800 opacity-80">
+                {t("hero.subtitle")}
+              </p>
+              <p className="font-body text-[11px] leading-4 text-neutral-600 opacity-80">
+                {t("hero.tags")}
+              </p>
+            </motion.div>
 
-        <motion.p
-          className="font-body text-base leading-6 text-neutral-700 mt-4 text-center max-w-[384px] mx-auto"
-          {...fadeUp(0.6, prefersReducedMotion)}
-        >
-          {t("hero.subtitle")}
-        </motion.p>
-
-        <motion.div
-          className="relative w-full max-w-[280px] h-[380px] mx-auto mt-8 bg-white rounded-3xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] overflow-hidden"
-          {...fadeUp(0.8, prefersReducedMotion)}
-        >
-          <div className="absolute top-6 left-6">
-            <p className="font-heading font-light text-2xl leading-[56px] text-neutral-700">
-              {t("hero.emergency")}
-            </p>
-            <p className="font-heading font-light text-[40px] leading-[56px] text-cta-main -mt-4">
-              {t("hero.emergencyBadge")}
-            </p>
+            <motion.div
+              className="relative w-[138px] h-[192px] shrink-0 bg-white rounded-[14.905px] shadow-[0px_4.968px_12.421px_0px_rgba(94,117,138,0.18)] overflow-hidden"
+              {...fadeUp(0.8, prefersReducedMotion)}
+            >
+              <p className="absolute top-[11px] left-[29px] font-body text-[11px] leading-3 text-neutral-700">
+                {t("hero.emergency")}
+              </p>
+              <p className="absolute top-[9px] left-[69px] font-heading font-light text-base leading-[34.779px] text-cta-main">
+                {t("hero.emergencyBadge")}
+              </p>
+              <img
+                src="/assets/images/cabin-hero.png"
+                alt={t("a11y.heroCabin")}
+                className="absolute left-[33px] top-[30px] w-[78px] h-[132px] object-contain"
+              />
+              <p className="absolute top-[168px] left-[8px] w-[122px] font-body text-[11px] leading-3 text-neutral-700 text-center whitespace-pre-line">
+                {t("hero.emergencyTime")}
+              </p>
+            </motion.div>
           </div>
-          <p className="absolute top-5 right-6 font-body text-base leading-6 text-neutral-700 text-right whitespace-pre-line">
-            {t("hero.emergencyTime")}
-          </p>
-          <img
-            src="/assets/images/cabin-hero.png"
-            alt={t("a11y.heroCabin")}
-            width={150}
-            height={252}
-            className="absolute left-1/2 -translate-x-1/2 bottom-3 h-[252px] w-[150px] object-contain"
-          />
-        </motion.div>
+        </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 sm:gap-6 mt-8 items-center sm:justify-center">
-          <StatCard value={t("stats.years")} label={t("stats.yearsLabel")} />
-          <StatCard
+        {/* City photo — 336x128 clipped frame, image 336x190 */}
+        <div className="w-full h-32 px-3 flex items-center justify-center overflow-hidden">
+          <img
+            src="/assets/images/hero-bg.png"
+            alt={t("a11y.heroCity")}
+            className="w-[336px] h-[190.453px] object-cover shrink-0"
+          />
+        </div>
+
+        {/* Stats row — 3 small cards */}
+        <div className="w-full px-3 flex gap-2 items-stretch h-[72px]">
+          <MobileStat value={t("stats.years")} label={t("stats.yearsLabel")} />
+          <MobileStat
             value={t("stats.partners")}
             label={t("stats.partnersLabel")}
             prefix="~"
             numericEnd={50}
           />
-          <StatCard
+          <MobileStat
             value={t("stats.orders")}
             label={t("stats.ordersLabel")}
             numericEnd={3500}
