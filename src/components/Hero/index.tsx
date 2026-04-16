@@ -108,13 +108,13 @@ export default function Hero() {
         />
       </div>
 
-      {/* City photo — positioned to overflow left of container */}
+      {/* Hero image — floating island, positioned per Figma */}
       <div className="hidden lg:block absolute inset-0 pointer-events-none">
         <div className="max-w-[1216px] mx-auto relative h-full">
           <img
             src="/assets/images/hero-bg.png"
             alt={t("a11y.heroCity")}
-            className="absolute left-[-116px] top-[176px] w-[926px] h-[525px] object-cover"
+            className="absolute left-[-132px] top-[2px] w-[995px] h-[743px] object-contain"
           />
         </div>
       </div>
@@ -244,12 +244,12 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* City photo — Figma 150:2963 image 106, full 336x190 render (no clipping) */}
+        {/* Hero image — floating island (mobile) */}
         <div className="relative z-10 w-full px-3 flex items-center justify-center">
           <img
             src="/assets/images/hero-bg.png"
             alt={t("a11y.heroCity")}
-            className="w-[336px] h-[190.453px] object-contain shrink-0 max-w-none"
+            className="w-[336px] h-[260px] object-contain shrink-0 max-w-none"
           />
         </div>
 
