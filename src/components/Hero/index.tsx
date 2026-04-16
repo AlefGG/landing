@@ -95,16 +95,17 @@ export default function Hero() {
       className="relative w-full overflow-x-clip bg-white mb-10 lg:mb-16"
       aria-labelledby="hero-heading"
     >
-      {/* Decorative background shape */}
-      <div className="hidden lg:block absolute inset-0 pointer-events-none">
-        <div className="max-w-[1216px] mx-auto relative h-full">
-          <img
-            src="/assets/images/hero-shape.svg"
-            alt=""
-            className="absolute top-0 left-0 w-full h-[712px] object-fill"
-            aria-hidden="true"
-          />
-        </div>
+      {/* Decorative background shape — shift up by 64px (navbar height) so it extends behind the sticky navbar, matching wizard pages */}
+      <div
+        className="hidden lg:block absolute left-1/2 -translate-x-1/2 w-[1216px] h-[712px] pointer-events-none"
+        style={{ top: "-64px" }}
+        aria-hidden="true"
+      >
+        <img
+          src="/assets/images/hero-shape.svg"
+          alt=""
+          className="w-full h-full"
+        />
       </div>
 
       {/* City photo — positioned to overflow left of container */}
