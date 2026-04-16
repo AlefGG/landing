@@ -10,10 +10,17 @@
   --color-neutral-700: #596267;
   --color-neutral-600: #798286;
   --color-neutral-500: #949DA1;
+  --color-neutral-400: #B1BBBF;
   --color-neutral-300: #CED8DC;
   --color-neutral-200: #E2E8F0;
   --color-blue-20: #CADEF1;
+  --color-blue-5: #EDF6FF;
+  --color-dark-blue-80: #396A8A;
+  --color-dark-blue-40: #7D9DB2;
   --color-status-rated: #FFC62A;
+  --color-status-alert-light: #FFF7DE;
+  --color-status-alert: #F2BC70;
+  --color-status-alert-dark: #E7A74C;
 
   --font-heading: "Nunito Sans", sans-serif;
   --font-body: "Noto Sans", sans-serif;
