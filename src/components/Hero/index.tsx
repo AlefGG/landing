@@ -189,9 +189,15 @@ export default function Hero() {
       </div>
 
       {/* Mobile layout */}
-      <div className="lg:hidden flex flex-col items-center gap-4 pt-6 pb-4">
+      <div className="lg:hidden relative flex flex-col items-center gap-4 pt-6 pb-4">
+        {/* Decorative background shape — Figma 150:2925 "Subtract". Gradient #F1F1F1 → #E3EFFF with rounded corners. Starts 40px above Hero (reaches into Header sub-nav area), ends just below the top of stats row (stat cards' white bg masks the rest). Frame is 382 wide vs 360 viewport → extends 11px past each side. Rendered via <div> (not <img>) so bottom anchoring works without an explicit height. */}
+        <div
+          aria-hidden="true"
+          className="pointer-events-none absolute left-[-11px] right-[-11px] top-[-40px] bottom-[52px] -z-0 rounded-[16px] bg-[linear-gradient(180deg,#F1F1F1_0%,#E3EFFF_100%)]"
+        />
+
         {/* Title + subtitle/24-7 card row */}
-        <div className="w-full px-3 flex flex-col gap-4 items-start">
+        <div className="relative z-10 w-full px-3 flex flex-col gap-4 items-start">
           <motion.h1
             id="hero-heading-mobile"
             className="font-heading font-extrabold text-[32px] leading-[32px] text-cta-main text-left w-full"
@@ -237,17 +243,17 @@ export default function Hero() {
           </div>
         </div>
 
-        {/* City photo — 336x128 clipped frame, image 336x190 */}
-        <div className="w-full h-32 px-3 flex items-center justify-center overflow-hidden">
+        {/* City photo — Figma 150:2963 image 106, full 336x190 render (no clipping) */}
+        <div className="relative z-10 w-full px-3 flex items-center justify-center">
           <img
             src="/assets/images/hero-bg.png"
             alt={t("a11y.heroCity")}
-            className="w-[336px] h-[190.453px] object-cover shrink-0"
+            className="w-[336px] h-[190.453px] object-contain shrink-0 max-w-none"
           />
         </div>
 
         {/* Stats row — 3 small cards */}
-        <div className="w-full px-3 flex gap-2 items-stretch h-[72px]">
+        <div className="relative z-10 w-full px-3 flex gap-2 items-stretch h-[72px]">
           <MobileStat value={t("stats.years")} label={t("stats.yearsLabel")} />
           <MobileStat
             value={t("stats.partners")}
