@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, type ChangeEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { StepHeader, BasicInput, Calendar, TimeDropdown } from "./ui";
+import { StepHeader, BasicInput, Calendar, TimeDropdown, MapPicker, AddressList } from "./ui";
+import { useAddressTrip } from "../hooks/useAddressTrip";
 import Faq from "./Faq";
 
 type CabinType = "standard" | "lux" | "vip";
@@ -140,7 +141,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
   const k = `wizard.${pageKey}` as const;
 
   const [cabinCount, setCabinCount] = useState(0);
-  const [address, setAddress] = useState("");
+  const trip = useAddressTrip();
   const [selectedCabin, setSelectedCabin] = useState<CabinType>("standard");
   const [serviceEnabled, setServiceEnabled] = useState(true);
   const [cleaningEnabled, setCleaningEnabled] = useState(true);
@@ -290,15 +291,39 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
         <div className="lg:px-[104px] px-[12px] lg:px-0">
           <StepHeader step={2} title={t(`${k}.step2Title`)} />
           <div className="mt-4 py-4 lg:py-6 flex flex-col gap-2">
-            <BasicInput
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
+            <AddressList
+              items={trip.items}
+              onChange={trip.setText}
+              onSelect={trip.setLocation}
+              onAdd={trip.addEntry}
+              onRemove={trip.removeEntry}
               placeholder={t(`${k}.step2Placeholder`)}
-              className="!h-10 max-w-full lg:max-w-[488px]"
+              addLabel={t(`${k}.step2AddAddress`)}
             />
-            <div className="mt-0 w-full h-[374px] lg:h-[550px] rounded-2xl border border-neutral-300 bg-neutral-200 flex items-center justify-center text-neutral-500">
-              <span className="font-body text-base">{t(`${k}.mapPlaceholder`)}</span>
-            </div>
+            <MapPicker
+              points={trip.locations}
+              onMapClick={trip.appendFromMap}
+              route={trip.trip?.geometry ?? []}
+              loading={trip.loading}
+              loadingText={t(`${k}.step2RouteLoading`)}
+              className="mt-0 h-[374px] lg:h-[550px]"
+            />
+            {!trip.loading && trip.error && (
+              <div className="mt-2 font-body text-base text-red-600">
+                {t(`${k}.step2RouteError`)}
+              </div>
+            )}
+            {!trip.loading && !trip.error && trip.trip && (
+              <div className="mt-2 flex flex-col lg:flex-row gap-2 lg:gap-6 font-body text-base text-neutral-900">
+                <span>
+                  {t(`${k}.step2Distance`)}:{" "}
+                  <strong>{trip.distanceKm.toFixed(1)} {t(`${k}.step2Km`)}</strong>
+                </span>
+                <span>
+                  {t(`${k}.step2DeliveryCost`)}: <strong className="text-cta-main">{trip.deliveryCost.toLocaleString("ru-RU")} ₸</strong>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </section>

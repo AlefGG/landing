@@ -1,7 +1,8 @@
 import { useState, useRef, useEffect, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { BasicInput, Calendar, TimeDropdown } from "./ui";
+import { BasicInput, Calendar, TimeDropdown, MapPicker, AddressList } from "./ui";
+import { useAddressTrip } from "../hooks/useAddressTrip";
 import RentalFaq from "./RentalFaq";
 
 type ObjectType = "event" | "construction" | "emergency";
@@ -130,7 +131,7 @@ export default function RentalWizard() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
-  const [address, setAddress] = useState("");
+  const trip = useAddressTrip();
   const [cleaning, setCleaning] = useState(true);
   const [expressMounting, setExpressMounting] = useState(true);
   const [installNotice, setInstallNotice] = useState(false);
@@ -235,13 +236,8 @@ export default function RentalWizard() {
         <div className="lg:px-[104px]">
           <StepLabel step={1} title={t(`${k}.step1Title`)} />
           <div className="mt-4 flex flex-col lg:flex-row gap-4 lg:gap-8">
-            {objectTypes.map((opt, i) => (
-              <div
-                key={opt.key}
-                className={`flex-1 min-w-0 py-4 rounded-3xl ${
-                  i === 2 ? "lg:shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] lg:px-4" : ""
-                }`}
-              >
+            {objectTypes.map((opt) => (
+              <div key={opt.key} className="flex-1 min-w-0 py-4">
                 <RadioRow
                   selected={objectType === opt.key}
                   onClick={() => setObjectType(opt.key)}
@@ -355,28 +351,42 @@ export default function RentalWizard() {
         <div className="lg:px-[104px]">
           <StepLabel step={4} title={t(`${k}.step4Title`)} />
           <div className="mt-4 py-6 flex flex-col gap-2">
-            <div className="relative w-full lg:max-w-[488px]">
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 20 20"
-                fill="none"
-                className="absolute left-3 top-1/2 -translate-y-1/2 text-neutral-500 opacity-70"
-                aria-hidden="true"
-              >
-                <circle cx="9" cy="9" r="6.5" stroke="currentColor" strokeWidth="1.5" />
-                <path d="M14 14l3 3" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-              </svg>
-              <BasicInput
-                value={address}
-                onChange={(e) => setAddress(e.target.value)}
-                placeholder={t(`${k}.step4Placeholder`)}
-                className="!h-10 !pl-10"
-              />
-            </div>
-            <div className="mt-0 w-full h-[300px] lg:h-[550px] rounded-2xl border border-neutral-300 bg-neutral-200 flex items-center justify-center text-neutral-500 overflow-hidden">
-              <span className="font-body text-base">{t(`${k}.step4MapPlaceholder`)}</span>
-            </div>
+            <AddressList
+              items={trip.items}
+              onChange={trip.setText}
+              onSelect={trip.setLocation}
+              onAdd={trip.addEntry}
+              onRemove={trip.removeEntry}
+              placeholder={t(`${k}.step4Placeholder`)}
+              addLabel={t(`${k}.step4AddAddress`)}
+            />
+            <MapPicker
+              points={trip.locations}
+              onMapClick={trip.appendFromMap}
+              route={trip.trip?.geometry ?? []}
+              loading={trip.loading}
+              loadingText={t(`${k}.step4RouteLoading`)}
+              className="mt-0 h-[300px] lg:h-[550px]"
+            />
+            {!trip.loading && trip.error && (
+              <div className="mt-2 font-body text-base text-red-600">
+                {t(`${k}.step4RouteError`)}
+              </div>
+            )}
+            {!trip.loading && !trip.error && trip.trip && (
+              <div className="mt-2 flex flex-col lg:flex-row gap-2 lg:gap-6 font-body text-base text-neutral-900">
+                <span>
+                  {t(`${k}.step4Distance`)}:{" "}
+                  <strong>{trip.distanceKm.toFixed(1)} {t(`${k}.step4Km`)}</strong>
+                </span>
+                <span>
+                  {t(`${k}.step4DeliveryCost`)}:{" "}
+                  <strong className="text-cta-main">
+                    {trip.deliveryCost.toLocaleString("ru-RU")} {t(`${k}.currency`)}
+                  </strong>
+                </span>
+              </div>
+            )}
           </div>
         </div>
       </section>
