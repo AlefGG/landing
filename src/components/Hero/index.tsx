@@ -191,12 +191,6 @@ export default function Hero() {
 
       {/* Mobile layout */}
       <div className="lg:hidden relative flex flex-col items-center gap-4 pt-6 pb-4">
-        {/* Decorative background shape — Figma 150:2925 "Subtract". Gradient #F1F1F1 → #E3EFFF with rounded corners. Starts 40px above Hero (reaches into Header sub-nav area), ends just below the top of stats row (stat cards' white bg masks the rest). Frame is 382 wide vs 360 viewport → extends 11px past each side. Rendered via <div> (not <img>) so bottom anchoring works without an explicit height. */}
-        <div
-          aria-hidden="true"
-          className="pointer-events-none absolute left-[-11px] right-[-11px] top-[-40px] bottom-[52px] -z-0 rounded-[16px] bg-[linear-gradient(180deg,#F1F1F1_0%,#E3EFFF_100%)]"
-        />
-
         {/* Title + subtitle/24-7 card row */}
         <div className="relative z-10 w-full px-3 flex flex-col gap-4 items-start">
           <motion.h1

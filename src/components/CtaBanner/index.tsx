@@ -43,10 +43,16 @@ export default function CtaBanner() {
               <Button
                 variant="cta"
                 size="md"
-                className="rounded-[40px] px-10 py-3 w-[272px] justify-center"
+                className="rounded-[40px] px-10 py-3 w-[272px] justify-center gap-2"
                 onClick={() => setModalOpen(true)}
               >
                 {t("cta.button")}
+                <img
+                  src="/assets/icons/phone.svg"
+                  alt=""
+                  className="w-5 h-5 shrink-0 brightness-0 invert"
+                  aria-hidden="true"
+                />
               </Button>
             </div>
           </div>

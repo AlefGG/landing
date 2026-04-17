@@ -14,11 +14,11 @@ export default function Cabins() {
   return (
     <section className="w-full bg-[#efefef] py-[88px]" id="cabins">
       <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
-        <h2 className="font-heading font-extrabold text-2xl leading-6 lg:text-[40px] lg:leading-[40px] text-neutral-800 text-left lg:text-center">
+        <h2 className="font-heading font-extrabold text-2xl leading-6 lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center">
           {t("cabins.title1")}
           <span className="text-cta-main">{t("cabins.titleHighlight")}</span>
         </h2>
-        <p className="font-body text-base lg:text-xl leading-6 text-neutral-700 text-left lg:text-center mt-8 whitespace-pre-line">
+        <p className="font-body text-base lg:text-xl leading-6 text-neutral-700 text-center mt-8 whitespace-pre-line">
           {t("cabins.subtitle")}
         </p>
 

@@ -53,7 +53,7 @@ export default function Advantages() {
           {advantages.map((adv, i) => (
             <div key={adv.key} className="contents">
               {i > 0 && (
-                <div className="w-px bg-neutral-300 self-stretch" />
+                <div className="w-px shrink-0 bg-neutral-300 self-stretch" />
               )}
               <motion.div
                 className="flex flex-col items-center text-center px-[32px] py-[40px] w-[280px] shrink-0"

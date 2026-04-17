@@ -65,10 +65,16 @@ export default function About() {
           className="absolute inset-0 w-full h-full object-cover object-top"
           loading="lazy"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-white from-[10%] via-white/90 via-[35%] to-transparent to-[65%]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-white from-[10%] via-white/95 via-[50%] to-transparent to-[80%] xl:via-[40%] xl:to-[70%] 2xl:via-[35%] 2xl:to-[65%]" />
       </div>
 
       <div className="hidden lg:flex relative max-w-[1600px] mx-auto px-[192px] h-full items-center">
+        <img
+          src="/assets/images/about-badge.png"
+          alt=""
+          aria-hidden="true"
+          className="hidden xl:block absolute right-[192px] top-[82px] w-32 h-32 pointer-events-none"
+        />
         <motion.div
           className="w-[592px] flex flex-col gap-[72px]"
           initial={{ opacity: 0, y: 20 }}
