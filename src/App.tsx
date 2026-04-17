@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import SanitationPage from "./pages/SanitationPage";
 import RentalPage from "./pages/RentalPage";
 import SalePage from "./pages/SalePage";
+import SuccessPage from "./pages/SuccessPage";
 
 export default function App() {
   const { t } = useTranslation();
@@ -28,6 +29,7 @@ export default function App() {
               <Route path="/sanitation" element={<SanitationPage />} />
               <Route path="/rental" element={<RentalPage />} />
               <Route path="/sale" element={<SalePage />} />
+              <Route path="/success" element={<SuccessPage />} />
             </Routes>
           </main>
           <Footer />

@@ -156,61 +156,114 @@ export default function Header() {
       {/* Mobile menu */}
       <AnimatePresence>
         {menuOpen && (
-          <>
-            <motion.div
-              className="fixed inset-0 bg-black/30 z-40 lg:hidden"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={prefersReducedMotion ? { duration: 0 } : undefined}
-              onClick={() => setMenuOpen(false)}
-            />
-            <motion.div
-              id="mobile-menu"
-              className="fixed top-0 right-0 bottom-0 w-72 bg-white z-50 p-6 flex flex-col gap-6 lg:hidden"
-              initial={prefersReducedMotion ? { x: 0 } : { x: "100%" }}
-              animate={{ x: 0 }}
-              exit={prefersReducedMotion ? { x: 0 } : { x: "100%" }}
-              transition={prefersReducedMotion ? { duration: 0 } : { type: "tween", duration: 0.3 }}
-            >
+          <motion.div
+            id="mobile-menu"
+            className="fixed inset-0 bg-white z-50 flex flex-col overflow-y-auto lg:hidden"
+            initial={prefersReducedMotion ? { opacity: 1 } : { opacity: 0, x: "100%" }}
+            animate={{ opacity: 1, x: 0 }}
+            exit={prefersReducedMotion ? { opacity: 0 } : { opacity: 0, x: "100%" }}
+            transition={prefersReducedMotion ? { duration: 0 } : { type: "tween", duration: 0.25 }}
+          >
+            {/* Close row */}
+            <div className="flex items-center justify-end h-10 px-3">
               <button
                 type="button"
                 onClick={() => setMenuOpen(false)}
-                className="self-end text-neutral-500"
+                className="flex items-center gap-1 text-neutral-500 text-[13px] leading-4 font-body"
                 aria-label={t("a11y.closeMenu")}
               >
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M18 6L6 18M6 6l12 12" />
+                {t("nav.close")}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M15 9l-6 6M9 9l6 6" />
                 </svg>
               </button>
+            </div>
 
-              <div className="flex flex-col gap-4">
-                {navLinks.map((link) => (
+            {/* Phone + WhatsApp */}
+            <div className="flex items-center justify-between px-6 pt-6 pb-4">
+              <a
+                href="tel:+77025672091"
+                className="flex items-center gap-1 text-neutral-800 text-[20px] leading-6 font-semibold font-body"
+              >
+                <img src="/assets/icons/phone.svg" alt="" className="w-8 h-8" />
+                {t("nav.phone")}
+              </a>
+              <a
+                href="https://wa.me/77025672091"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="WhatsApp"
+                className="shrink-0"
+              >
+                <img src="/assets/icons/whatsapp.svg" alt="" className="w-10 h-10" />
+              </a>
+            </div>
+
+            {/* CTA buttons */}
+            <div className="flex flex-col gap-4 px-6 pb-2">
+              <Button variant="cta" size="md" href="/rental" className="w-full">
+                {t("buttons.rental")}
+              </Button>
+              <Button variant="ghost" size="md" href="/sanitation" className="w-full">
+                {t("buttons.sanitation")}
+              </Button>
+              <Button variant="ghost" size="md" href="/sale" className="w-full">
+                {t("buttons.sale")}
+              </Button>
+            </div>
+
+            {/* Nav items with chevron */}
+            <ul className="flex flex-col px-6 pt-2">
+              {navLinks.map((link) => (
+                <li key={link.href} className="border-b border-neutral-200 last:border-b-0">
                   <button
-                    key={link.href}
+                    type="button"
                     onClick={() => scrollTo(link.href)}
-                    className="text-left text-base font-body text-neutral-700 hover:text-cta-main transition-colors"
+                    className="w-full flex items-center justify-between h-10 px-3 text-left text-neutral-900 text-base leading-6 font-body"
                   >
-                    {link.label}
+                    <span>{link.label}</span>
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-500" aria-hidden="true">
+                      <path d="M9 6l6 6-6 6" />
+                    </svg>
                   </button>
-                ))}
-              </div>
+                </li>
+              ))}
+            </ul>
 
-              <div className="flex flex-col gap-3">
-                <Button variant="ghost" size="md" href="/sale">
-                  {t("buttons.sale")}
-                </Button>
-                <Button variant="ghost" size="md" href="/sanitation">
-                  {t("buttons.sanitation")}
-                </Button>
-                <Button variant="cta" size="md" href="/rental">
-                  {t("buttons.rental")}
-                </Button>
-              </div>
+            {/* Login + Cart */}
+            <ul className="flex flex-col px-6">
+              <li className="border-b border-neutral-200">
+                <a
+                  href="/login"
+                  className="flex items-center gap-2 py-2 pl-2 text-neutral-900 text-base leading-6 font-body"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800" aria-hidden="true">
+                    <circle cx="12" cy="8" r="4" />
+                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                  </svg>
+                  {t("nav.login")}
+                </a>
+              </li>
+              <li>
+                <a
+                  href="/cart"
+                  className="flex items-center gap-2 py-2 pl-2 text-neutral-900 text-base leading-6 font-body"
+                >
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800" aria-hidden="true">
+                    <circle cx="9" cy="20" r="1.5" />
+                    <circle cx="18" cy="20" r="1.5" />
+                    <path d="M3 4h2l2.4 11.2a2 2 0 002 1.6h8.6a2 2 0 002-1.6L21 8H6" />
+                  </svg>
+                  {t("nav.cart")}
+                </a>
+              </li>
+            </ul>
 
+            <div className="px-6 pt-6">
               <LanguageSwitcher />
-            </motion.div>
-          </>
+            </div>
+          </motion.div>
         )}
       </AnimatePresence>
     </header>

@@ -1,11 +1,11 @@
-import { useState, useRef, useEffect, type ChangeEvent, type ReactNode } from "react";
+import { useState, type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { StepHeader, BasicInput, Calendar, TimeDropdown } from "./ui";
+import { StepHeader, BasicInput } from "./ui";
 import Faq from "./Faq";
 
 type CabinType = "standard" | "lux" | "vip";
-type FrequencyType = "once" | "scheduled";
+type ContactType = "individual" | "legal";
 type PaymentType = "paypal" | "card" | "webmoney";
 
 const cabins: { type: CabinType; image: string }[] = [
@@ -58,36 +58,6 @@ function Stepper({
   );
 }
 
-function Toggle({
-  checked,
-  onChange,
-  label,
-}: {
-  checked: boolean;
-  onChange: (v: boolean) => void;
-  label: string;
-}) {
-  return (
-    <div className="flex items-center gap-2">
-      <button
-        type="button"
-        role="switch"
-        aria-checked={checked}
-        aria-label={label}
-        onClick={() => onChange(!checked)}
-        className={`relative h-7 w-12 shrink-0 rounded-full transition-colors cursor-pointer ${checked ? "bg-cta-main" : "bg-[#c5d3dd]"}`}
-      >
-        <span
-          className={`absolute left-0 top-[2px] size-6 rounded-full bg-white shadow-md transition-transform ${checked ? "translate-x-[22px]" : "translate-x-[2px]"}`}
-        />
-      </button>
-      <span className={`font-body text-base lg:text-xl leading-6 ${checked ? "text-neutral-900" : "text-neutral-600"}`}>
-        {label}
-      </span>
-    </div>
-  );
-}
-
 function RadioOption({
   selected,
   onClick,
@@ -127,54 +97,17 @@ function Separator() {
   );
 }
 
-export type WizardConfig = {
-  pageKey: "sanitation";
-  breadcrumbLabel: string;
-  heroTitle: string;
-  warning?: ReactNode;
-};
-
-export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warning }: WizardConfig) {
+export default function SaleWizard() {
   const { t } = useTranslation();
+  const k = "wizard.sale" as const;
 
-  const k = `wizard.${pageKey}` as const;
-
-  const [cabinCount, setCabinCount] = useState(0);
-  const [address, setAddress] = useState("");
   const [selectedCabin, setSelectedCabin] = useState<CabinType>("standard");
-  const [serviceEnabled, setServiceEnabled] = useState(true);
-  const [cleaningEnabled, setCleaningEnabled] = useState(true);
-  const [installNotice, setInstallNotice] = useState(false);
-  const [machineCount, setMachineCount] = useState(0);
-  const [crewCount, setCrewCount] = useState(0);
-  const [frequency, setFrequency] = useState<FrequencyType>("once");
-  const [startDate, setStartDate] = useState<Date | null>(null);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const [startTimeOpen, setStartTimeOpen] = useState(false);
-  const [endTimeOpen, setEndTimeOpen] = useState(false);
-  const calendarRef = useRef<HTMLDivElement>(null);
+  const [cabinCount, setCabinCount] = useState(0);
+  const [contactType, setContactType] = useState<ContactType>("individual");
   const [payment, setPayment] = useState<PaymentType>("paypal");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
-
-  const timeOptions = Array.from({ length: 24 }, (_, h) => [
-    { time: `${String(h).padStart(2, "0")}:00` },
-    { time: `${String(h).padStart(2, "0")}:30` },
-  ]).flat();
-
-  useEffect(() => {
-    if (!calendarOpen) return;
-    const handleClick = (e: MouseEvent) => {
-      if (calendarRef.current && !calendarRef.current.contains(e.target as Node)) {
-        setCalendarOpen(false);
-      }
-    };
-    document.addEventListener("mousedown", handleClick);
-    return () => document.removeEventListener("mousedown", handleClick);
-  }, [calendarOpen]);
 
   const formatPhone = (raw: string): string => {
     const digits = raw.replace(/\D/g, "");
@@ -191,10 +124,6 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
     setPhone(formatPhone(e.target.value));
   };
 
-  const formatDate = (d: Date): string => {
-    return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
-  };
-
   const cabinLabels: Record<CabinType, string> = {
     standard: t("wizard.cabins.standard"),
     lux: t("wizard.cabins.lux"),
@@ -207,20 +136,18 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
     webmoney: "WebMoney",
   };
 
+  const heroTitle = t(`${k}.title`);
+
   return (
     <div className="bg-white overflow-x-clip">
-      {/* Hero banner */}
+      {/* Hero */}
       <section className="relative h-[104px] lg:h-[176px]">
         <div
           className="hidden lg:block absolute left-1/2 -translate-x-1/2 w-[1216px] h-[712px] pointer-events-none"
           style={{ top: "-64px" }}
           aria-hidden="true"
         >
-          <img
-            src="/assets/images/wizard-hero-shape.svg"
-            alt=""
-            className="w-full h-full"
-          />
+          <img src="/assets/images/wizard-hero-shape.svg" alt="" className="w-full h-full" />
         </div>
         <div className="lg:hidden absolute inset-0 bg-gradient-to-b from-[#f1f1f1] to-transparent pointer-events-none" aria-hidden="true" />
 
@@ -232,7 +159,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 text-neutral-500" aria-hidden="true">
               <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <span className="text-neutral-500 leading-4 text-xs px-[10px] py-[8px]">{breadcrumbLabel}</span>
+            <span className="text-neutral-500 leading-4 text-xs px-[10px] py-[8px]">{heroTitle}</span>
           </nav>
 
           <h1 className="font-heading text-[32px] lg:text-[56px] font-extrabold leading-[32px] lg:leading-[56px] text-cta-main">
@@ -240,7 +167,6 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
           </h1>
         </div>
 
-        {/* Decorative large outlined text */}
         <p
           className="hidden lg:block absolute right-[230px] top-[100px] font-heading text-[144px] font-extrabold leading-[56px] pointer-events-none select-none"
           style={{
@@ -253,62 +179,10 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
         </p>
       </section>
 
-      {/* Warning toast (optional) */}
-      {warning && (
-        <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-4">
-          <div className="flex gap-2 items-start bg-[#fff7de] border border-[#f2bc70] rounded-[8px] p-4 lg:py-4 lg:pl-6 lg:pr-4 shadow-[0px_6px_8px_0px_rgba(0,0,0,0.08)]">
-            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#e7a74c] mt-0.5">
-              <path d="M12 9v4M12 16h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <p className="font-body text-base leading-6 text-neutral-900">
-              {warning}
-            </p>
-          </div>
-        </section>
-      )}
-
-      {/* Step 1: Cabin count */}
+      {/* Step 1: Cabin selection */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
           <StepHeader step={1} title={t(`${k}.step1Title`)} />
-          <div className="mt-4 py-4 flex flex-col gap-2">
-            <p className="font-body text-base lg:text-xl leading-6 text-neutral-900 lg:text-neutral-600">
-              {t(`${k}.step1Question`)}
-            </p>
-            <Stepper value={cabinCount} onChange={setCabinCount} />
-            <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
-              {t(`${k}.step1Hint`)}
-            </p>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      {/* Step 2: Address */}
-      <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
-        <div className="lg:px-[104px] px-[12px] lg:px-0">
-          <StepHeader step={2} title={t(`${k}.step2Title`)} />
-          <div className="mt-4 py-4 lg:py-6 flex flex-col gap-2">
-            <BasicInput
-              value={address}
-              onChange={(e) => setAddress(e.target.value)}
-              placeholder={t(`${k}.step2Placeholder`)}
-              className="!h-10 max-w-full lg:max-w-[488px]"
-            />
-            <div className="mt-0 w-full h-[374px] lg:h-[550px] rounded-2xl border border-neutral-300 bg-neutral-200 flex items-center justify-center text-neutral-500">
-              <span className="font-body text-base">{t(`${k}.mapPlaceholder`)}</span>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      {/* Step 3: Cabin selection */}
-      <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
-        <div className="lg:px-[104px] px-[12px] lg:px-0">
-          <StepHeader step={3} title={t(`${k}.step3Title`)} />
           <div className="mt-4 py-4 flex flex-col lg:flex-row items-stretch lg:items-start justify-between gap-2 lg:gap-4">
             {cabins.map(({ type, image }) => (
               <button
@@ -340,141 +214,45 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
       <Separator />
 
-      {/* Step 4: Service frequency */}
+      {/* Step 2: Cabin count */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
-          <StepHeader step={4} title={t(`${k}.step4Title`)} />
-
-          <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col lg:flex-row gap-8 lg:gap-[72px]">
-            <Toggle
-              checked={serviceEnabled}
-              onChange={setServiceEnabled}
-              label={t(`${k}.step4Service`)}
-            />
-            <Toggle
-              checked={cleaningEnabled}
-              onChange={setCleaningEnabled}
-              label={t(`${k}.step4Cleaning`)}
-            />
-            <Toggle
-              checked={installNotice}
-              onChange={setInstallNotice}
-              label={t(`${k}.step4InstallNotice`)}
-            />
-          </div>
-
-          <h3 className="font-heading text-[20px] lg:text-[32px] font-extrabold leading-[24px] lg:leading-[32px] text-neutral-900 mt-8 lg:mt-2">
-            {t(`${k}.step4Resources`)}
-          </h3>
-          <div className="mt-8 lg:mt-4 lg:py-4 flex flex-col gap-6 lg:gap-2">
-            <p className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-              {t(`${k}.step4Required`)}
+          <StepHeader step={2} title={t(`${k}.step2Title`)} />
+          <div className="mt-4 py-4 flex flex-col gap-2">
+            <p className="font-body text-base lg:text-xl leading-6 text-neutral-900 lg:text-neutral-600">
+              {t(`${k}.step2Question`)}
             </p>
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-14">
-              <div className="flex items-center gap-2">
-                <Stepper value={machineCount} onChange={setMachineCount} />
-                <span className="font-body text-base lg:text-xl leading-6 text-neutral-900 lg:text-neutral-600">
-                  {t(`${k}.step4Machine`)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Stepper value={crewCount} onChange={setCrewCount} />
-                <span className="font-body text-base lg:text-xl leading-6 text-neutral-900 lg:text-neutral-600">
-                  {t(`${k}.step4Crew`)}
-                </span>
-              </div>
-            </div>
+            <Stepper value={cabinCount} onChange={setCabinCount} />
             <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
-              {t(`${k}.step1Hint`)}
+              {t(`${k}.step2Hint`)}
             </p>
           </div>
-
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 mt-6 lg:mt-4">
-            <div className="flex flex-col gap-2 w-full lg:w-[384px] py-0 lg:py-4">
-              <RadioOption
-                selected={frequency === "once"}
-                onClick={() => setFrequency("once")}
-                label={t(`${k}.step4Once`)}
-              />
-              <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
-                {t(`${k}.step4OnceDesc`)}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 w-full lg:w-[384px] py-0 lg:py-4">
-              <RadioOption
-                selected={frequency === "scheduled"}
-                onClick={() => setFrequency("scheduled")}
-                label={t(`${k}.step4Scheduled`)}
-              />
-              <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
-                {t(`${k}.step4ScheduledDesc`)}
-              </p>
-            </div>
-          </div>
         </div>
       </section>
 
       <Separator />
 
-      {/* Step 5: Rental period */}
+      {/* Step 3: Contacts */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
-          <StepHeader step={5} title={t(`${k}.step5Title`)} />
-          <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col lg:flex-row items-stretch lg:items-start gap-4 lg:gap-8">
-            <div className="relative w-full lg:w-[280px]" ref={calendarRef}>
-              <button
-                type="button"
-                onClick={() => setCalendarOpen((v) => !v)}
-                className={`flex h-10 lg:h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-base leading-6 ${startDate ? "text-neutral-900" : "text-neutral-300"}`}
-              >
-                {startDate ? formatDate(startDate) : t(`${k}.step5StartDate`)}
-              </button>
-              {calendarOpen && (
-                <div className="absolute top-full left-0 z-50 mt-1">
-                  <Calendar
-                    mode="single"
-                    value={startDate}
-                    onChange={(d) => {
-                      setStartDate(d as Date);
-                      setCalendarOpen(false);
-                    }}
-                  />
-                </div>
-              )}
-            </div>
-
-            <div className="flex gap-4 w-full lg:w-auto">
-              <TimeDropdown
-                options={timeOptions}
-                value={startTime}
-                onChange={setStartTime}
-                isOpen={startTimeOpen}
-                onToggle={() => setStartTimeOpen((v) => !v)}
-                placeholder={t(`${k}.step5StartTime`)}
-                className="flex-1 lg:w-[160px]"
+          <StepHeader step={3} title={t(`${k}.step3Title`)} />
+          <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col gap-8">
+            <div className="flex flex-row gap-2 lg:gap-[72px]">
+              <RadioOption
+                selected={contactType === "individual"}
+                onClick={() => setContactType("individual")}
+                label={t(`${k}.step3Individual`)}
+                className="flex-1 lg:flex-initial"
               />
-              <TimeDropdown
-                options={timeOptions}
-                value={endTime}
-                onChange={setEndTime}
-                isOpen={endTimeOpen}
-                onToggle={() => setEndTimeOpen((v) => !v)}
-                placeholder={t(`${k}.step5EndTime`)}
-                className="flex-1 lg:w-[160px]"
+              <RadioOption
+                selected={contactType === "legal"}
+                onClick={() => setContactType("legal")}
+                label={t(`${k}.step3Legal`)}
+                className="flex-1 lg:flex-initial"
               />
             </div>
-          </div>
-        </div>
-      </section>
 
-      <Separator />
-
-      {/* Step 6: Contacts */}
-      <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
-        <div className="lg:px-[104px] px-[12px] lg:px-0">
-          <StepHeader step={6} title={t(`${k}.step6Title`)} />
-          <div className="mt-8 lg:mt-4 lg:py-6">
-            <div className="flex flex-wrap gap-y-4 gap-x-[32px] lg:gap-[72px] mb-8">
+            <div className="flex flex-wrap gap-y-4 gap-x-[32px] lg:gap-[72px]">
               {(Object.keys(paymentLabels) as PaymentType[]).map((key) => (
                 <RadioOption
                   key={key}
@@ -488,7 +266,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
               <div className="flex flex-col gap-2 w-full lg:w-[280px]">
                 <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-                  {t(`${k}.step6Name`)}
+                  {t(`${k}.step3Name`)}
                 </label>
                 <BasicInput
                   value={name}
@@ -499,7 +277,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               </div>
               <div className="flex flex-col gap-2 w-full lg:w-[280px]">
                 <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-                  {t(`${k}.step6Phone`)}
+                  {t(`${k}.step3Phone`)}
                 </label>
                 <BasicInput
                   type="tel"
@@ -511,7 +289,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               </div>
               <div className="flex flex-col gap-2 w-full lg:w-[280px]">
                 <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-                  {t(`${k}.step6Email`)}
+                  {t(`${k}.step3Email`)}
                 </label>
                 <BasicInput
                   value={email}

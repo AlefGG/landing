@@ -1,14 +1,5 @@
-import { useTranslation } from "react-i18next";
-import WizardPage from "../components/WizardPage";
+import SaleWizard from "../components/SaleWizard";
 
 export default function SalePage() {
-  const { t } = useTranslation();
-
-  return (
-    <WizardPage
-      pageKey="sale"
-      breadcrumbLabel={t("buttons.sale")}
-      heroTitle={t("wizard.sale.title")}
-    />
-  );
+  return <SaleWizard />;
 }

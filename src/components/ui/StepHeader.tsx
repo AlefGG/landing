@@ -13,11 +13,11 @@ export default function StepHeader({
     <div className={`flex flex-col gap-[8px] ${className}`}>
       <span
         style={{ fontFamily: "'Geologica', sans-serif" }}
-        className="text-[18px] font-normal leading-[24px] tracking-[3.6px] uppercase text-cta-main"
+        className="text-[12px] lg:text-[18px] font-normal leading-[16px] lg:leading-[24px] tracking-[1.68px] lg:tracking-[3.6px] uppercase text-cta-main"
       >
         ШАГ {step}
       </span>
-      <h2 className="font-heading text-[32px] font-extrabold leading-[32px] text-neutral-900">
+      <h2 className="font-heading text-[20px] lg:text-[32px] font-extrabold leading-[24px] lg:leading-[32px] text-neutral-900">
         {title}
       </h2>
     </div>
