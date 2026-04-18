@@ -13,6 +13,13 @@
 export type AuthUser = {
   id: string;
   phone: string;
+  name?: string;
+  email?: string;
+};
+
+export type ProfilePatch = {
+  name?: string;
+  email?: string;
 };
 
 export type AuthTokens = {
@@ -87,4 +94,19 @@ export async function refresh(
     throw new OtpSendError("Invalid refresh token");
   }
   return { access: mockToken("access") };
+}
+
+export async function updateProfile(
+  current: AuthUser,
+  patch: ProfilePatch,
+): Promise<AuthUser> {
+  if (import.meta.env.DEV) {
+    console.info("[authService:mock] updateProfile", patch);
+  }
+  await wait(MOCK_DELAY_MS);
+  return {
+    ...current,
+    name: patch.name ?? current.name,
+    email: patch.email ?? current.email,
+  };
 }
