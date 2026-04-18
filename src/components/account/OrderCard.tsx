@@ -10,7 +10,7 @@ type Props = {
 
 export default function OrderCard({ order }: Props) {
   const { t, i18n } = useTranslation();
-  const amountFmt = new Intl.NumberFormat(i18n.language).format(order.amount);
+  const amountFmt = order.amount.toLocaleString("ru-RU");
 
   return (
     <Link

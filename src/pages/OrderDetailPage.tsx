@@ -60,7 +60,7 @@ export default function OrderDetailPage() {
   }
 
   const { order } = state;
-  const amountFmt = new Intl.NumberFormat(i18n.language).format(order.amount);
+  const amountFmt = order.amount.toLocaleString("ru-RU");
   const canPay = order.status === "pending" && !order.paymentReceiptUrl;
 
   return (
