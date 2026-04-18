@@ -1,0 +1,104 @@
+import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { Button } from "../components/ui";
+import OrderCard from "../components/account/OrderCard";
+import {
+  listMyOrders,
+  type OrderListItem,
+  type OrderStatus,
+} from "../services/ordersService";
+
+const STATUSES: OrderStatus[] = [
+  "pending",
+  "processing",
+  "assigned",
+  "completed",
+  "cancelled",
+];
+
+export default function OrdersListPage() {
+  const { t } = useTranslation();
+  const [orders, setOrders] = useState<OrderListItem[] | null>(null);
+  const [filter, setFilter] = useState<OrderStatus | "all">("all");
+
+  useEffect(() => {
+    let cancelled = false;
+    listMyOrders().then((list) => {
+      if (!cancelled) setOrders(list);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const visible = useMemo(() => {
+    if (!orders) return [];
+    if (filter === "all") return orders;
+    return orders.filter((o) => o.status === filter);
+  }, [orders, filter]);
+
+  if (orders === null) {
+    return (
+      <div className="font-body text-sm text-neutral-500" data-testid="orders-loading">
+        …
+      </div>
+    );
+  }
+
+  if (orders.length === 0) {
+    return (
+      <div
+        className="rounded-[12px] border border-dashed border-neutral-300 bg-white p-10 text-center"
+        data-testid="orders-empty"
+      >
+        <p className="font-body text-base text-neutral-700 mb-4">
+          {t("auth.orders.empty.title")}
+        </p>
+        <Button variant="cta" size="md" href="/rental">
+          {t("auth.orders.empty.cta")}
+        </Button>
+      </div>
+    );
+  }
+
+  return (
+    <div data-testid="orders-list">
+      <div className="flex items-center justify-between mb-4 gap-4 flex-wrap">
+        <h2 className="font-display text-lg font-semibold text-neutral-900">
+          {t("auth.orders.title")}
+        </h2>
+        <label className="flex items-center gap-2 font-body text-sm">
+          <select
+            value={filter}
+            onChange={(e) => setFilter(e.target.value as OrderStatus | "all")}
+            className="rounded-[8px] border border-neutral-300 px-3 py-2 bg-white font-body text-sm"
+            data-testid="orders-filter"
+          >
+            <option value="all">{t("auth.orders.filter.all")}</option>
+            {STATUSES.map((s) => (
+              <option key={s} value={s}>
+                {t(`auth.orders.status.${s}`)}
+              </option>
+            ))}
+          </select>
+        </label>
+      </div>
+      {visible.length === 0 ? (
+        <div
+          className="rounded-[12px] border border-dashed border-neutral-300 bg-white p-10 text-center"
+          data-testid="orders-filtered-empty"
+        >
+          <p className="font-body text-sm text-neutral-500">
+            {t("auth.orders.empty.title")}
+          </p>
+        </div>
+      ) : (
+        <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
+          {visible.map((o) => (
+            <OrderCard key={o.id} order={o} />
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
