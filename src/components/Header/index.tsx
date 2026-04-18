@@ -1,15 +1,38 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { motion, AnimatePresence, useReducedMotion } from "framer-motion";
 import { Button, LanguageSwitcher } from "../ui";
+import { useAuth } from "../../contexts/AuthContext";
+import { formatPhone } from "../wizards/shared/phoneFormat";
 
 export default function Header() {
   const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
+  const [accountMenuOpen, setAccountMenuOpen] = useState(false);
+  const accountMenuRef = useRef<HTMLDivElement | null>(null);
   const prefersReducedMotion = useReducedMotion();
   const navigate = useNavigate();
   const location = useLocation();
+  const { user, status, logout } = useAuth();
+
+  useEffect(() => {
+    if (!accountMenuOpen) return;
+    function onClick(event: MouseEvent) {
+      if (accountMenuRef.current && !accountMenuRef.current.contains(event.target as Node)) {
+        setAccountMenuOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", onClick);
+    return () => document.removeEventListener("mousedown", onClick);
+  }, [accountMenuOpen]);
+
+  const handleLogout = () => {
+    logout();
+    setAccountMenuOpen(false);
+    setMenuOpen(false);
+    navigate("/");
+  };
   const navLinks = [
     { label: t("nav.about"), href: "#about" },
     { label: t("nav.advantages"), href: "#advantages" },
@@ -55,6 +78,55 @@ export default function Header() {
             {t("nav.whatsapp")}
             <img src="/assets/icons/whatsapp.svg" alt="" className="w-8 h-8" />
           </a>
+          {status === "authenticated" && user ? (
+            <div className="relative" ref={accountMenuRef}>
+              <button
+                type="button"
+                onClick={() => setAccountMenuOpen((open) => !open)}
+                aria-expanded={accountMenuOpen}
+                aria-haspopup="menu"
+                className="flex items-center gap-1 text-sm font-semibold font-body text-neutral-700 hover:text-neutral-900"
+                data-testid="header-account-button"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <circle cx="12" cy="8" r="4" />
+                  <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                </svg>
+                {formatPhone(user.phone)}
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                  <path d="M4 6l4 4 4-4" />
+                </svg>
+              </button>
+              {accountMenuOpen && (
+                <div
+                  role="menu"
+                  className="absolute right-0 top-full mt-1 min-w-[180px] rounded-[8px] border border-neutral-200 bg-white shadow-lg z-50"
+                >
+                  <button
+                    type="button"
+                    role="menuitem"
+                    onClick={handleLogout}
+                    className="w-full text-left px-4 py-3 font-body text-sm leading-4 text-neutral-800 hover:bg-neutral-100 rounded-[8px]"
+                    data-testid="header-logout-button"
+                  >
+                    {t("auth.header.logout")}
+                  </button>
+                </div>
+              )}
+            </div>
+          ) : (
+            <Link
+              to="/login"
+              className="flex items-center gap-1 text-sm font-semibold font-body text-neutral-700 hover:text-neutral-900"
+              data-testid="header-login-link"
+            >
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <circle cx="12" cy="8" r="4" />
+                <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+              </svg>
+              {t("nav.login")}
+            </Link>
+          )}
           <div className="hidden lg:block">
             <LanguageSwitcher />
           </div>
@@ -240,18 +312,39 @@ export default function Header() {
 
             {/* Login + Cart */}
             <ul className="flex flex-col px-6">
-              <li className="border-b border-neutral-200">
-                <a
-                  href="/login"
-                  className="flex items-center gap-2 py-2 pl-2 text-neutral-900 text-base leading-6 font-body"
-                >
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800" aria-hidden="true">
-                    <circle cx="12" cy="8" r="4" />
-                    <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-                  </svg>
-                  {t("nav.login")}
-                </a>
-              </li>
+              {status === "authenticated" && user ? (
+                <li className="border-b border-neutral-200 flex items-center justify-between">
+                  <span className="flex items-center gap-2 py-2 pl-2 text-neutral-900 text-base leading-6 font-body">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800" aria-hidden="true">
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                    </svg>
+                    {formatPhone(user.phone)}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={handleLogout}
+                    className="py-2 pr-2 font-body text-base leading-6 text-cta-main"
+                    data-testid="header-logout-mobile"
+                  >
+                    {t("auth.header.logout")}
+                  </button>
+                </li>
+              ) : (
+                <li className="border-b border-neutral-200">
+                  <Link
+                    to="/login"
+                    onClick={() => setMenuOpen(false)}
+                    className="flex items-center gap-2 py-2 pl-2 text-neutral-900 text-base leading-6 font-body"
+                  >
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800" aria-hidden="true">
+                      <circle cx="12" cy="8" r="4" />
+                      <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                    </svg>
+                    {t("nav.login")}
+                  </Link>
+                </li>
+              )}
               <li>
                 <a
                   href="/cart"

@@ -13,6 +13,9 @@ import SaleItemPage from "./pages/SaleItemPage";
 import SaleCheckoutPage from "./pages/SaleCheckoutPage";
 import PaymentPage from "./pages/PaymentPage";
 import SuccessPage from "./pages/SuccessPage";
+import LoginPage from "./pages/LoginPage";
+import VerifyPage from "./pages/VerifyPage";
+import { AuthProvider } from "./contexts/AuthContext";
 
 export default function App() {
   const { t } = useTranslation();
@@ -21,24 +24,28 @@ export default function App() {
     <HelmetProvider>
       <MotionConfig reducedMotion="user">
         <BrowserRouter>
-          <Seo />
-          <a href="#main" className="skip-to-content">
-            {t("a11y.skipToContent")}
-          </a>
-          <Header />
-          <main id="main">
-            <Routes>
-              <Route path="/" element={<LandingPage />} />
-              <Route path="/sanitation" element={<SanitationPage />} />
-              <Route path="/rental" element={<RentalPage />} />
-              <Route path="/sale" element={<SalePage />} />
-              <Route path="/sale/:id" element={<SaleItemPage />} />
-              <Route path="/sale/:id/checkout" element={<SaleCheckoutPage />} />
-              <Route path="/orders/:orderId/pay" element={<PaymentPage />} />
-              <Route path="/success" element={<SuccessPage />} />
-            </Routes>
-          </main>
-          <Footer />
+          <AuthProvider>
+            <Seo />
+            <a href="#main" className="skip-to-content">
+              {t("a11y.skipToContent")}
+            </a>
+            <Header />
+            <main id="main">
+              <Routes>
+                <Route path="/" element={<LandingPage />} />
+                <Route path="/sanitation" element={<SanitationPage />} />
+                <Route path="/rental" element={<RentalPage />} />
+                <Route path="/sale" element={<SalePage />} />
+                <Route path="/sale/:id" element={<SaleItemPage />} />
+                <Route path="/sale/:id/checkout" element={<SaleCheckoutPage />} />
+                <Route path="/orders/:orderId/pay" element={<PaymentPage />} />
+                <Route path="/success" element={<SuccessPage />} />
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/verify" element={<VerifyPage />} />
+              </Routes>
+            </main>
+            <Footer />
+          </AuthProvider>
         </BrowserRouter>
       </MotionConfig>
     </HelmetProvider>

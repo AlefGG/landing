@@ -61,6 +61,34 @@
     "cart": "Себет",
     "close": "Жабу"
   },
+  "auth": {
+    "login": {
+      "title": "Кабинетке кіру",
+      "subtitle": "Телефон нөмірін енгізіңіз — WhatsApp-қа код жібереміз",
+      "phoneLabel": "Телефон нөмірі",
+      "phonePlaceholder": "+7 7XX XXX XX XX",
+      "submit": "Код алу",
+      "sending": "Жіберілуде…",
+      "errors": {
+        "invalidPhone": "Дұрыс нөмірді енгізіңіз",
+        "sendFailed": "Кодты жіберу мүмкін болмады. Кейінірек көріңіз"
+      }
+    },
+    "verify": {
+      "title": "Кодты енгізіңіз",
+      "subtitle": "Код WhatsApp арқылы {{phone}} нөміріне жіберілді",
+      "change": "Нөмірді өзгерту",
+      "resend": "Кодты қайта жіберу",
+      "resendIn": "{{seconds}} сек кейін қайта",
+      "errors": {
+        "invalidCode": "Қате код"
+      }
+    },
+    "header": {
+      "logout": "Шығу",
+      "loggedInAs": "{{phone}} ретінде кірдіңіз"
+    }
+  },
   "buttons": {
     "sale": "Сату",
     "sanitation": "Ассенизация қызметі",

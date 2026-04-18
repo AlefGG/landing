@@ -61,6 +61,34 @@
     "cart": "Корзина",
     "close": "Закрыть"
   },
+  "auth": {
+    "login": {
+      "title": "Вход в кабинет",
+      "subtitle": "Введите номер телефона — мы отправим код в WhatsApp",
+      "phoneLabel": "Номер телефона",
+      "phonePlaceholder": "+7 7XX XXX XX XX",
+      "submit": "Получить код",
+      "sending": "Отправка…",
+      "errors": {
+        "invalidPhone": "Введите корректный номер",
+        "sendFailed": "Не удалось отправить код. Попробуйте позже"
+      }
+    },
+    "verify": {
+      "title": "Введите код",
+      "subtitle": "Код отправлен в WhatsApp на {{phone}}",
+      "change": "Изменить номер",
+      "resend": "Отправить код повторно",
+      "resendIn": "Повторно через {{seconds}} сек",
+      "errors": {
+        "invalidCode": "Неверный код"
+      }
+    },
+    "header": {
+      "logout": "Выйти",
+      "loggedInAs": "Вы вошли как {{phone}}"
+    }
+  },
   "buttons": {
     "sale": "Продажа",
     "sanitation": "Ассенизация",
