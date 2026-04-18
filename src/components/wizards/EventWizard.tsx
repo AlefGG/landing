@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
+import { useWizardSubmit } from "../../hooks/useWizardSubmit";
 import RentalFaq from "../RentalFaq";
 import {
   StepLabel,
@@ -45,6 +46,16 @@ export default function EventWizard() {
     const startMs = new Date(dateTime.startDate).setHours(h ?? 0, m ?? 0, 0, 0);
     return startMs - Date.now() < 24 * 60 * 60 * 1000;
   }, [dateTime.startDate, dateTime.startTime]);
+
+  const wizardSubmit = useWizardSubmit(
+    {
+      service: "rental",
+      source: "event-wizard",
+      amount: 125000,
+      contacts,
+    },
+    under24h,
+  );
 
   return (
     <>
@@ -131,8 +142,15 @@ export default function EventWizard() {
 
       <PriceSubmit
         price={125000}
-        disabled={under24h}
-        disabledReason={under24h ? t(`${ek}.under24hBlock`) : undefined}
+        disabled={wizardSubmit.buttonDisabled}
+        disabledReason={
+          under24h
+            ? t(`${ek}.under24hBlock`)
+            : wizardSubmit.submitting
+              ? t("payment.uploader.submitting")
+              : wizardSubmit.validationError ?? undefined
+        }
+        onSubmit={wizardSubmit.submit}
       />
 
       <RentalFaq />

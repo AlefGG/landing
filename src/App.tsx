@@ -9,6 +9,9 @@ import LandingPage from "./pages/LandingPage";
 import SanitationPage from "./pages/SanitationPage";
 import RentalPage from "./pages/RentalPage";
 import SalePage from "./pages/SalePage";
+import SaleItemPage from "./pages/SaleItemPage";
+import SaleCheckoutPage from "./pages/SaleCheckoutPage";
+import PaymentPage from "./pages/PaymentPage";
 import SuccessPage from "./pages/SuccessPage";
 
 export default function App() {
@@ -29,6 +32,9 @@ export default function App() {
               <Route path="/sanitation" element={<SanitationPage />} />
               <Route path="/rental" element={<RentalPage />} />
               <Route path="/sale" element={<SalePage />} />
+              <Route path="/sale/:id" element={<SaleItemPage />} />
+              <Route path="/sale/:id/checkout" element={<SaleCheckoutPage />} />
+              <Route path="/orders/:orderId/pay" element={<PaymentPage />} />
               <Route path="/success" element={<SuccessPage />} />
             </Routes>
           </main>

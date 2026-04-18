@@ -1,12 +1,13 @@
-import { useState, useRef, useEffect, type ChangeEvent, type ReactNode } from "react";
+import { useState, useRef, useEffect, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { StepHeader, BasicInput, Calendar, MapPicker, AddressList } from "./ui";
+import { StepHeader, Calendar, MapPicker, AddressList } from "./ui";
 import { useAddressTrip } from "../hooks/useAddressTrip";
+import { useWizardSubmit } from "../hooks/useWizardSubmit";
+import ContactsSection, { type ContactsValue } from "./wizards/shared/ContactsSection";
 import Faq from "./Faq";
 
 type Frequency = 1 | 2 | 3;
-type PaymentType = "paypal" | "card" | "webmoney";
 
 // TODO(backend): load from GET /api/pricing/sanitation-norms/
 const MACHINE_CAPACITY = 30;
@@ -136,16 +137,27 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
   const [calendarOpen, setCalendarOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
 
-  const [payment, setPayment] = useState<PaymentType>("paypal");
-  const [name, setName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [email, setEmail] = useState("");
+  const [contacts, setContacts] = useState<ContactsValue>({
+    contactType: "individual",
+    name: "",
+    phone: "",
+    email: "",
+  });
 
   const machineCount = cabinCount > 0 ? Math.ceil(cabinCount / MACHINE_CAPACITY) : 0;
   const crewCount = cabinCount > 0 ? Math.ceil(cabinCount / CREW_CAPACITY) : 0;
 
   const atLeastOneService = serviceEnabled || cleaningEnabled;
-  const submitDisabled = !atLeastOneService;
+
+  const wizardSubmit = useWizardSubmit(
+    {
+      service: "sanitation",
+      source: "sanitation-wizard",
+      amount: 125000,
+      contacts,
+    },
+    !atLeastOneService,
+  );
 
   useEffect(() => {
     if (!calendarOpen) return;
@@ -158,21 +170,6 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
     return () => document.removeEventListener("mousedown", handleClick);
   }, [calendarOpen]);
 
-  const formatPhone = (raw: string): string => {
-    const digits = raw.replace(/\D/g, "");
-    const d = digits.startsWith("8") ? "7" + digits.slice(1) : digits;
-    if (d.length === 0) return "";
-    if (d.length <= 1) return `+${d}`;
-    if (d.length <= 4) return `+${d.slice(0, 1)} ${d.slice(1)}`;
-    if (d.length <= 7) return `+${d.slice(0, 1)} ${d.slice(1, 4)} ${d.slice(4)}`;
-    if (d.length <= 9) return `+${d.slice(0, 1)} ${d.slice(1, 4)} ${d.slice(4, 7)}-${d.slice(7)}`;
-    return `+${d.slice(0, 1)} ${d.slice(1, 4)} ${d.slice(4, 7)}-${d.slice(7, 9)}-${d.slice(9, 11)}`;
-  };
-
-  const handlePhoneChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setPhone(formatPhone(e.target.value));
-  };
-
   const formatDate = (d: Date): string => {
     return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
   };
@@ -181,12 +178,6 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
     1: t(`${k}.step3Freq1`),
     2: t(`${k}.step3Freq2`),
     3: t(`${k}.step3Freq3`),
-  };
-
-  const paymentLabels: Record<PaymentType, string> = {
-    paypal: "Paypal",
-    card: "Credit/Debit card",
-    webmoney: "WebMoney",
   };
 
   return (
@@ -435,59 +426,11 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
       <Separator />
 
-      {/* Step 5: Contacts + payment */}
+      {/* Step 5: Contacts */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
           <StepHeader step={5} title={t(`${k}.step5Title`)} />
-          <div className="mt-8 lg:mt-4 lg:py-6">
-            <div className="flex flex-wrap gap-y-4 gap-x-[32px] lg:gap-[72px] mb-8">
-              {(Object.keys(paymentLabels) as PaymentType[]).map((key) => (
-                <RadioOption
-                  key={key}
-                  selected={payment === key}
-                  onClick={() => setPayment(key)}
-                  label={paymentLabels[key]}
-                />
-              ))}
-            </div>
-
-            <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
-              <div className="flex flex-col gap-2 w-full lg:w-[280px]">
-                <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-                  {t(`${k}.step5Name`)}
-                </label>
-                <BasicInput
-                  value={name}
-                  onChange={(e) => setName(e.target.value)}
-                  placeholder="Placeholder"
-                  className="!h-10"
-                />
-              </div>
-              <div className="flex flex-col gap-2 w-full lg:w-[280px]">
-                <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-                  {t(`${k}.step5Phone`)}
-                </label>
-                <BasicInput
-                  type="tel"
-                  value={phone}
-                  onChange={handlePhoneChange}
-                  placeholder="+7 XXX XXX-XX-XX"
-                  className="!h-10"
-                />
-              </div>
-              <div className="flex flex-col gap-2 w-full lg:w-[280px]">
-                <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-                  {t(`${k}.step5Email`)}
-                </label>
-                <BasicInput
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Placeholder"
-                  className="!h-10"
-                />
-              </div>
-            </div>
-          </div>
+          <ContactsSection value={contacts} onChange={setContacts} />
         </div>
       </section>
 
@@ -503,7 +446,8 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
           <div className="flex flex-col gap-2 w-full lg:w-[272px]">
             <button
               type="button"
-              disabled={submitDisabled}
+              disabled={wizardSubmit.buttonDisabled}
+              onClick={wizardSubmit.submit}
               className="flex items-center justify-between gap-4 bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-base rounded-[40px] pl-10 pr-8 py-3 w-full disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>{t(`${k}.submit`)}</span>
@@ -512,8 +456,14 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
                 <path d="M5.44 12h5.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </button>
-            {submitDisabled && (
+            {!atLeastOneService && (
               <p className="font-body text-sm leading-4 text-red-600">{t(`${k}.step3ValidateAtLeastOne`)}</p>
+            )}
+            {atLeastOneService && wizardSubmit.validationError && (
+              <p className="font-body text-sm leading-4 text-red-600">{wizardSubmit.validationError}</p>
+            )}
+            {wizardSubmit.submitting && (
+              <p className="font-body text-sm leading-4 text-neutral-500">{t("payment.uploader.submitting")}</p>
             )}
           </div>
         </div>

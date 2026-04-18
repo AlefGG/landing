@@ -52,6 +52,13 @@ export default function SuccessScreen() {
   const serviceParam = (params.get("service") ?? "rental") as ServiceKey;
   const amountParam = params.get("amount");
   const dateParam = params.get("date");
+  const typeParam = params.get("type") as "individual" | "legal" | null;
+  const noteKey =
+    typeParam === "legal"
+      ? "success.noteLegal"
+      : typeParam === "individual"
+        ? "success.noteIndividual"
+        : "success.note";
 
   const serviceLabel = useMemo(() => {
     const map: Record<ServiceKey, string> = {
@@ -156,7 +163,7 @@ export default function SuccessScreen() {
           </Row>
 
           <div className="w-full px-0 lg:px-[296px] py-4 lg:py-6 border-b border-neutral-200">
-            <p className="font-body text-sm leading-4 text-neutral-400">{t("success.note")}</p>
+            <p className="font-body text-sm leading-4 text-neutral-400">{t(noteKey)}</p>
           </div>
 
           {/* CTA */}

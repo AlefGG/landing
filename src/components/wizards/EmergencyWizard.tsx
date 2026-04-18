@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
+import { useWizardSubmit } from "../../hooks/useWizardSubmit";
 import RentalFaq from "../RentalFaq";
 import {
   StepLabel,
@@ -36,6 +37,13 @@ export default function EmergencyWizard() {
     name: "",
     phone: "",
     email: "",
+  });
+
+  const wizardSubmit = useWizardSubmit({
+    service: "rental",
+    source: "emergency-wizard",
+    amount: 125000,
+    contacts,
   });
 
   return (
@@ -119,7 +127,16 @@ export default function EmergencyWizard() {
 
       <Separator />
 
-      <PriceSubmit price={125000} />
+      <PriceSubmit
+        price={125000}
+        disabled={wizardSubmit.buttonDisabled}
+        disabledReason={
+          wizardSubmit.submitting
+            ? t("payment.uploader.submitting")
+            : wizardSubmit.validationError ?? undefined
+        }
+        onSubmit={wizardSubmit.submit}
+      />
 
       <RentalFaq />
     </>

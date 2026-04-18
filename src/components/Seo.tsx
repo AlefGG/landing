@@ -6,18 +6,30 @@ const LOCALE_MAP: Record<string, string> = {
   kk: "kk_KZ",
 };
 
-export default function Seo() {
+type SeoProps = {
+  pageKey?: string;
+  titleOverride?: string;
+  descriptionOverride?: string;
+};
+
+export default function Seo({ pageKey, titleOverride, descriptionOverride }: SeoProps = {}) {
   const { t, i18n } = useTranslation();
   const lang = i18n.language in LOCALE_MAP ? i18n.language : "ru";
   const ogLocale = LOCALE_MAP[lang];
 
+  const pageTitle = pageKey ? t(`meta.${pageKey}.title`, { defaultValue: "" }) : "";
+  const pageDescription = pageKey ? t(`meta.${pageKey}.description`, { defaultValue: "" }) : "";
+
+  const title = titleOverride || pageTitle || t("meta.title");
+  const description = descriptionOverride || pageDescription || t("meta.description");
+
   return (
     <Helmet>
       <html lang={lang} />
-      <title>{t("meta.title")}</title>
-      <meta name="description" content={t("meta.description")} />
-      <meta property="og:title" content={t("meta.title")} />
-      <meta property="og:description" content={t("meta.description")} />
+      <title>{title}</title>
+      <meta name="description" content={description} />
+      <meta property="og:title" content={title} />
+      <meta property="og:description" content={description} />
       <meta property="og:type" content="website" />
       <meta property="og:locale" content={ogLocale} />
       {/* TODO: add real og:image file at /assets/og-image.png (1200x630) */}

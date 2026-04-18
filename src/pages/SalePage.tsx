@@ -1,5 +1,5 @@
-import SaleWizard from "../components/SaleWizard";
+import SaleCatalog from "../components/sale/SaleCatalog";
 
 export default function SalePage() {
-  return <SaleWizard />;
+  return <SaleCatalog />;
 }

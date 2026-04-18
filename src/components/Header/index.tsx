@@ -16,6 +16,13 @@ export default function Header() {
     { label: t("nav.cabins"), href: "#cabins" },
   ];
 
+  const activePath = location.pathname.startsWith("/sale")
+    ? "/sale"
+    : location.pathname.startsWith("/sanitation")
+    ? "/sanitation"
+    : "/rental";
+  const variantFor = (path: string) => (activePath === path ? "cta" : "ghost");
+
   const scrollTo = (href: string) => {
     setMenuOpen(false);
     if (location.pathname !== "/") {
@@ -92,17 +99,17 @@ export default function Header() {
             transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.8, duration: 0.4 }}
           >
             <div className="flex-1">
-              <Button variant="ghost" size="md" href="/sale" className="w-full">
+              <Button variant={variantFor("/sale")} size="md" href="/sale" className="w-full">
                 {t("buttons.sale")}
               </Button>
             </div>
             <div className="flex-1">
-              <Button variant="ghost" size="md" href="/sanitation" className="w-full">
+              <Button variant={variantFor("/sanitation")} size="md" href="/sanitation" className="w-full">
                 {t("buttons.sanitation")}
               </Button>
             </div>
             <div className="flex-1">
-              <Button variant="cta" size="md" href="/rental" className="w-full">
+              <Button variant={variantFor("/rental")} size="md" href="/rental" className="w-full">
                 {t("buttons.rental")}
               </Button>
             </div>
@@ -141,13 +148,13 @@ export default function Header() {
 
         {/* Mobile sub-nav buttons */}
         <div className="lg:hidden flex items-center justify-between px-3 pt-6 pb-0 gap-2">
-          <Button variant="cta" size="sm" href="/rental" className="rounded-[40px] w-[94px]">
+          <Button variant={variantFor("/rental")} size="sm" href="/rental" className="rounded-[40px] w-[94px]">
             {t("buttons.rental")}
           </Button>
-          <Button variant="ghost" size="sm" href="/sanitation" className="w-[128px]">
+          <Button variant={variantFor("/sanitation")} size="sm" href="/sanitation" className="w-[128px]">
             {t("buttons.sanitation")}
           </Button>
-          <Button variant="ghost" size="sm" href="/sale" className="w-[100px]">
+          <Button variant={variantFor("/sale")} size="sm" href="/sale" className="w-[100px]">
             {t("buttons.sale")}
           </Button>
         </div>
@@ -202,13 +209,13 @@ export default function Header() {
 
             {/* CTA buttons */}
             <div className="flex flex-col gap-4 px-6 pb-2">
-              <Button variant="cta" size="md" href="/rental" className="w-full">
+              <Button variant={variantFor("/rental")} size="md" href="/rental" className="w-full">
                 {t("buttons.rental")}
               </Button>
-              <Button variant="ghost" size="md" href="/sanitation" className="w-full">
+              <Button variant={variantFor("/sanitation")} size="md" href="/sanitation" className="w-full">
                 {t("buttons.sanitation")}
               </Button>
-              <Button variant="ghost" size="md" href="/sale" className="w-full">
+              <Button variant={variantFor("/sale")} size="md" href="/sale" className="w-full">
                 {t("buttons.sale")}
               </Button>
             </div>

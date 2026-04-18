@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
+import { useWizardSubmit } from "../../hooks/useWizardSubmit";
 import RentalFaq from "../RentalFaq";
 import { Select } from "../ui";
 import {
@@ -32,6 +33,13 @@ export default function ConstructionWizard() {
   });
 
   const cabin = constructionCabins[0]!;
+
+  const wizardSubmit = useWizardSubmit({
+    service: "rental",
+    source: "construction-wizard",
+    amount: 125000,
+    contacts,
+  });
 
   return (
     <>
@@ -107,7 +115,16 @@ export default function ConstructionWizard() {
 
       <Separator />
 
-      <PriceSubmit price={125000} />
+      <PriceSubmit
+        price={125000}
+        disabled={wizardSubmit.buttonDisabled}
+        disabledReason={
+          wizardSubmit.submitting
+            ? t("payment.uploader.submitting")
+            : wizardSubmit.validationError ?? undefined
+        }
+        onSubmit={wizardSubmit.submit}
+      />
 
       <RentalFaq />
     </>
