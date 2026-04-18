@@ -11,8 +11,10 @@ import {
 import {
   refresh as refreshToken,
   sendOtp as sendOtpRequest,
+  updateProfile as updateProfileRequest,
   verifyOtp,
   type AuthUser,
+  type ProfilePatch,
 } from "../services/authService";
 
 type AuthStatus = "loading" | "authenticated" | "anonymous";
@@ -23,6 +25,7 @@ type AuthContextValue = {
   sendOtp: (phone: string) => Promise<{ expiresIn: number }>;
   login: (phone: string, code: string) => Promise<void>;
   logout: () => void;
+  updateProfile: (patch: ProfilePatch) => Promise<void>;
 };
 
 const STORAGE_KEYS = {
@@ -133,9 +136,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("anonymous");
   }, []);
 
+  const updateProfile = useCallback(
+    async (patch: ProfilePatch) => {
+      if (!user) {
+        throw new Error("Not authenticated");
+      }
+      const next = await updateProfileRequest(user, patch);
+      if (typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(
+            STORAGE_KEYS.user,
+            JSON.stringify(next),
+          );
+        } catch {
+          // ignore
+        }
+      }
+      setUser(next);
+    },
+    [user],
+  );
+
   const value = useMemo<AuthContextValue>(
-    () => ({ user, status, sendOtp, login, logout }),
-    [user, status, sendOtp, login, logout],
+    () => ({ user, status, sendOtp, login, logout, updateProfile }),
+    [user, status, sendOtp, login, logout, updateProfile],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
