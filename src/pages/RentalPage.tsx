@@ -1,5 +1,5 @@
-import RentalWizard from "../components/RentalWizard";
+import RentalTabs from "../components/wizards/RentalTabs";
 
 export default function RentalPage() {
-  return <RentalWizard />;
+  return <RentalTabs />;
 }
