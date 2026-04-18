@@ -100,13 +100,22 @@ export default function Header() {
               {accountMenuOpen && (
                 <div
                   role="menu"
-                  className="absolute right-0 top-full mt-1 min-w-[180px] rounded-[8px] border border-neutral-200 bg-white shadow-lg z-50"
+                  className="absolute right-0 top-full mt-1 min-w-[200px] rounded-[8px] border border-neutral-200 bg-white shadow-lg z-50 overflow-hidden"
                 >
+                  <Link
+                    to="/account/orders"
+                    role="menuitem"
+                    onClick={() => setAccountMenuOpen(false)}
+                    className="block px-4 py-3 font-body text-sm leading-4 text-neutral-800 hover:bg-neutral-100"
+                    data-testid="header-my-orders-link"
+                  >
+                    {t("auth.header.myOrders")}
+                  </Link>
                   <button
                     type="button"
                     role="menuitem"
                     onClick={handleLogout}
-                    className="w-full text-left px-4 py-3 font-body text-sm leading-4 text-neutral-800 hover:bg-neutral-100 rounded-[8px]"
+                    className="w-full text-left px-4 py-3 font-body text-sm leading-4 text-neutral-800 hover:bg-neutral-100 border-t border-neutral-100"
                     data-testid="header-logout-button"
                   >
                     {t("auth.header.logout")}
@@ -313,23 +322,39 @@ export default function Header() {
             {/* Login + Cart */}
             <ul className="flex flex-col px-6">
               {status === "authenticated" && user ? (
-                <li className="border-b border-neutral-200 flex items-center justify-between">
-                  <span className="flex items-center gap-2 py-2 pl-2 text-neutral-900 text-base leading-6 font-body">
-                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800" aria-hidden="true">
-                      <circle cx="12" cy="8" r="4" />
-                      <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
-                    </svg>
-                    {formatPhone(user.phone)}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={handleLogout}
-                    className="py-2 pr-2 font-body text-base leading-6 text-cta-main"
-                    data-testid="header-logout-mobile"
-                  >
-                    {t("auth.header.logout")}
-                  </button>
-                </li>
+                <>
+                  <li className="border-b border-neutral-200 flex items-center justify-between">
+                    <span className="flex items-center gap-2 py-2 pl-2 text-neutral-900 text-base leading-6 font-body">
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800" aria-hidden="true">
+                        <circle cx="12" cy="8" r="4" />
+                        <path d="M4 20c0-4 4-6 8-6s8 2 8 6" />
+                      </svg>
+                      {formatPhone(user.phone)}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleLogout}
+                      className="py-2 pr-2 font-body text-base leading-6 text-cta-main"
+                      data-testid="header-logout-mobile"
+                    >
+                      {t("auth.header.logout")}
+                    </button>
+                  </li>
+                  <li className="border-b border-neutral-200">
+                    <Link
+                      to="/account/orders"
+                      onClick={() => setMenuOpen(false)}
+                      className="flex items-center gap-2 py-2 pl-2 text-neutral-900 text-base leading-6 font-body"
+                      data-testid="header-my-orders-mobile"
+                    >
+                      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" className="text-neutral-800" aria-hidden="true">
+                        <rect x="4" y="4" width="16" height="16" rx="2" />
+                        <path d="M8 9h8M8 13h8M8 17h5" />
+                      </svg>
+                      {t("auth.header.myOrders")}
+                    </Link>
+                  </li>
+                </>
               ) : (
                 <li className="border-b border-neutral-200">
                   <Link
