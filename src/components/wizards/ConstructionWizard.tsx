@@ -9,14 +9,16 @@ import {
   Separator,
   ContactsSection,
   PriceSubmit,
+  ConstructionDiscountTable,
   constructionCabins,
+  getConstructionDiscount,
+  BASE_DAY_PRICE,
+  CONSTRUCTION_DISCOUNTS,
   type ContactsValue,
 } from "./shared";
 import AddressStep from "./shared/AddressStep";
 
-// TODO(backend): подтянуть таблицу скидок стройки из админки (endpoint /api/pricing/construction-discounts/).
-// Сейчас — захардкоженный placeholder до готовности бэка.
-const MONTH_OPTIONS = [1, 2, 3, 4, 5, 6];
+const MONTH_OPTIONS = CONSTRUCTION_DISCOUNTS.map((r) => r.months);
 
 export default function ConstructionWizard() {
   const { t } = useTranslation();
@@ -34,10 +36,14 @@ export default function ConstructionWizard() {
 
   const cabin = constructionCabins[0]!;
 
+  const discount = getConstructionDiscount(months);
+  const monthlyPriceApprox = BASE_DAY_PRICE * 30;
+  const totalPrice = Math.round(monthlyPriceApprox * months * (1 - discount));
+
   const wizardSubmit = useWizardSubmit({
     service: "rental",
     source: "construction-wizard",
-    amount: 125000,
+    amount: totalPrice,
     contacts,
   });
 
@@ -87,6 +93,20 @@ export default function ConstructionWizard() {
               {t(`${ck}.discountHint`)}
             </p>
           </div>
+          <div className="mt-6 max-w-[480px]">
+            <h3 className="font-body font-semibold text-base leading-6 text-neutral-900">
+              {t(`${ck}.discountTable.title`)}
+            </h3>
+            <ConstructionDiscountTable selectedMonths={months} onSelect={setMonths} />
+            {discount > 0 && (
+              <p className="mt-2 font-body text-sm leading-4 text-cta-main">
+                {t(`${ck}.discountTable.selectedNote`, {
+                  months: t(`${ck}.monthsValue`, { count: months }),
+                  percent: Math.round(discount * 100),
+                })}
+              </p>
+            )}
+          </div>
         </div>
       </section>
 
@@ -116,7 +136,7 @@ export default function ConstructionWizard() {
       <Separator />
 
       <PriceSubmit
-        price={125000}
+        price={totalPrice}
         disabled={wizardSubmit.buttonDisabled}
         disabledReason={
           wizardSubmit.submitting

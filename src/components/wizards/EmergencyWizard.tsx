@@ -10,6 +10,9 @@ import {
   ContactsSection,
   PriceSubmit,
   Toggle,
+  SurchargeNotice,
+  BASE_DAY_PRICE,
+  EMERGENCY_SURCHARGE_RATE,
   type CabinType,
   type ContactsValue,
 } from "./shared";
@@ -39,10 +42,13 @@ export default function EmergencyWizard() {
     email: "",
   });
 
+  const surchargeAmount = Math.round(BASE_DAY_PRICE * EMERGENCY_SURCHARGE_RATE);
+  const totalPrice = BASE_DAY_PRICE + surchargeAmount;
+
   const wizardSubmit = useWizardSubmit({
     service: "rental",
     source: "emergency-wizard",
-    amount: 125000,
+    amount: totalPrice,
     contacts,
   });
 
@@ -112,6 +118,13 @@ export default function EmergencyWizard() {
           <p className="mt-4 font-body text-base leading-6 text-neutral-600">
             {t(`${ek}.tariffNotice`)}
           </p>
+          <SurchargeNotice
+            title={t(`${ek}.surchargeTitle`)}
+            rate={EMERGENCY_SURCHARGE_RATE}
+            amount={surchargeAmount}
+            total={totalPrice}
+            tone="danger"
+          />
         </div>
       </section>
 
@@ -128,7 +141,7 @@ export default function EmergencyWizard() {
       <Separator />
 
       <PriceSubmit
-        price={125000}
+        price={totalPrice}
         disabled={wizardSubmit.buttonDisabled}
         disabledReason={
           wizardSubmit.submitting

@@ -10,6 +10,9 @@ import {
   ContactsSection,
   PriceSubmit,
   Toggle,
+  SurchargeNotice,
+  BASE_DAY_PRICE,
+  EXPRESS_SURCHARGE_RATE,
   type CabinType,
   type ContactsValue,
 } from "./shared";
@@ -47,11 +50,16 @@ export default function EventWizard() {
     return startMs - Date.now() < 24 * 60 * 60 * 1000;
   }, [dateTime.startDate, dateTime.startTime]);
 
+  const surchargeAmount = expressMounting
+    ? Math.round(BASE_DAY_PRICE * EXPRESS_SURCHARGE_RATE)
+    : 0;
+  const totalPrice = BASE_DAY_PRICE + surchargeAmount;
+
   const wizardSubmit = useWizardSubmit(
     {
       service: "rental",
       source: "event-wizard",
-      amount: 125000,
+      amount: totalPrice,
       contacts,
     },
     under24h,
@@ -121,9 +129,17 @@ export default function EventWizard() {
             />
           </div>
           {expressMounting && (
-            <p className="mt-4 font-body text-base leading-6 text-neutral-600">
-              {t(`${ek}.installNotice`)}
-            </p>
+            <>
+              <SurchargeNotice
+                title={t(`${ek}.expressSurchargeTitle`)}
+                rate={EXPRESS_SURCHARGE_RATE}
+                amount={surchargeAmount}
+                total={totalPrice}
+              />
+              <p className="mt-4 font-body text-base leading-6 text-neutral-600">
+                {t(`${ek}.installNotice`)}
+              </p>
+            </>
           )}
         </div>
       </section>
@@ -141,7 +157,7 @@ export default function EventWizard() {
       <Separator />
 
       <PriceSubmit
-        price={125000}
+        price={totalPrice}
         disabled={wizardSubmit.buttonDisabled}
         disabledReason={
           under24h
