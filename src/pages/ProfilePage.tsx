@@ -47,6 +47,7 @@ export default function ProfilePage() {
   return (
     <form
       onSubmit={onSubmit}
+      noValidate
       className="rounded-[12px] border border-neutral-200 bg-white p-6 max-w-xl flex flex-col gap-4"
       data-testid="profile-form"
     >
