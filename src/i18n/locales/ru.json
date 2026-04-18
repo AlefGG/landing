@@ -86,7 +86,87 @@
     },
     "header": {
       "logout": "Выйти",
-      "loggedInAs": "Вы вошли как {{phone}}"
+      "loggedInAs": "Вы вошли как {{phone}}",
+      "myOrders": "Мои заявки"
+    },
+    "account": {
+      "title": "Личный кабинет",
+      "nav": {
+        "orders": "Мои заявки",
+        "profile": "Профиль"
+      }
+    },
+    "orders": {
+      "title": "Мои заявки",
+      "empty": {
+        "title": "Заявок пока нет",
+        "cta": "Оформить заявку"
+      },
+      "filter": {
+        "all": "Все статусы"
+      },
+      "status": {
+        "pending": "Ожидание",
+        "processing": "В обработке",
+        "assigned": "Назначено",
+        "completed": "Выполнено",
+        "cancelled": "Отменено"
+      },
+      "service": {
+        "rental": "Аренда",
+        "sanitation": "Ассенизация",
+        "sale": "Продажа"
+      },
+      "summary": {
+        "rentalEvent": "Мероприятие · 5 кабин · 3 дня",
+        "rentalConstruction": "Стройка · 15 кабин · 3 мес",
+        "sanitation": "14 кабин · 2 р/нед · 4 нед",
+        "saleLux2": "Люкс · 2 шт"
+      },
+      "card": {
+        "amount": "{{amount}} ₸"
+      },
+      "detail": {
+        "back": "← Мои заявки",
+        "section": {
+          "details": "Детали",
+          "contacts": "Контакты",
+          "payment": "Оплата"
+        },
+        "service": "Услуга",
+        "date": "Дата заявки",
+        "amount": "Сумма",
+        "address": "Адрес",
+        "summary": "Состав",
+        "contactType": {
+          "individual": "Физлицо",
+          "legal": "Юрлицо"
+        },
+        "payReceipt": "Скачать чек",
+        "payAction": "Перейти к оплате",
+        "payPending": "Ожидает оплаты",
+        "notFound": "Заявка не найдена",
+        "notFoundBack": "Вернуться к списку"
+      }
+    },
+    "profile": {
+      "title": "Профиль",
+      "name": "ФИО",
+      "namePlaceholder": "Фамилия Имя",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "phone": "Телефон",
+      "phoneHint": "Смена телефона — обратитесь в поддержку",
+      "submit": "Сохранить",
+      "saving": "Сохранение…",
+      "saved": "Сохранено",
+      "errors": {
+        "email": "Введите корректный email",
+        "saveFailed": "Не удалось сохранить. Попробуйте ещё раз"
+      }
+    },
+    "time": {
+      "justNow": "только что"
     }
   },
   "buttons": {

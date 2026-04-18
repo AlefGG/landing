@@ -86,7 +86,87 @@
     },
     "header": {
       "logout": "Шығу",
-      "loggedInAs": "{{phone}} ретінде кірдіңіз"
+      "loggedInAs": "{{phone}} ретінде кірдіңіз",
+      "myOrders": "Менің өтінімдерім"
+    },
+    "account": {
+      "title": "Жеке кабинет",
+      "nav": {
+        "orders": "Менің өтінімдерім",
+        "profile": "Профиль"
+      }
+    },
+    "orders": {
+      "title": "Менің өтінімдерім",
+      "empty": {
+        "title": "Өтінімдер әзірше жоқ",
+        "cta": "Өтінім рәсімдеу"
+      },
+      "filter": {
+        "all": "Барлық мәртебелер"
+      },
+      "status": {
+        "pending": "Күтуде",
+        "processing": "Өңделуде",
+        "assigned": "Тағайындалды",
+        "completed": "Орындалды",
+        "cancelled": "Тоқтатылды"
+      },
+      "service": {
+        "rental": "Жалдау",
+        "sanitation": "Ассенизация",
+        "sale": "Сату"
+      },
+      "summary": {
+        "rentalEvent": "Іс-шара · 5 кабина · 3 күн",
+        "rentalConstruction": "Құрылыс · 15 кабина · 3 ай",
+        "sanitation": "14 кабина · аптасына 2 р · 4 апта",
+        "saleLux2": "Люкс · 2 дана"
+      },
+      "card": {
+        "amount": "{{amount}} ₸"
+      },
+      "detail": {
+        "back": "← Өтінімдерге қайту",
+        "section": {
+          "details": "Мәліметтер",
+          "contacts": "Байланыстар",
+          "payment": "Төлем"
+        },
+        "service": "Қызмет",
+        "date": "Өтінім күні",
+        "amount": "Сома",
+        "address": "Мекенжай",
+        "summary": "Құрамы",
+        "contactType": {
+          "individual": "Жеке тұлға",
+          "legal": "Заңды тұлға"
+        },
+        "payReceipt": "Түбіртекті жүктеу",
+        "payAction": "Төлемге өту",
+        "payPending": "Төлемді күтуде",
+        "notFound": "Өтінім табылмады",
+        "notFoundBack": "Тізімге оралу"
+      }
+    },
+    "profile": {
+      "title": "Профиль",
+      "name": "Аты-жөні",
+      "namePlaceholder": "Тегі Аты",
+      "email": "Email",
+      "emailPlaceholder": "you@example.com",
+      "phone": "Телефон",
+      "phoneHint": "Телефонды ауыстыру — қолдау қызметіне хабарласыңыз",
+      "submit": "Сақтау",
+      "saving": "Сақталуда…",
+      "saved": "Сақталды",
+      "errors": {
+        "email": "Дұрыс email енгізіңіз",
+        "saveFailed": "Сақтау сәтсіз аяқталды. Қайталап көріңіз"
+      }
+    },
+    "time": {
+      "justNow": "дәл қазір"
     }
   },
   "buttons": {
