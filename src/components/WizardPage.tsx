@@ -1,63 +1,16 @@
 import { useState, useRef, useEffect, type ChangeEvent, type ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
-import { StepHeader, BasicInput, Calendar, TimeDropdown, MapPicker, AddressList } from "./ui";
+import { StepHeader, BasicInput, Calendar, MapPicker, AddressList } from "./ui";
 import { useAddressTrip } from "../hooks/useAddressTrip";
 import Faq from "./Faq";
 
-type CabinType = "standard" | "lux" | "vip";
-type FrequencyType = "once" | "scheduled";
+type Frequency = 1 | 2 | 3;
 type PaymentType = "paypal" | "card" | "webmoney";
 
-const cabins: { type: CabinType; image: string }[] = [
-  { type: "standard", image: "/assets/images/cabin-standard.png" },
-  { type: "lux", image: "/assets/images/cabin-lux.png" },
-  { type: "vip", image: "/assets/images/cabin-vip.png" },
-];
-
-function Stepper({
-  value,
-  onChange,
-  min = 0,
-}: {
-  value: number;
-  onChange: (v: number) => void;
-  min?: number;
-}) {
-  return (
-    <div className="flex items-center gap-2 w-[160px]">
-      <button
-        type="button"
-        onClick={() => onChange(Math.max(min, value - 1))}
-        className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
-        aria-label="Уменьшить"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      </button>
-      <input
-        type="number"
-        value={value}
-        onChange={(e) => {
-          const n = parseInt(e.target.value, 10);
-          if (!isNaN(n) && n >= min) onChange(n);
-        }}
-        className="h-10 flex-1 min-w-0 rounded-[8px] border border-neutral-400 bg-white px-2 text-center font-body text-xl text-neutral-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-      />
-      <button
-        type="button"
-        onClick={() => onChange(value + 1)}
-        className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
-        aria-label="Увеличить"
-      >
-        <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
-          <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
-        </svg>
-      </button>
-    </div>
-  );
-}
+// TODO(backend): load from GET /api/pricing/sanitation-norms/
+const MACHINE_CAPACITY = 30;
+const CREW_CAPACITY = 30;
 
 function Toggle({
   checked,
@@ -93,18 +46,21 @@ function RadioOption({
   selected,
   onClick,
   label,
+  disabled = false,
   className = "",
 }: {
   selected: boolean;
   onClick: () => void;
   label: string;
+  disabled?: boolean;
   className?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
-      className={`flex items-center gap-2 rounded-[6px] ${className}`}
+      disabled={disabled}
+      className={`flex items-center gap-2 rounded-[6px] disabled:opacity-50 disabled:cursor-not-allowed ${className}`}
     >
       <span
         className={`size-5 shrink-0 rounded-full ${selected ? "bg-cta-main flex items-center justify-center" : "border border-neutral-500"}`}
@@ -128,6 +84,32 @@ function Separator() {
   );
 }
 
+function FrequencySelector({
+  enabled,
+  value,
+  onChange,
+  labels,
+}: {
+  enabled: boolean;
+  value: Frequency;
+  onChange: (v: Frequency) => void;
+  labels: Record<Frequency, string>;
+}) {
+  return (
+    <div className="flex flex-col lg:flex-row gap-3 lg:gap-8">
+      {([1, 2, 3] as Frequency[]).map((f) => (
+        <RadioOption
+          key={f}
+          selected={value === f}
+          onClick={() => onChange(f)}
+          label={labels[f]}
+          disabled={!enabled}
+        />
+      ))}
+    </div>
+  );
+}
+
 export type WizardConfig = {
   pageKey: "sanitation";
   breadcrumbLabel: string;
@@ -142,29 +124,28 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
   const [cabinCount, setCabinCount] = useState(0);
   const trip = useAddressTrip();
-  const [selectedCabin, setSelectedCabin] = useState<CabinType>("standard");
+
   const [serviceEnabled, setServiceEnabled] = useState(true);
+  const [serviceFrequency, setServiceFrequency] = useState<Frequency>(1);
+
   const [cleaningEnabled, setCleaningEnabled] = useState(true);
-  const [installNotice, setInstallNotice] = useState(false);
-  const [machineCount, setMachineCount] = useState(0);
-  const [crewCount, setCrewCount] = useState(0);
-  const [frequency, setFrequency] = useState<FrequencyType>("once");
+  const [cleaningFrequency, setCleaningFrequency] = useState<Frequency>(1);
+
   const [startDate, setStartDate] = useState<Date | null>(null);
-  const [startTime, setStartTime] = useState("");
-  const [endTime, setEndTime] = useState("");
+  const [durationWeeks, setDurationWeeks] = useState<number>(1);
   const [calendarOpen, setCalendarOpen] = useState(false);
-  const [startTimeOpen, setStartTimeOpen] = useState(false);
-  const [endTimeOpen, setEndTimeOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
+
   const [payment, setPayment] = useState<PaymentType>("paypal");
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
 
-  const timeOptions = Array.from({ length: 24 }, (_, h) => [
-    { time: `${String(h).padStart(2, "0")}:00` },
-    { time: `${String(h).padStart(2, "0")}:30` },
-  ]).flat();
+  const machineCount = cabinCount > 0 ? Math.ceil(cabinCount / MACHINE_CAPACITY) : 0;
+  const crewCount = cabinCount > 0 ? Math.ceil(cabinCount / CREW_CAPACITY) : 0;
+
+  const atLeastOneService = serviceEnabled || cleaningEnabled;
+  const submitDisabled = !atLeastOneService;
 
   useEffect(() => {
     if (!calendarOpen) return;
@@ -196,10 +177,10 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
     return d.toLocaleDateString("ru-RU", { day: "2-digit", month: "2-digit", year: "numeric" });
   };
 
-  const cabinLabels: Record<CabinType, string> = {
-    standard: t("wizard.cabins.standard"),
-    lux: t("wizard.cabins.lux"),
-    vip: t("wizard.cabins.vip"),
+  const frequencyLabels: Record<Frequency, string> = {
+    1: t(`${k}.step3Freq1`),
+    2: t(`${k}.step3Freq2`),
+    3: t(`${k}.step3Freq3`),
   };
 
   const paymentLabels: Record<PaymentType, string> = {
@@ -210,18 +191,13 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
   return (
     <div className="bg-white overflow-x-clip">
-      {/* Hero banner */}
       <section className="relative h-[104px] lg:h-[176px]">
         <div
           className="hidden lg:block absolute left-1/2 -translate-x-1/2 w-[1216px] h-[712px] pointer-events-none"
           style={{ top: "-64px" }}
           aria-hidden="true"
         >
-          <img
-            src="/assets/images/wizard-hero-shape.svg"
-            alt=""
-            className="w-full h-full"
-          />
+          <img src="/assets/images/wizard-hero-shape.svg" alt="" className="w-full h-full" />
         </div>
         <div className="lg:hidden absolute inset-0 bg-gradient-to-b from-[#f1f1f1] to-transparent pointer-events-none" aria-hidden="true" />
 
@@ -241,29 +217,22 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
           </h1>
         </div>
 
-        {/* Decorative large outlined text */}
         <p
           className="hidden lg:block absolute right-[230px] top-[100px] font-heading text-[144px] font-extrabold leading-[56px] pointer-events-none select-none"
-          style={{
-            color: "transparent",
-            WebkitTextStroke: "1.5px rgba(89, 176, 2, 0.15)",
-          }}
+          style={{ color: "transparent", WebkitTextStroke: "1.5px rgba(89, 176, 2, 0.15)" }}
           aria-hidden="true"
         >
           {heroTitle}
         </p>
       </section>
 
-      {/* Warning toast (optional) */}
       {warning && (
         <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-4">
           <div className="flex gap-2 items-start bg-[#fff7de] border border-[#f2bc70] rounded-[8px] p-4 lg:py-4 lg:pl-6 lg:pr-4 shadow-[0px_6px_8px_0px_rgba(0,0,0,0.08)]">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#e7a74c] mt-0.5">
               <path d="M12 9v4M12 16h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            <p className="font-body text-base leading-6 text-neutral-900">
-              {warning}
-            </p>
+            <p className="font-body text-base leading-6 text-neutral-900">{warning}</p>
           </div>
         </section>
       )}
@@ -276,7 +245,37 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             <p className="font-body text-base lg:text-xl leading-6 text-neutral-900 lg:text-neutral-600">
               {t(`${k}.step1Question`)}
             </p>
-            <Stepper value={cabinCount} onChange={setCabinCount} />
+            <div className="flex items-center gap-2 w-[160px]">
+              <button
+                type="button"
+                onClick={() => setCabinCount(Math.max(0, cabinCount - 1))}
+                className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
+                aria-label="Уменьшить"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+              <input
+                type="number"
+                value={cabinCount}
+                onChange={(e) => {
+                  const n = parseInt(e.target.value, 10);
+                  if (!isNaN(n) && n >= 0) setCabinCount(n);
+                }}
+                className="h-10 flex-1 min-w-0 rounded-[8px] border border-neutral-400 bg-white px-2 text-center font-body text-xl text-neutral-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+              />
+              <button
+                type="button"
+                onClick={() => setCabinCount(cabinCount + 1)}
+                className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
+                aria-label="Увеличить"
+              >
+                <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
+                  <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
+                </svg>
+              </button>
+            </div>
             <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
               {t(`${k}.step1Hint`)}
             </p>
@@ -309,15 +308,12 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               className="mt-0 h-[374px] lg:h-[550px]"
             />
             {!trip.loading && trip.error && (
-              <div className="mt-2 font-body text-base text-red-600">
-                {t(`${k}.step2RouteError`)}
-              </div>
+              <div className="mt-2 font-body text-base text-red-600">{t(`${k}.step2RouteError`)}</div>
             )}
             {!trip.loading && !trip.error && trip.trip && (
               <div className="mt-2 flex flex-col lg:flex-row gap-2 lg:gap-6 font-body text-base text-neutral-900">
                 <span>
-                  {t(`${k}.step2Distance`)}:{" "}
-                  <strong>{trip.distanceKm.toFixed(1)} {t(`${k}.step2Km`)}</strong>
+                  {t(`${k}.step2Distance`)}: <strong>{trip.distanceKm.toFixed(1)} {t(`${k}.step2Km`)}</strong>
                 </span>
                 <span>
                   {t(`${k}.step2DeliveryCost`)}: <strong className="text-cta-main">{trip.deliveryCost.toLocaleString("ru-RU")} ₸</strong>
@@ -330,121 +326,70 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
       <Separator />
 
-      {/* Step 3: Cabin selection */}
+      {/* Step 3: Service frequencies + resources */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
           <StepHeader step={3} title={t(`${k}.step3Title`)} />
-          <div className="mt-4 py-4 flex flex-col lg:flex-row items-stretch lg:items-start justify-between gap-2 lg:gap-4">
-            {cabins.map(({ type, image }) => (
-              <button
-                key={type}
-                type="button"
-                onClick={() => setSelectedCabin(type)}
-                className="flex items-center lg:flex-col gap-6 w-full lg:w-[288px] px-0 lg:px-10 py-0 lg:py-4 rounded-3xl bg-white transition-shadow hover:shadow-md"
-              >
-                <img
-                  src={image}
-                  alt={cabinLabels[type]}
-                  className="h-[98px] lg:h-[200px] w-auto object-contain shrink-0"
-                />
-                <div className="flex items-center gap-2">
-                  <span
-                    className={`size-5 shrink-0 rounded-full ${selectedCabin === type ? "bg-cta-main flex items-center justify-center" : "border border-neutral-500"}`}
-                  >
-                    {selectedCabin === type && <span className="size-2 rounded-full bg-white" />}
-                  </span>
-                  <span className="font-body text-base lg:text-xl leading-6 text-neutral-900">
-                    {cabinLabels[type]}
-                  </span>
-                </div>
-              </button>
-            ))}
+
+          <div className="mt-6 lg:mt-4 flex flex-col gap-8 lg:gap-10">
+            <div className="flex flex-col gap-3">
+              <Toggle
+                checked={serviceEnabled}
+                onChange={setServiceEnabled}
+                label={t(`${k}.step3Service`)}
+              />
+              <FrequencySelector
+                enabled={serviceEnabled}
+                value={serviceFrequency}
+                onChange={setServiceFrequency}
+                labels={frequencyLabels}
+              />
+            </div>
+
+            <div className="flex flex-col gap-3">
+              <Toggle
+                checked={cleaningEnabled}
+                onChange={setCleaningEnabled}
+                label={t(`${k}.step3Cleaning`)}
+              />
+              <FrequencySelector
+                enabled={cleaningEnabled}
+                value={cleaningFrequency}
+                onChange={setCleaningFrequency}
+                labels={frequencyLabels}
+              />
+            </div>
+
+            {!atLeastOneService && (
+              <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-red-600">
+                {t(`${k}.step3ValidateAtLeastOne`)}
+              </p>
+            )}
+          </div>
+
+          <h3 className="font-heading text-[20px] lg:text-[32px] font-extrabold leading-[24px] lg:leading-[32px] text-neutral-900 mt-10 lg:mt-12">
+            {t(`${k}.step3Resources`)}
+          </h3>
+          <div className="mt-4 lg:py-2 flex flex-col gap-2">
+            <p className="font-body text-base lg:text-xl leading-6 text-neutral-600">
+              {t(`${k}.step3ResourcesRequired`)}{" "}
+              <strong className="text-neutral-900">
+                {machineCount} {t(`${k}.step3Machine`)} · {crewCount} {t(`${k}.step3Crew`)}
+              </strong>
+            </p>
+            <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
+              {t(`${k}.step3CalcHint`)}
+            </p>
           </div>
         </div>
       </section>
 
       <Separator />
 
-      {/* Step 4: Service frequency */}
+      {/* Step 4: Start date + duration weeks */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
           <StepHeader step={4} title={t(`${k}.step4Title`)} />
-
-          <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col lg:flex-row gap-8 lg:gap-[72px]">
-            <Toggle
-              checked={serviceEnabled}
-              onChange={setServiceEnabled}
-              label={t(`${k}.step4Service`)}
-            />
-            <Toggle
-              checked={cleaningEnabled}
-              onChange={setCleaningEnabled}
-              label={t(`${k}.step4Cleaning`)}
-            />
-            <Toggle
-              checked={installNotice}
-              onChange={setInstallNotice}
-              label={t(`${k}.step4InstallNotice`)}
-            />
-          </div>
-
-          <h3 className="font-heading text-[20px] lg:text-[32px] font-extrabold leading-[24px] lg:leading-[32px] text-neutral-900 mt-8 lg:mt-2">
-            {t(`${k}.step4Resources`)}
-          </h3>
-          <div className="mt-8 lg:mt-4 lg:py-4 flex flex-col gap-6 lg:gap-2">
-            <p className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-              {t(`${k}.step4Required`)}
-            </p>
-            <div className="flex flex-col lg:flex-row gap-6 lg:gap-14">
-              <div className="flex items-center gap-2">
-                <Stepper value={machineCount} onChange={setMachineCount} />
-                <span className="font-body text-base lg:text-xl leading-6 text-neutral-900 lg:text-neutral-600">
-                  {t(`${k}.step4Machine`)}
-                </span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Stepper value={crewCount} onChange={setCrewCount} />
-                <span className="font-body text-base lg:text-xl leading-6 text-neutral-900 lg:text-neutral-600">
-                  {t(`${k}.step4Crew`)}
-                </span>
-              </div>
-            </div>
-            <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
-              {t(`${k}.step1Hint`)}
-            </p>
-          </div>
-
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-8 mt-6 lg:mt-4">
-            <div className="flex flex-col gap-2 w-full lg:w-[384px] py-0 lg:py-4">
-              <RadioOption
-                selected={frequency === "once"}
-                onClick={() => setFrequency("once")}
-                label={t(`${k}.step4Once`)}
-              />
-              <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
-                {t(`${k}.step4OnceDesc`)}
-              </p>
-            </div>
-            <div className="flex flex-col gap-2 w-full lg:w-[384px] py-0 lg:py-4">
-              <RadioOption
-                selected={frequency === "scheduled"}
-                onClick={() => setFrequency("scheduled")}
-                label={t(`${k}.step4Scheduled`)}
-              />
-              <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
-                {t(`${k}.step4ScheduledDesc`)}
-              </p>
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <Separator />
-
-      {/* Step 5: Rental period */}
-      <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
-        <div className="lg:px-[104px] px-[12px] lg:px-0">
-          <StepHeader step={5} title={t(`${k}.step5Title`)} />
           <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col lg:flex-row items-stretch lg:items-start gap-4 lg:gap-8">
             <div className="relative w-full lg:w-[280px]" ref={calendarRef}>
               <button
@@ -452,7 +397,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
                 onClick={() => setCalendarOpen((v) => !v)}
                 className={`flex h-10 lg:h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-base leading-6 ${startDate ? "text-neutral-900" : "text-neutral-300"}`}
               >
-                {startDate ? formatDate(startDate) : t(`${k}.step5StartDate`)}
+                {startDate ? formatDate(startDate) : t(`${k}.step4StartDate`)}
               </button>
               {calendarOpen && (
                 <div className="absolute top-full left-0 z-50 mt-1">
@@ -468,24 +413,20 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               )}
             </div>
 
-            <div className="flex gap-4 w-full lg:w-auto">
-              <TimeDropdown
-                options={timeOptions}
-                value={startTime}
-                onChange={setStartTime}
-                isOpen={startTimeOpen}
-                onToggle={() => setStartTimeOpen((v) => !v)}
-                placeholder={t(`${k}.step5StartTime`)}
-                className="flex-1 lg:w-[160px]"
-              />
-              <TimeDropdown
-                options={timeOptions}
-                value={endTime}
-                onChange={setEndTime}
-                isOpen={endTimeOpen}
-                onToggle={() => setEndTimeOpen((v) => !v)}
-                placeholder={t(`${k}.step5EndTime`)}
-                className="flex-1 lg:w-[160px]"
+            <div className="flex flex-col gap-2 w-full lg:w-[200px]">
+              <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
+                {t(`${k}.step4DurationWeeks`)}
+              </label>
+              <input
+                type="number"
+                min={1}
+                max={52}
+                value={durationWeeks}
+                onChange={(e) => {
+                  const n = parseInt(e.target.value, 10);
+                  if (!isNaN(n) && n >= 1 && n <= 52) setDurationWeeks(n);
+                }}
+                className="h-10 lg:h-[44px] rounded-[8px] border border-neutral-400 bg-white px-3 font-body text-base leading-6 text-neutral-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
             </div>
           </div>
@@ -494,10 +435,10 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
       <Separator />
 
-      {/* Step 6: Contacts */}
+      {/* Step 5: Contacts + payment */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
-          <StepHeader step={6} title={t(`${k}.step6Title`)} />
+          <StepHeader step={5} title={t(`${k}.step5Title`)} />
           <div className="mt-8 lg:mt-4 lg:py-6">
             <div className="flex flex-wrap gap-y-4 gap-x-[32px] lg:gap-[72px] mb-8">
               {(Object.keys(paymentLabels) as PaymentType[]).map((key) => (
@@ -513,7 +454,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
               <div className="flex flex-col gap-2 w-full lg:w-[280px]">
                 <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-                  {t(`${k}.step6Name`)}
+                  {t(`${k}.step5Name`)}
                 </label>
                 <BasicInput
                   value={name}
@@ -524,7 +465,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               </div>
               <div className="flex flex-col gap-2 w-full lg:w-[280px]">
                 <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-                  {t(`${k}.step6Phone`)}
+                  {t(`${k}.step5Phone`)}
                 </label>
                 <BasicInput
                   type="tel"
@@ -536,7 +477,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               </div>
               <div className="flex flex-col gap-2 w-full lg:w-[280px]">
                 <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-                  {t(`${k}.step6Email`)}
+                  {t(`${k}.step5Email`)}
                 </label>
                 <BasicInput
                   value={email}
@@ -552,28 +493,29 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
       <Separator />
 
-      {/* Price + Submit */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 pt-8 lg:pt-12 pb-16 lg:pb-[104px]">
         <div className="lg:px-[104px] px-[12px] lg:px-0 flex flex-col lg:flex-row items-stretch lg:items-center gap-6">
           <div className="flex items-center gap-2 whitespace-nowrap justify-end lg:justify-start">
-            <span className="font-body text-xl text-neutral-900">
-              {t(`${k}.price`)}
-            </span>
-            <span className="font-body font-semibold text-2xl leading-8 text-cta-main">
-              125 000
-            </span>
+            <span className="font-body text-xl text-neutral-900">{t(`${k}.price`)}</span>
+            <span className="font-body font-semibold text-2xl leading-8 text-cta-main">125 000</span>
             <span className="font-body text-xl text-neutral-900">₸</span>
           </div>
-          <button
-            type="button"
-            className="flex items-center justify-between gap-4 bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-base rounded-[40px] pl-10 pr-8 py-3 w-full lg:w-[272px]"
-          >
-            <span>{t(`${k}.submit`)}</span>
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
-              <path d="M9.51 4.23l8.56 4.28c3.84 1.92 3.84 5.06 0 6.98l-8.56 4.28c-5.76 2.88-8.11.52-5.23-5.23l.87-1.73a1.88 1.88 0 000-1.63l-.87-1.74C1.4 3.71 3.76 1.35 9.51 4.23z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-              <path d="M5.44 12h5.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </button>
+          <div className="flex flex-col gap-2 w-full lg:w-[272px]">
+            <button
+              type="button"
+              disabled={submitDisabled}
+              className="flex items-center justify-between gap-4 bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-base rounded-[40px] pl-10 pr-8 py-3 w-full disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              <span>{t(`${k}.submit`)}</span>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                <path d="M9.51 4.23l8.56 4.28c3.84 1.92 3.84 5.06 0 6.98l-8.56 4.28c-5.76 2.88-8.11.52-5.23-5.23l.87-1.73a1.88 1.88 0 000-1.63l-.87-1.74C1.4 3.71 3.76 1.35 9.51 4.23z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+                <path d="M5.44 12h5.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </button>
+            {submitDisabled && (
+              <p className="font-body text-sm leading-4 text-red-600">{t(`${k}.step3ValidateAtLeastOne`)}</p>
+            )}
+          </div>
         </div>
       </section>
 
