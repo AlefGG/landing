@@ -150,7 +150,11 @@ export default function EventWizard() {
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
           <StepLabel step={5} title={t(`${k}.step6Title`)} />
-          <ContactsSection value={contacts} onChange={setContacts} />
+          <ContactsSection
+            value={contacts}
+            onChange={setContacts}
+            errors={wizardSubmit.fieldErrors}
+          />
         </div>
       </section>
 

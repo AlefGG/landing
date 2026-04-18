@@ -10,6 +10,7 @@ import {
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
 import { Button } from "../components/ui";
+import Seo from "../components/Seo";
 import { formatPhone } from "../components/wizards/shared/phoneFormat";
 import { useAuth } from "../contexts/AuthContext";
 import { InvalidOtpError } from "../services/authService";
@@ -165,6 +166,7 @@ export default function VerifyPage() {
 
   return (
     <div className="bg-white min-h-[60vh]">
+      <Seo pageKey="auth" />
       <div className="max-w-[480px] mx-auto px-4 lg:px-8 pt-8 lg:pt-16 pb-16">
         <nav aria-label="Breadcrumb" className="flex items-center gap-0.5 text-xs font-body mb-6">
           <Link to="/login" className="text-[#2d84c1] underline leading-4 text-xs px-[10px] py-[8px]">

@@ -6,6 +6,7 @@ import { useAddressTrip } from "../hooks/useAddressTrip";
 import { useWizardSubmit } from "../hooks/useWizardSubmit";
 import ContactsSection, { type ContactsValue } from "./wizards/shared/ContactsSection";
 import Faq from "./Faq";
+import Seo from "./Seo";
 
 type Frequency = 1 | 2 | 3;
 
@@ -182,6 +183,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
   return (
     <div className="bg-white overflow-x-clip">
+      <Seo pageKey={pageKey} />
       <section className="relative h-[104px] lg:h-[176px]">
         <div
           className="hidden lg:block absolute left-1/2 -translate-x-1/2 w-[1216px] h-[712px] pointer-events-none"
@@ -430,7 +432,11 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
           <StepHeader step={5} title={t(`${k}.step5Title`)} />
-          <ContactsSection value={contacts} onChange={setContacts} />
+          <ContactsSection
+            value={contacts}
+            onChange={setContacts}
+            errors={wizardSubmit.fieldErrors}
+          />
         </div>
       </section>
 

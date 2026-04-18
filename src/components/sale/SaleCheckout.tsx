@@ -78,12 +78,22 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
     () => contacts.phone.replace(/\D/g, ""),
     [contacts.phone]
   );
+  const emailTrim = contacts.email.trim();
+
+  const nameValid = contacts.name.trim().length > 0;
+  const phoneValid = phoneDigits.length === 11;
+  const emailValid = emailTrim.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
+
+  const fieldErrors = submitAttempted
+    ? {
+        name: nameValid ? undefined : t("validation.required"),
+        phone: phoneValid ? undefined : t("validation.phoneInvalid"),
+        email: emailValid ? undefined : t("validation.emailInvalid"),
+      }
+    : {};
 
   const canSubmit =
-    item.inStock &&
-    count >= 1 &&
-    contacts.name.trim().length > 0 &&
-    phoneDigits.length === 11;
+    item.inStock && count >= 1 && nameValid && phoneValid && emailValid;
 
   const disabledReason = !canSubmit
     ? !item.inStock
@@ -226,7 +236,7 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
       {/* Contacts */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6 lg:py-12">
         <StepHeader step={1} title={t("catalog.sale.checkout.contactsStep")} />
-        <ContactsSection value={contacts} onChange={setContacts} />
+        <ContactsSection value={contacts} onChange={setContacts} errors={fieldErrors} />
       </section>
 
       <Separator />

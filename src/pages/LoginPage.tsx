@@ -2,6 +2,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { BasicInput, Button } from "../components/ui";
+import Seo from "../components/Seo";
 import { formatPhone } from "../components/wizards/shared/phoneFormat";
 import { useAuth } from "../contexts/AuthContext";
 import { OtpSendError } from "../services/authService";
@@ -56,6 +57,7 @@ export default function LoginPage() {
 
   return (
     <div className="bg-white min-h-[60vh]">
+      <Seo pageKey="auth" />
       <div className="max-w-[480px] mx-auto px-4 lg:px-8 pt-8 lg:pt-16 pb-16">
         <nav aria-label="Breadcrumb" className="flex items-center gap-0.5 text-xs font-body mb-6">
           <Link to="/" className="text-[#2d84c1] underline leading-4 text-xs px-[10px] py-[8px]">

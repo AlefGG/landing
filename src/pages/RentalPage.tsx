@@ -1,5 +1,11 @@
+import Seo from "../components/Seo";
 import RentalTabs from "../components/wizards/RentalTabs";
 
 export default function RentalPage() {
-  return <RentalTabs />;
+  return (
+    <>
+      <Seo pageKey="rental" />
+      <RentalTabs />
+    </>
+  );
 }

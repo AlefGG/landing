@@ -15,12 +15,20 @@ export type ContactsValue = {
   useProfile?: boolean;
 };
 
+export type ContactsFieldErrors = {
+  name?: string;
+  phone?: string;
+  email?: string;
+};
+
 export default function ContactsSection({
   value,
   onChange,
+  errors,
 }: {
   value: ContactsValue;
   onChange: (v: ContactsValue) => void;
+  errors?: ContactsFieldErrors;
 }) {
   const { t } = useTranslation();
   const { user, status } = useAuth();
@@ -126,8 +134,14 @@ export default function ContactsSection({
             value={value.name}
             onChange={(e) => setField("name", e.target.value)}
             placeholder={t(`${k}.step6Placeholder`)}
-            className="!h-10"
+            aria-invalid={errors?.name ? true : undefined}
+            className={`!h-10 ${errors?.name ? "!border-red-500" : ""}`}
           />
+          {errors?.name && (
+            <p role="alert" className="font-body text-sm leading-4 text-red-600">
+              {errors.name}
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-2 w-full lg:w-[280px]">
           <label className="font-body text-xl leading-6 text-neutral-600">
@@ -138,8 +152,14 @@ export default function ContactsSection({
             value={value.phone}
             onChange={handlePhoneChange}
             placeholder="+7 XXX XXX-XX-XX"
-            className="!h-10"
+            aria-invalid={errors?.phone ? true : undefined}
+            className={`!h-10 ${errors?.phone ? "!border-red-500" : ""}`}
           />
+          {errors?.phone && (
+            <p role="alert" className="font-body text-sm leading-4 text-red-600">
+              {errors.phone}
+            </p>
+          )}
         </div>
         <div className="flex flex-col gap-2 w-full lg:w-[280px]">
           <label className="font-body text-xl leading-6 text-neutral-600">
@@ -149,8 +169,14 @@ export default function ContactsSection({
             value={value.email}
             onChange={(e) => setField("email", e.target.value)}
             placeholder={t(`${k}.step6Placeholder`)}
-            className="!h-10"
+            aria-invalid={errors?.email ? true : undefined}
+            className={`!h-10 ${errors?.email ? "!border-red-500" : ""}`}
           />
+          {errors?.email && (
+            <p role="alert" className="font-body text-sm leading-4 text-red-600">
+              {errors.email}
+            </p>
+          )}
         </div>
       </div>
     </div>

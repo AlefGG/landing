@@ -20,12 +20,22 @@ export type WizardSubmitInput = {
   extra?: Record<string, unknown>;
 };
 
+export type WizardFieldErrors = {
+  name?: string;
+  phone?: string;
+  email?: string;
+};
+
 export type WizardSubmitState = {
   submit: () => Promise<void>;
   submitting: boolean;
   buttonDisabled: boolean;
   validationError: string | null;
+  fieldErrors: WizardFieldErrors;
+  attempted: boolean;
 };
+
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 export function useWizardSubmit(
   input: WizardSubmitInput,
@@ -37,10 +47,22 @@ export function useWizardSubmit(
   const [attempted, setAttempted] = useState(false);
 
   const phoneDigits = input.contacts.phone.replace(/\D/g, "");
-  const contactsValid =
-    input.contacts.name.trim().length > 0 && phoneDigits.length === 11;
+  const emailTrim = input.contacts.email.trim();
 
+  const nameValid = input.contacts.name.trim().length > 0;
+  const phoneValid = phoneDigits.length === 11;
+  const emailValid = emailTrim.length === 0 || EMAIL_RE.test(emailTrim);
+
+  const contactsValid = nameValid && phoneValid && emailValid;
   const canSubmit = contactsValid && !externalDisabled;
+
+  const fieldErrors: WizardFieldErrors = attempted
+    ? {
+        name: nameValid ? undefined : t("validation.required"),
+        phone: phoneValid ? undefined : t("validation.phoneInvalid"),
+        email: emailValid ? undefined : t("validation.emailInvalid"),
+      }
+    : {};
 
   const validationError =
     attempted && !contactsValid
@@ -63,7 +85,7 @@ export function useWizardSubmit(
         service: input.service,
         locale: i18n.language,
         source: input.source,
-        email: input.contacts.email.trim() || undefined,
+        email: emailTrim || undefined,
         contactType: input.contacts.contactType,
         amount: input.amount,
       });
@@ -72,9 +94,16 @@ export function useWizardSubmit(
       console.error(err);
       setSubmitting(false);
     }
-  }, [canSubmit, submitting, phoneDigits, input, i18n.language, navigate]);
+  }, [canSubmit, submitting, phoneDigits, emailTrim, input, i18n.language, navigate]);
 
   const buttonDisabled = submitting || externalDisabled;
 
-  return { submit, submitting, buttonDisabled, validationError };
+  return {
+    submit,
+    submitting,
+    buttonDisabled,
+    validationError,
+    fieldErrors,
+    attempted,
+  };
 }
