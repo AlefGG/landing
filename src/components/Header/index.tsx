@@ -43,7 +43,9 @@ export default function Header() {
     ? "/sale"
     : location.pathname.startsWith("/sanitation")
     ? "/sanitation"
-    : "/rental";
+    : location.pathname.startsWith("/rental")
+    ? "/rental"
+    : null;
   const variantFor = (path: string) => (activePath === path ? "cta" : "ghost");
 
   const scrollTo = (href: string) => {
@@ -173,12 +175,7 @@ export default function Header() {
           </div>
 
           {/* Desktop CTA buttons — aligned to gray SVG zone (accounting for px-8 padding) */}
-          <motion.div
-            className="hidden lg:flex w-[494px] shrink-0 items-center gap-4"
-            initial={prefersReducedMotion ? false : { opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={prefersReducedMotion ? { duration: 0 } : { delay: 0.8, duration: 0.4 }}
-          >
+          <div className="hidden lg:flex w-[494px] shrink-0 items-center gap-4">
             <div className="flex-1">
               <Button variant={variantFor("/sale")} size="md" href="/sale" className="w-full">
                 {t("buttons.sale")}
@@ -194,7 +191,7 @@ export default function Header() {
                 {t("buttons.rental")}
               </Button>
             </div>
-          </motion.div>
+          </div>
 
           {/* Mobile phone + whatsapp + burger */}
           <div className="flex lg:hidden items-center gap-4 ml-auto">
