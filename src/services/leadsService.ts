@@ -18,7 +18,7 @@ export type LeadPayload = {
   source?: string;
   // TODO(backend): extend /leads/ endpoint to accept fields below
   email?: string;
-  itemId?: string;
+  itemId?: string | number;
   count?: number;
   contactType?: ContactTypeKind;
   amount?: number;

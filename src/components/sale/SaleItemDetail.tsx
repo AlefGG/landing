@@ -5,11 +5,7 @@ import type { SaleItem } from "../../services/catalogService";
 
 export default function SaleItemDetail({ item }: { item: SaleItem }) {
   const { t } = useTranslation();
-  const name = t(item.nameKey);
-  const features = t(item.featuresKey, { returnObjects: true, defaultValue: [] }) as unknown;
-  const featuresList: string[] = Array.isArray(features)
-    ? (features as string[])
-    : [];
+  const name = item.name;
 
   const formattedPrice = item.price.toLocaleString("ru-RU");
   const buyClass =
@@ -20,7 +16,7 @@ export default function SaleItemDetail({ item }: { item: SaleItem }) {
       <Seo
         pageKey="sale"
         titleOverride={`${name} — ${t("meta.brandName")}`}
-        descriptionOverride={t(item.descriptionKey)}
+        descriptionOverride={item.description}
       />
 
       {/* Hero with extended breadcrumb */}
@@ -96,27 +92,8 @@ export default function SaleItemDetail({ item }: { item: SaleItem }) {
             </div>
 
             <p className="font-body text-base lg:text-xl leading-6 lg:leading-7 text-neutral-700">
-              {t(item.descriptionKey)}
+              {item.description}
             </p>
-
-            {featuresList.length > 0 && (
-              <div className="flex flex-col gap-3">
-                <h2 className="font-heading text-xl lg:text-2xl font-extrabold leading-7 text-neutral-900">
-                  {t("catalog.sale.features")}
-                </h2>
-                <ul className="flex flex-col gap-2">
-                  {featuresList.map((feature, idx) => (
-                    <li
-                      key={idx}
-                      className="flex items-start gap-2 font-body text-base leading-6 text-neutral-700"
-                    >
-                      <span className="mt-2 size-1.5 shrink-0 rounded-full bg-cta-main" aria-hidden="true" />
-                      <span>{feature}</span>
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            )}
 
             <div className="flex items-center gap-2">
               <span className="font-body text-xl text-neutral-900">

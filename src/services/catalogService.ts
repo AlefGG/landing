@@ -1,49 +1,50 @@
+import { fetchJson, ApiError } from "./apiClient";
+
 export type SaleItem = {
-  id: "standard" | "lux" | "vip";
-  nameKey: string;
-  featuresKey: string;
-  descriptionKey: string;
+  id: number;
+  name: string;
+  description: string;
   price: number;
   image: string;
   inStock: boolean;
 };
 
-// TODO(backend): replace mock with GET /api/catalog/equipment/
-const MOCK_ITEMS: SaleItem[] = [
-  {
-    id: "standard",
-    nameKey: "wizard.cabins.standard",
-    featuresKey: "cabins.standard.features",
-    descriptionKey: "catalog.sale.items.standard.description",
-    price: 350000,
-    image: "/assets/images/cabin-standard.png",
+type EquipmentDTO = {
+  id: number;
+  name: string;
+  description: string;
+  price: string;
+  photo: string | null;
+};
+
+const FALLBACK_IMAGE = "/assets/images/cabin-standard.png";
+
+function mapEquipment(dto: EquipmentDTO): SaleItem {
+  return {
+    id: dto.id,
+    name: dto.name,
+    description: dto.description ?? "",
+    price: Number(dto.price),
+    image: dto.photo && dto.photo.length > 0 ? dto.photo : FALLBACK_IMAGE,
     inStock: true,
-  },
-  {
-    id: "lux",
-    nameKey: "wizard.cabins.lux",
-    featuresKey: "cabins.lux.features",
-    descriptionKey: "catalog.sale.items.lux.description",
-    price: 550000,
-    image: "/assets/images/cabin-lux.png",
-    inStock: true,
-  },
-  {
-    id: "vip",
-    nameKey: "wizard.cabins.vip",
-    featuresKey: "cabins.vip.features",
-    descriptionKey: "catalog.sale.items.vip.description",
-    price: 850000,
-    image: "/assets/images/cabin-vip.png",
-    inStock: true,
-  },
-];
+  };
+}
 
 export async function fetchCatalog(): Promise<SaleItem[]> {
-  return Promise.resolve(MOCK_ITEMS);
+  const data = await fetchJson<EquipmentDTO[]>("/catalog/sale/equipment/");
+  return data.map(mapEquipment);
 }
 
 export async function fetchCatalogItem(id: string): Promise<SaleItem | null> {
-  const item = MOCK_ITEMS.find((i) => i.id === id);
-  return Promise.resolve(item ?? null);
+  const numericId = Number(id);
+  if (!Number.isFinite(numericId) || numericId <= 0) return null;
+  try {
+    const dto = await fetchJson<EquipmentDTO>(
+      `/catalog/sale/equipment/${numericId}/`,
+    );
+    return mapEquipment(dto);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
 }

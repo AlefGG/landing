@@ -59,8 +59,8 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
   const { t, i18n } = useTranslation();
   const navigate = useNavigate();
 
-  const name = t(item.nameKey);
-  const description = t(item.descriptionKey);
+  const name = item.name;
+  const description = item.description;
 
   const [count, setCount] = useState(1);
   const [contacts, setContacts] = useState<ContactsValue>({

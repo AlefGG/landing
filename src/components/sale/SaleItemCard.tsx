@@ -11,7 +11,7 @@ export default function SaleItemCard({ item }: { item: SaleItem }) {
       <div className="flex items-center justify-center">
         <img
           src={item.image}
-          alt={t(item.nameKey)}
+          alt={item.name}
           className="h-[200px] w-auto object-contain"
         />
       </div>
@@ -19,7 +19,7 @@ export default function SaleItemCard({ item }: { item: SaleItem }) {
       <div className="flex flex-col gap-2 flex-1">
         <div className="flex items-center justify-between gap-2">
           <h2 className="font-heading text-2xl font-extrabold leading-7 text-neutral-900">
-            {t(item.nameKey)}
+            {item.name}
           </h2>
           <span
             className={`shrink-0 rounded-full px-3 py-1 font-body text-xs ${
@@ -33,7 +33,7 @@ export default function SaleItemCard({ item }: { item: SaleItem }) {
         </div>
 
         <p className="font-body text-sm leading-5 text-neutral-600">
-          {t(item.descriptionKey)}
+          {item.description}
         </p>
 
         <div className="mt-auto flex items-center gap-2 pt-2">
