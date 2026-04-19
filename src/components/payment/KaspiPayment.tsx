@@ -1,8 +1,18 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { uploadPaymentReceipt } from "../../services/paymentService";
+import {
+  fetchKaspiQrImage,
+  uploadPaymentFile,
+  PaymentUploadError,
+} from "../../services/paymentService";
 import FileUploader from "./FileUploader";
+
+type QrState =
+  | { status: "loading" }
+  | { status: "ready"; url: string }
+  | { status: "missing" }
+  | { status: "error" };
 
 export default function KaspiPayment({
   orderId,
@@ -14,12 +24,41 @@ export default function KaspiPayment({
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [receiptOpen, setReceiptOpen] = useState(false);
+  const [qr, setQr] = useState<QrState>({ status: "loading" });
 
   const formattedAmount = amount.toLocaleString("ru-RU");
 
+  useEffect(() => {
+    let cancelled = false;
+    let revokeUrl: string | null = null;
+    fetchKaspiQrImage(orderId)
+      .then(({ objectUrl }) => {
+        if (cancelled) {
+          URL.revokeObjectURL(objectUrl);
+          return;
+        }
+        revokeUrl = objectUrl;
+        setQr({ status: "ready", url: objectUrl });
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        if (err instanceof PaymentUploadError && err.code === "notConfigured") {
+          setQr({ status: "missing" });
+        } else {
+          setQr({ status: "error" });
+        }
+      });
+    return () => {
+      cancelled = true;
+      if (revokeUrl) URL.revokeObjectURL(revokeUrl);
+    };
+  }, [orderId]);
+
   const handleUpload = async (file: File) => {
-    await uploadPaymentReceipt(orderId, file);
-    navigate(`/success?type=individual&order=${encodeURIComponent(orderId)}&amount=${encodeURIComponent(formattedAmount)}`);
+    await uploadPaymentFile(orderId, file);
+    navigate(
+      `/success?type=individual&order=${encodeURIComponent(orderId)}&amount=${encodeURIComponent(formattedAmount)}`,
+    );
   };
 
   return (
@@ -35,15 +74,27 @@ export default function KaspiPayment({
 
       <div className="flex flex-col lg:flex-row gap-6 lg:gap-10 items-start">
         <div className="w-full lg:w-[320px] shrink-0">
-          <img
-            src="/assets/images/kaspi-qr-placeholder.svg"
-            alt={t("payment.kaspi.qrAlt")}
-            className="w-full h-auto rounded-2xl border border-neutral-200 bg-white"
-            data-testid="kaspi-qr"
-          />
-          <p className="mt-2 font-body text-sm leading-4 text-neutral-400 text-center">
-            {t("payment.kaspi.qrPlaceholder")}
-          </p>
+          {qr.status === "ready" ? (
+            <img
+              src={qr.url}
+              alt={t("payment.kaspi.qrAlt")}
+              className="w-full h-auto rounded-2xl border border-neutral-200 bg-white"
+              data-testid="kaspi-qr"
+            />
+          ) : (
+            <div
+              className="w-full aspect-square rounded-2xl border border-neutral-200 bg-neutral-50 flex items-center justify-center p-4 text-center"
+              data-testid="kaspi-qr-fallback"
+            >
+              <p className="font-body text-sm leading-4 text-neutral-400">
+                {qr.status === "loading"
+                  ? t("payment.kaspi.qrLoading")
+                  : qr.status === "missing"
+                    ? t("payment.kaspi.qrMissing")
+                    : t("payment.kaspi.qrError")}
+              </p>
+            </div>
+          )}
         </div>
 
         <div className="flex-1 flex flex-col gap-4 w-full">

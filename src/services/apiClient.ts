@@ -33,6 +33,7 @@ type ApiClientConfig = {
 
 export type ApiClient = {
   request: <T = unknown>(path: string, init?: RequestInit) => Promise<T>;
+  requestBlob: (path: string, init?: RequestInit) => Promise<Blob>;
 };
 
 function buildUrl(baseUrl: string | undefined, path: string): string {
@@ -46,7 +47,7 @@ function withAuth(init: RequestInit | undefined, token: string | null): RequestI
   if (token && !headers.has("Authorization")) {
     headers.set("Authorization", `Bearer ${token}`);
   }
-  if (init?.body && !headers.has("Content-Type")) {
+  if (init?.body && !headers.has("Content-Type") && !(init.body instanceof FormData)) {
     headers.set("Content-Type", "application/json");
   }
   return { ...init, headers };
@@ -69,14 +70,15 @@ async function parseBody(response: Response): Promise<unknown> {
 }
 
 export function createApiClient(config: ApiClientConfig): ApiClient {
-  async function request<T>(path: string, init?: RequestInit): Promise<T> {
-    const url = buildUrl(config.baseUrl, path);
+  async function rawFetch(path: string, init?: RequestInit): Promise<Response> {
+    const baseUrl = path.startsWith("/media/")
+      ? (config.baseUrl ?? "").replace(/\/api\/?$/, "")
+      : config.baseUrl;
+    const url = buildUrl(baseUrl, path);
     const accessToken = config.getAccessToken();
     const firstResponse = await fetch(url, withAuth(init, accessToken));
 
-    if (firstResponse.status !== 401) {
-      return handleResponse<T>(firstResponse);
-    }
+    if (firstResponse.status !== 401) return firstResponse;
 
     const refreshedToken = await config.onRefresh();
     if (!refreshedToken) {
@@ -89,10 +91,23 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
       config.onAuthError();
       throw new AuthExpiredError();
     }
-    return handleResponse<T>(retryResponse);
+    return retryResponse;
   }
 
-  return { request };
+  async function request<T>(path: string, init?: RequestInit): Promise<T> {
+    return handleResponse<T>(await rawFetch(path, init));
+  }
+
+  async function requestBlob(path: string, init?: RequestInit): Promise<Blob> {
+    const res = await rawFetch(path, init);
+    if (!res.ok) {
+      const body = await parseBody(res);
+      throw new ApiError(res.status, `Request failed with status ${res.status}`, body);
+    }
+    return res.blob();
+  }
+
+  return { request, requestBlob };
 }
 
 // ---------------------------------------------------------------------------
@@ -136,6 +151,10 @@ export function fetchJson<T = unknown>(
   init?: RequestInit,
 ): Promise<T> {
   return activeClient.request<T>(path, init);
+}
+
+export function fetchBlob(path: string, init?: RequestInit): Promise<Blob> {
+  return activeClient.requestBlob(path, init);
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {

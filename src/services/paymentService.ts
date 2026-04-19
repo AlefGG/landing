@@ -1,34 +1,43 @@
 /**
- * Payment service (P0-4).
+ * Payment service (real backend, phase 5).
  *
- * Ручной процесс оплаты (ТЗ п.4.1, редакция 2026-04-18):
- * - Физлицо: статичный Kaspi QR, клиент оплачивает вручную, загружает чек.
- * - Юрлицо: клиент загружает реквизиты компании.
+ * ТЗ §4.1 — ручной процесс оплаты. Один upload endpoint для физ/юр,
+ * бэк различает по order.payment_channel.
  *
- * Mock: валидирует MIME/размер, логирует в консоль, резолвит `{status: "pending"}`.
- * TODO(backend): заменить на реальные multipart POST:
- *   - POST /api/orders/{id}/pay/receipt/  (individual)
- *   - POST /api/orders/{id}/pay/legal/    (legal)
+ * Endpoints:
+ *   POST /api/orders/<order_number>/pay/upload/    (multipart file) → 200 {detail, status}
+ *   GET  /api/orders/<order_number>/pay/kaspi-qr/  → 200 {order_number, amount, qr_image_url, instruction}
  */
 
-export type PaymentUploadResponse = { status: "pending" };
+import { ApiError, fetchBlob, fetchJson } from "./apiClient";
 
 export const ALLOWED_PAYMENT_MIME = [
   "application/pdf",
   "image/jpeg",
   "image/png",
+  "image/webp",
 ] as const;
 
 export const MAX_PAYMENT_FILE_BYTES = 10 * 1024 * 1024; // 10 MB
 
-export type PaymentValidationError =
-  | "invalidType"
-  | "tooLarge";
+export type PaymentValidationError = "invalidType" | "tooLarge";
+
+export type PaymentUploadResponse = { detail: string; status: string };
+
+export type KaspiQrResponse = {
+  order_number: string;
+  amount: string;
+  qr_image_url: string;
+  instruction: string;
+};
 
 export class PaymentUploadError extends Error {
-  readonly code: PaymentValidationError | "uploadFailed";
+  readonly code: PaymentValidationError | "uploadFailed" | "notConfigured";
   override readonly cause?: unknown;
-  constructor(code: PaymentValidationError | "uploadFailed", cause?: unknown) {
+  constructor(
+    code: PaymentValidationError | "uploadFailed" | "notConfigured",
+    cause?: unknown,
+  ) {
     super(code);
     this.name = "PaymentUploadError";
     this.code = code;
@@ -43,39 +52,52 @@ export function validatePaymentFile(file: File): PaymentValidationError | null {
   return null;
 }
 
-const MOCK_DELAY_MS = 500;
-
-async function mockUpload(
-  kind: "receipt" | "legal",
-  orderId: string,
+export async function uploadPaymentFile(
+  orderNumber: string,
   file: File,
 ): Promise<PaymentUploadResponse> {
   const err = validatePaymentFile(file);
   if (err) throw new PaymentUploadError(err);
 
-  if (import.meta.env.DEV) {
-    console.info(`[paymentService:mock] upload ${kind}`, {
-      orderId,
-      name: file.name,
-      type: file.type,
-      size: file.size,
-    });
+  const form = new FormData();
+  form.append("file", file);
+
+  try {
+    return await fetchJson<PaymentUploadResponse>(
+      `/orders/${encodeURIComponent(orderNumber)}/pay/upload/`,
+      { method: "POST", body: form },
+    );
+  } catch (e) {
+    if (e instanceof ApiError) {
+      throw new PaymentUploadError("uploadFailed", e);
+    }
+    throw e;
   }
-
-  await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-  return { status: "pending" };
 }
 
-export function uploadPaymentReceipt(
-  orderId: string,
-  file: File,
-): Promise<PaymentUploadResponse> {
-  return mockUpload("receipt", orderId, file);
+export async function getKaspiQr(orderNumber: string): Promise<KaspiQrResponse> {
+  try {
+    return await fetchJson<KaspiQrResponse>(
+      `/orders/${encodeURIComponent(orderNumber)}/pay/kaspi-qr/`,
+      { method: "GET" },
+    );
+  } catch (e) {
+    if (e instanceof ApiError && e.status === 409) {
+      throw new PaymentUploadError("notConfigured", e);
+    }
+    throw e;
+  }
 }
 
-export function uploadLegalRequisites(
-  orderId: string,
-  file: File,
-): Promise<PaymentUploadResponse> {
-  return mockUpload("legal", orderId, file);
+/**
+ * `qr_image_url` из бэка указывает на защищённый /media/ — `<img src>` без
+ * Authorization. Качаем байты через apiClient (с Bearer + refresh) и отдаём
+ * blob: URL. Caller обязан revoke URL при unmount.
+ */
+export async function fetchKaspiQrImage(
+  orderNumber: string,
+): Promise<{ meta: KaspiQrResponse; objectUrl: string }> {
+  const meta = await getKaspiQr(orderNumber);
+  const blob = await fetchBlob(meta.qr_image_url, { method: "GET" });
+  return { meta, objectUrl: URL.createObjectURL(blob) };
 }

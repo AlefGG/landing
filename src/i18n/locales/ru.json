@@ -592,14 +592,17 @@
       "instruction": "Отсканируйте QR в приложении Kaspi и оплатите сумму {{amount}} ₸.",
       "qrAlt": "Kaspi QR-код для оплаты",
       "qrPlaceholder": "QR-код будет добавлен",
+      "qrLoading": "Загружаем QR-код…",
+      "qrMissing": "QR-код ещё не настроен. Свяжитесь с менеджером.",
+      "qrError": "Не удалось загрузить QR-код. Обновите страницу.",
       "paidButton": "Я оплатил",
       "receiptTitle": "Загрузите чек об оплате",
-      "receiptHint": "PDF, JPG или PNG, до 10 МБ"
+      "receiptHint": "PDF, JPG, PNG или WEBP, до 10 МБ"
     },
     "legal": {
       "title": "Оплата по реквизитам",
       "instruction": "Загрузите фото или скан реквизитов компании.",
-      "hint": "PDF, JPG или PNG, до 10 МБ"
+      "hint": "PDF, JPG, PNG или WEBP, до 10 МБ"
     },
     "uploader": {
       "choose": "Выбрать файл",
@@ -610,7 +613,7 @@
       "submitting": "Отправка…"
     },
     "errors": {
-      "invalidType": "Допустимы только PDF, JPG, PNG",
+      "invalidType": "Допустимы только PDF, JPG, PNG, WEBP",
       "tooLarge": "Файл больше 10 МБ",
       "uploadFailed": "Не удалось отправить файл",
       "orderNotFound": "Заказ не найден. Оформите заявку заново."

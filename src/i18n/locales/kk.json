@@ -590,14 +590,17 @@
       "instruction": "Kaspi қосымшасында QR-ды сканерлеп, {{amount}} ₸ сомасын төлеңіз.",
       "qrAlt": "Төлем үшін Kaspi QR-коды",
       "qrPlaceholder": "QR-код кейінірек қосылады",
+      "qrLoading": "QR-код жүктелуде…",
+      "qrMissing": "QR-код әлі қосылмаған. Менеджермен байланысыңыз.",
+      "qrError": "QR-кодты жүктеу мүмкін болмады. Бетті жаңартыңыз.",
       "paidButton": "Төледім",
       "receiptTitle": "Төлем түбіртегін жүктеңіз",
-      "receiptHint": "PDF, JPG немесе PNG, 10 МБ дейін"
+      "receiptHint": "PDF, JPG, PNG немесе WEBP, 10 МБ дейін"
     },
     "legal": {
       "title": "Деректемелер бойынша төлем",
       "instruction": "Компанияның деректемелерінің фотосы немесе сканерін жүктеңіз.",
-      "hint": "PDF, JPG немесе PNG, 10 МБ дейін"
+      "hint": "PDF, JPG, PNG немесе WEBP, 10 МБ дейін"
     },
     "uploader": {
       "choose": "Файл таңдау",
@@ -608,7 +611,7 @@
       "submitting": "Жіберілуде…"
     },
     "errors": {
-      "invalidType": "Тек PDF, JPG, PNG рұқсат етіледі",
+      "invalidType": "Тек PDF, JPG, PNG, WEBP рұқсат етіледі",
       "tooLarge": "Файл 10 МБ-дан үлкен",
       "uploadFailed": "Файлды жіберу мүмкін болмады",
       "orderNotFound": "Тапсырыс табылмады. Өтінімді қайта рәсімдеңіз."

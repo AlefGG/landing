@@ -1,6 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
-import { uploadLegalRequisites } from "../../services/paymentService";
+import { uploadPaymentFile } from "../../services/paymentService";
 import FileUploader from "./FileUploader";
 
 export default function LegalPayment({ orderId }: { orderId: string }) {
@@ -8,7 +8,7 @@ export default function LegalPayment({ orderId }: { orderId: string }) {
   const navigate = useNavigate();
 
   const handleUpload = async (file: File) => {
-    await uploadLegalRequisites(orderId, file);
+    await uploadPaymentFile(orderId, file);
     navigate(`/success?type=legal&order=${encodeURIComponent(orderId)}`);
   };
 
