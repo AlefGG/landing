@@ -2,15 +2,17 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Seo from "../Seo";
-import { StepHeader } from "../ui";
+import { StepHeader, MapPicker } from "../ui";
 import AddressAutocomplete from "../ui/AddressAutocomplete";
 import ContactsSection, {
   type ContactsValue,
 } from "../wizards/shared/ContactsSection";
 import PriceSubmit from "../wizards/shared/PriceSubmit";
 import Separator from "../wizards/shared/Separator";
+import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
+import { reverseGeocode } from "../../services/geocoderService";
 import {
   createSaleOrder,
   previewSaleOrder,
@@ -75,18 +77,23 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
     phone: "",
     email: "",
   });
-  const [addressText, setAddressText] = useState("");
-  const [addressCoords, setAddressCoords] = useState<{ lat: number; lon: number } | null>(null);
+
+  // BUG-044: reuse rental/sanitation address+map+OSRM stack so buyers see the
+  // delivery destination pin and the live distance that drives delivery_fee.
+  const trip = useAddressTrip("sale");
+  const entry = trip.items[0];
+  const addressText = entry?.text ?? "";
+  const firstLocation = trip.locations[0] ?? null;
 
   const itemsTotal = item.price * count;
 
-  const addressValid = addressText.trim().length >= 3 && addressCoords !== null;
+  const addressValid = addressText.trim().length >= 3 && firstLocation !== null;
 
-  const payload: SaleOrderPayload | null = addressValid
+  const payload: SaleOrderPayload | null = addressValid && firstLocation && entry
     ? {
-        address_lat: addressCoords!.lat,
-        address_lon: addressCoords!.lon,
-        address_text: addressText,
+        address_lat: firstLocation.lat,
+        address_lon: firstLocation.lng,
+        address_text: entry.text,
         payment_channel: contacts.contactType,
         items: [{ equipment_id: Number(item.id), quantity: count }],
       }
@@ -230,21 +237,65 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
             defaultValue: "Адрес доставки",
           })}
         />
-        <div className="mt-4 max-w-[640px]">
+        <div className="mt-4 flex flex-col gap-2">
           <AddressAutocomplete
             value={addressText}
             onChange={(v) => {
-              setAddressText(v);
-              if (!v) setAddressCoords(null);
+              if (entry) trip.setText(entry.id, v);
             }}
             onSelect={(r) => {
-              setAddressText(r.displayName);
-              setAddressCoords({ lat: r.lat, lon: r.lng });
+              if (!entry) return;
+              trip.setText(entry.id, r.displayName);
+              trip.setLocation(entry.id, { lat: r.lat, lng: r.lng });
             }}
             placeholder={t("catalog.sale.checkout.addressPlaceholder", {
               defaultValue: "г. Алматы, ул. ...",
             })}
+            className="max-w-full lg:max-w-[488px]"
           />
+          <MapPicker
+            points={trip.locations}
+            onMapClick={async (p) => {
+              const name = await reverseGeocode(p.lat, p.lng);
+              if (!entry) return;
+              trip.setText(
+                entry.id,
+                name ?? `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
+              );
+              trip.setLocation(entry.id, p);
+            }}
+            routes={trip.routes}
+            warehouse={trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null}
+            loading={trip.loading}
+            loadingText={t("wizard.sanitation.step2RouteLoading", {
+              defaultValue: "Считаем маршрут…",
+            })}
+            className="mt-0 h-[374px] lg:h-[450px]"
+          />
+          {!trip.loading && trip.error && (
+            <div className="mt-2 font-body text-base text-red-600">
+              {t("wizard.sanitation.step2RouteError", {
+                defaultValue: "Не удалось построить маршрут",
+              })}
+            </div>
+          )}
+          {!trip.loading && !trip.error && trip.hasPreview && (
+            <div className="mt-2 flex flex-col lg:flex-row gap-2 lg:gap-6 font-body text-base text-neutral-900">
+              <span>
+                {t("wizard.sanitation.step2Distance", { defaultValue: "Дистанция" })}:{" "}
+                <strong>
+                  {trip.distanceKm.toFixed(1)}{" "}
+                  {t("wizard.sanitation.step2Km", { defaultValue: "км" })}
+                </strong>
+              </span>
+              <span>
+                {t("wizard.sanitation.step2DeliveryCost", { defaultValue: "Доставка" })}:{" "}
+                <strong className="text-cta-main">
+                  {trip.deliveryCost.toLocaleString("ru-RU")} ₸
+                </strong>
+              </span>
+            </div>
+          )}
           {submitState.attempted && !addressValid && (
             <p className="mt-2 font-body text-sm text-red-600">
               {t("catalog.sale.checkout.addressRequired", {

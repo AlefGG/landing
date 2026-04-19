@@ -50,14 +50,19 @@ export class PaymentUploadError extends Error {
 
 function extractBackendDetail(e: ApiError): string | undefined {
   const b = e.body;
-  if (!b || typeof b !== "object") return undefined;
-  const body = b as Record<string, unknown>;
+  if (!b) return undefined;
   const pickString = (v: unknown): string | undefined => {
     if (typeof v === "string") return v;
     if (Array.isArray(v) && v.length > 0 && typeof v[0] === "string")
       return v[0] as string;
     return undefined;
   };
+  // BUG-045: DRF raises `serializers.ValidationError(str)` at non-field scope
+  // and serialises as a bare top-level JSON array — surface its first string
+  // before falling back to dict-scoped keys.
+  if (Array.isArray(b)) return pickString(b);
+  if (typeof b !== "object") return undefined;
+  const body = b as Record<string, unknown>;
   return (
     pickString(body["detail"]) ??
     pickString(body["file"]) ??
