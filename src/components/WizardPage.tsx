@@ -131,7 +131,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
   const k = `wizard.${pageKey}` as const;
 
   const [cabinCount, setCabinCount] = useState(0);
-  const trip = useAddressTrip();
+  const trip = useAddressTrip("sanitation");
 
   const [serviceEnabled, setServiceEnabled] = useState(true);
   const [serviceFrequency, setServiceFrequency] = useState<Frequency>(1);
@@ -320,7 +320,8 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             <MapPicker
               points={trip.locations}
               onMapClick={trip.appendFromMap}
-              route={trip.trip?.geometry ?? []}
+              routes={trip.routes}
+              warehouse={trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null}
               loading={trip.loading}
               loadingText={t(`${k}.step2RouteLoading`)}
               className="mt-0 h-[374px] lg:h-[550px]"
@@ -328,7 +329,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             {!trip.loading && trip.error && (
               <div className="mt-2 font-body text-base text-red-600">{t(`${k}.step2RouteError`)}</div>
             )}
-            {!trip.loading && !trip.error && trip.trip && (
+            {!trip.loading && !trip.error && trip.hasPreview && (
               <div className="mt-2 flex flex-col lg:flex-row gap-2 lg:gap-6 font-body text-base text-neutral-900">
                 <span>
                   {t(`${k}.step2Distance`)}: <strong>{trip.distanceKm.toFixed(1)} {t(`${k}.step2Km`)}</strong>

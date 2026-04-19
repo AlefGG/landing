@@ -32,7 +32,7 @@ export default function ConstructionWizard() {
   const ck = "wizard.construction" as const;
 
   const [months, setMonths] = useState<number>(1);
-  const trip = useAddressTrip();
+  const trip = useAddressTrip("construction");
   const [contacts, setContacts] = useState<ContactsValue>({
     contactType: "legal",
     name: "",

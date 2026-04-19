@@ -49,7 +49,7 @@ export default function EmergencyWizard() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
-  const trip = useAddressTrip();
+  const trip = useAddressTrip("rental");
   const [cleaning, setCleaning] = useState(true);
   const [contacts, setContacts] = useState<ContactsValue>({
     contactType: "individual",

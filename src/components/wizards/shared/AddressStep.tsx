@@ -7,6 +7,9 @@ type Trip = ReturnType<typeof useAddressTrip>;
 export default function AddressStep({ trip }: { trip: Trip }) {
   const { t } = useTranslation();
   const k = "wizard.rental" as const;
+  const warehouse = trip.warehouse
+    ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon }
+    : null;
   return (
     <div className="mt-4 py-6 flex flex-col gap-2">
       <AddressList
@@ -21,7 +24,8 @@ export default function AddressStep({ trip }: { trip: Trip }) {
       <MapPicker
         points={trip.locations}
         onMapClick={trip.appendFromMap}
-        route={trip.trip?.geometry ?? []}
+        routes={trip.routes}
+        warehouse={warehouse}
         loading={trip.loading}
         loadingText={t(`${k}.step4RouteLoading`)}
         className="mt-0 h-[300px] lg:h-[550px]"
@@ -29,7 +33,7 @@ export default function AddressStep({ trip }: { trip: Trip }) {
       {!trip.loading && trip.error && (
         <div className="mt-2 font-body text-base text-red-600">{t(`${k}.step4RouteError`)}</div>
       )}
-      {!trip.loading && !trip.error && trip.trip && (
+      {!trip.loading && !trip.error && trip.hasPreview && (
         <div className="mt-2 flex flex-col lg:flex-row gap-2 lg:gap-6 font-body text-base text-neutral-900">
           <span>
             {t(`${k}.step4Distance`)}:{" "}

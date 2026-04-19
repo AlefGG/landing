@@ -1,19 +1,26 @@
-import { useCallback, useEffect, useState } from "react";
-import { ALMATY_CENTER, type LatLng } from "../components/ui/MapPicker";
+import { useCallback, useEffect, useRef, useState } from "react";
+import type { LatLng } from "../components/ui/MapPicker";
 import type { AddressEntry } from "../components/ui/AddressList";
 import { reverseGeocode } from "../services/geocoderService";
-import { getTrip, type TripResult } from "../services/routingService";
-
-const PRICE_PER_KM = 500;
+import {
+  previewDelivery,
+  type DeliveryPreview,
+  type DeliveryServiceType,
+} from "../services/deliveryService";
 
 function makeEntry(): AddressEntry {
   return { id: crypto.randomUUID(), text: "", location: null };
 }
 
-export function useAddressTrip() {
+export type AddressLeg = {
+  location: LatLng;
+  preview: DeliveryPreview | null;
+  loading: boolean;
+};
+
+export function useAddressTrip(serviceType: DeliveryServiceType) {
   const [items, setItems] = useState<AddressEntry[]>([makeEntry()]);
-  const [trip, setTrip] = useState<TripResult | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [legs, setLegs] = useState<AddressLeg[]>([]);
   const [error, setError] = useState(false);
 
   const setText = useCallback((id: string, text: string) => {
@@ -53,48 +60,83 @@ export function useAddressTrip() {
     });
   }, []);
 
-  const locations = items
+  const locations: LatLng[] = items
     .map((x) => x.location)
     .filter((x): x is LatLng => x !== null);
 
+  const locationsKey = JSON.stringify(locations);
+  const abortRef = useRef<AbortController | null>(null);
+
   useEffect(() => {
+    abortRef.current?.abort();
     if (locations.length === 0) {
-      setTrip(null);
+      setLegs([]);
       setError(false);
       return;
     }
     const ctrl = new AbortController();
-    setLoading(true);
-    setError(false);
-    getTrip(ALMATY_CENTER, locations, ctrl.signal)
-      .then((result) => {
-        if (result) setTrip(result);
-        else {
-          setTrip(null);
-          setError(true);
-        }
-      })
-      .catch((err) => {
-        if (err.name === "AbortError") return;
-        setTrip(null);
-        setError(true);
-      })
-      .finally(() => setLoading(false));
-    return () => ctrl.abort();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [JSON.stringify(locations)]);
+    abortRef.current = ctrl;
 
-  const distanceKm = trip ? trip.distanceMeters / 1000 : 0;
-  const deliveryCost = Math.round(distanceKm * PRICE_PER_KM);
+    setError(false);
+    setLegs((prev) => {
+      // keep prior legs for unchanged locations; mark new ones as loading
+      return locations.map((loc) => {
+        const found = prev.find(
+          (l) => l.location.lat === loc.lat && l.location.lng === loc.lng && l.preview,
+        );
+        if (found) return { ...found, loading: false };
+        return { location: loc, preview: null, loading: true };
+      });
+    });
+
+    const timer = setTimeout(async () => {
+      try {
+        const results = await Promise.all(
+          locations.map((loc) => previewDelivery(serviceType, loc.lat, loc.lng, ctrl.signal)),
+        );
+        if (ctrl.signal.aborted) return;
+        setLegs(
+          locations.map((loc, i) => ({
+            location: loc,
+            preview: results[i] ?? null,
+            loading: false,
+          })),
+        );
+      } catch (err) {
+        if ((err as Error).name === "AbortError") return;
+        if (ctrl.signal.aborted) return;
+        setError(true);
+        setLegs(locations.map((loc) => ({ location: loc, preview: null, loading: false })));
+      }
+    }, 400);
+
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [locationsKey, serviceType]);
+
+  const loading = legs.some((l) => l.loading);
+  const totalDistanceKm = legs.reduce((s, l) => s + (l.preview?.distanceKm ?? 0), 0);
+  const totalDeliveryFee = legs.reduce((s, l) => s + (l.preview?.deliveryFee ?? 0), 0);
+  const routes: Array<Array<[number, number]>> = legs
+    .map((l) => l.preview?.routeGeometry)
+    .filter((g): g is Array<[number, number]> => Array.isArray(g) && g.length > 1);
+  const warehouse = legs.find((l) => l.preview)?.preview?.warehouse ?? null;
+  const hasPreview = legs.some((l) => l.preview);
 
   return {
     items,
     locations,
-    trip,
+    legs,
     loading,
     error,
-    distanceKm,
-    deliveryCost,
+    hasPreview,
+    warehouse,
+    routes,
+    distanceKm: totalDistanceKm,
+    deliveryCost: Math.round(totalDeliveryFee),
     setText,
     setLocation,
     addEntry,

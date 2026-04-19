@@ -49,7 +49,7 @@ export default function EventWizard() {
   const [calendarOpen, setCalendarOpen] = useState(false);
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
-  const trip = useAddressTrip();
+  const trip = useAddressTrip("rental");
   const [cleaning, setCleaning] = useState(true);
   const [expressMounting, setExpressMounting] = useState(false);
   const [contacts, setContacts] = useState<ContactsValue>({

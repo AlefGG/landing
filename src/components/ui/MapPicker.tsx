@@ -32,11 +32,18 @@ function ClickHandler({ onPick }: { onPick: (p: LatLng) => void }) {
   return null;
 }
 
-function FitBounds({ points, route }: { points: LatLng[]; route: Array<[number, number]> }) {
+function FitBounds({
+  points,
+  routes,
+}: {
+  points: LatLng[];
+  routes: Array<Array<[number, number]>>;
+}) {
   const map = useMap();
   useEffect(() => {
-    if (route.length > 1) {
-      map.fitBounds(L.latLngBounds(route as L.LatLngTuple[]), { padding: [40, 40] });
+    const flat = routes.flat();
+    if (flat.length > 1) {
+      map.fitBounds(L.latLngBounds(flat as L.LatLngTuple[]), { padding: [40, 40] });
       return;
     }
     if (points.length === 1) {
@@ -48,7 +55,7 @@ function FitBounds({ points, route }: { points: LatLng[]; route: Array<[number, 
         padding: [40, 40],
       });
     }
-  }, [map, points, route]);
+  }, [map, points, routes]);
   return null;
 }
 
@@ -93,9 +100,9 @@ function LocateButton() {
 type Props = {
   points: LatLng[];
   onMapClick?: (p: LatLng) => void;
-  route?: Array<[number, number]>;
+  routes?: Array<Array<[number, number]>>;
+  warehouse?: LatLng | null;
   showStartMarker?: boolean;
-  center?: LatLng;
   loading?: boolean;
   loadingText?: string;
   className?: string;
@@ -104,16 +111,18 @@ type Props = {
 export default function MapPicker({
   points,
   onMapClick,
-  route = [],
+  routes = [],
+  warehouse = null,
   showStartMarker = true,
-  center = ALMATY_CENTER,
   loading = false,
   loadingText = "Прокладываем маршрут…",
   className = "",
 }: Props) {
+  const center = warehouse ?? ALMATY_CENTER;
+  const showWarehouseMarker = showStartMarker && warehouse !== null;
   const allPoints = useMemo(
-    () => (showStartMarker ? [center, ...points] : points),
-    [showStartMarker, center, points],
+    () => (showWarehouseMarker ? [center, ...points] : points),
+    [showWarehouseMarker, center, points],
   );
 
   return (
@@ -129,14 +138,22 @@ export default function MapPicker({
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
         {onMapClick && <ClickHandler onPick={onMapClick} />}
-        {showStartMarker && <Marker position={[center.lat, center.lng]} icon={startIcon} />}
+        {showWarehouseMarker && (
+          <Marker position={[center.lat, center.lng]} icon={startIcon} />
+        )}
         {points.map((p, i) => (
           <Marker key={`${p.lat}-${p.lng}-${i}`} position={[p.lat, p.lng]} icon={numberedIcon(i + 1)} />
         ))}
-        {route.length > 1 && (
-          <Polyline positions={route} pathOptions={{ color: "#59b002", weight: 5, opacity: 0.8 }} />
+        {routes.map((route, i) =>
+          route.length > 1 ? (
+            <Polyline
+              key={`route-${i}`}
+              positions={route}
+              pathOptions={{ color: "#59b002", weight: 5, opacity: 0.8 }}
+            />
+          ) : null,
         )}
-        <FitBounds points={allPoints} route={route} />
+        <FitBounds points={allPoints} routes={routes} />
         <LocateButton />
       </MapContainer>
       {loading && (
