@@ -3,9 +3,9 @@ import { motion } from "framer-motion";
 import { Tag, Button } from "../ui";
 
 const cabins = [
-  { key: "standard", image: "/assets/images/cabin-standard.png" },
-  { key: "lux", image: "/assets/images/cabin-lux.png" },
-  { key: "vip", image: "/assets/images/cabin-vip.png" },
+  { key: "standard", image: "/assets/images/cabin-standard.png", saleId: 1 },
+  { key: "lux", image: "/assets/images/cabin-lux.png", saleId: 2 },
+  { key: "vip", image: "/assets/images/cabin-vip.png", saleId: 3 },
 ] as const;
 
 export default function Cabins() {
@@ -95,7 +95,7 @@ export default function Cabins() {
                 <Button
                   variant="blue-ghost"
                   size="sm"
-                  href="#"
+                  href={`/sale/${cabin.saleId}`}
                   className="flex-1 h-8"
                 >
                   {t("buttons.buy")}
@@ -103,7 +103,7 @@ export default function Cabins() {
                 <Button
                   variant="blue"
                   size="sm"
-                  href="#"
+                  href="/rental"
                   className="flex-1 h-8"
                 >
                   {t("buttons.rent")}

@@ -236,6 +236,11 @@ export default function Header() {
             {t("buttons.sale")}
           </Button>
         </div>
+
+        {/* Mobile language switcher — BUG-004: must be reachable without burger */}
+        <div className="lg:hidden flex justify-end px-3 pt-3">
+          <LanguageSwitcher />
+        </div>
       </nav>
 
       {/* Mobile menu */}

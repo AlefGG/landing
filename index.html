@@ -15,7 +15,7 @@
       href="https://fonts.googleapis.com/css2?family=Geologica:wght@400&family=Nunito+Sans:ital,opsz,wght@0,6..12,300;0,6..12,400;0,6..12,700;0,6..12,800&family=Noto+Sans:wght@400;600&display=swap"
       rel="stylesheet"
     />
-    <link rel="preload" as="image" href="/assets/images/hero-bg.png" />
+    <!-- BUG-010: hero-bg.png is only used on "/" — avoid a global preload so that subpages don't log "preloaded but not used" warnings. -->
     <title>Эко-Ресурс — аренда и продажа биотуалетов в Алматы</title>
   </head>
   <body>

@@ -15,7 +15,7 @@ export default function About() {
     <section
       className="relative w-full bg-[#ecece8] lg:bg-white lg:min-h-[500px] lg:h-[clamp(600px,45vw,900px)] lg:overflow-hidden"
       id="about"
-      aria-labelledby="about-heading-mobile about-heading"
+      aria-label={t("about.heading")}
     >
       {/* Mobile layout */}
       <div className="lg:hidden flex flex-col items-center pt-12 px-3">

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import { Link } from "react-router-dom";
 
 const socials = [
   { name: "Telegram", icon: "/assets/icons/social-telegram.svg", href: "#", bg: "bg-[#009eeb]" },
@@ -49,21 +50,27 @@ export default function Footer() {
 
             {/* Services */}
             <div className="flex flex-col gap-2 w-full lg:flex-1 lg:min-w-0">
-              <span className="font-body text-sm leading-4 text-neutral-600">
+              <Link
+                to="/sale"
+                className="font-body text-sm leading-4 text-neutral-600 hover:text-neutral-800 transition-colors"
+              >
                 {t("buttons.sale")}
-              </span>
-              <span className="font-body text-sm leading-4 text-neutral-600">
+              </Link>
+              <Link
+                to="/sanitation"
+                className="font-body text-sm leading-4 text-neutral-600 hover:text-neutral-800 transition-colors"
+              >
                 {t("buttons.sanitation")}
-              </span>
-              <a
-                href="#services"
+              </Link>
+              <Link
+                to="/rental"
                 className="inline-flex items-center justify-between w-[120px] bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-sm leading-4 rounded-[40px] px-4 py-1"
               >
                 {t("buttons.rental")}
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="-rotate-90" aria-hidden="true">
                   <path d="M4.5 6L8 9.5L11.5 6" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                 </svg>
-              </a>
+              </Link>
             </div>
 
             <Divider />

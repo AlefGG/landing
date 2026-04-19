@@ -1,10 +1,11 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 
 const services = [
-  { key: "sale", icon: "/assets/icons/icon-sale.svg" },
-  { key: "sanitation", icon: "/assets/icons/icon-sanitation.svg" },
-  { key: "rental", icon: "/assets/icons/icon-rental.svg" },
+  { key: "sale", icon: "/assets/icons/icon-sale.svg", to: "/sale" },
+  { key: "sanitation", icon: "/assets/icons/icon-sanitation.svg", to: "/sanitation" },
+  { key: "rental", icon: "/assets/icons/icon-rental.svg", to: "/rental" },
 ] as const;
 
 export default function Services() {
@@ -18,7 +19,10 @@ export default function Services() {
           {services.map((service, i) => (
             <div key={service.key}>
               {i > 0 && <div className="h-px bg-neutral-300 w-full" />}
-              <div className="flex flex-row items-start gap-4 py-4">
+              <Link
+                to={service.to}
+                className="flex flex-row items-start gap-4 py-4 hover:bg-neutral-50 rounded-lg transition-colors"
+              >
                 <img
                   src={service.icon}
                   alt=""
@@ -35,7 +39,7 @@ export default function Services() {
                     {t(`services.${service.key}.description`)}
                   </p>
                 </div>
-              </div>
+              </Link>
             </div>
           ))}
         </div>
@@ -49,30 +53,35 @@ export default function Services() {
                   <div className="w-px bg-neutral-300 self-stretch shrink-0" />
                 )}
                 <motion.div
-                  className="flex flex-col items-center text-center px-8 py-10 rounded-3xl flex-1"
+                  className="flex-1"
                   initial={{ opacity: 0, y: 20 }}
                   whileInView={{ opacity: 1, y: 0 }}
                   viewport={{ once: true }}
                   transition={{ duration: 0.5, delay: i * 0.15 }}
                 >
-                  <img
-                    src={service.icon}
-                    alt=""
-                    className="w-[104px] h-[104px] object-contain"
-                  />
-                  <div className="flex flex-col gap-4 mt-6 w-full">
-                    <div className="flex flex-col gap-2 w-full">
-                      <h3 className="font-heading font-extrabold text-2xl leading-6 text-neutral-800">
-                        {t(`services.${service.key}.title`)}
-                      </h3>
-                      <p className="font-body font-semibold text-base leading-6 text-neutral-800">
-                        {t(`services.${service.key}.subtitle`)}
+                  <Link
+                    to={service.to}
+                    className="flex flex-col items-center text-center px-8 py-10 rounded-3xl h-full hover:bg-neutral-50 transition-colors"
+                  >
+                    <img
+                      src={service.icon}
+                      alt=""
+                      className="w-[104px] h-[104px] object-contain"
+                    />
+                    <div className="flex flex-col gap-4 mt-6 w-full">
+                      <div className="flex flex-col gap-2 w-full">
+                        <h3 className="font-heading font-extrabold text-2xl leading-6 text-neutral-800">
+                          {t(`services.${service.key}.title`)}
+                        </h3>
+                        <p className="font-body font-semibold text-base leading-6 text-neutral-800">
+                          {t(`services.${service.key}.subtitle`)}
+                        </p>
+                      </div>
+                      <p className="font-body font-normal text-base leading-6 text-neutral-500">
+                        {t(`services.${service.key}.description`)}
                       </p>
                     </div>
-                    <p className="font-body font-normal text-base leading-6 text-neutral-500">
-                      {t(`services.${service.key}.description`)}
-                    </p>
-                  </div>
+                  </Link>
                 </motion.div>
               </div>
             );

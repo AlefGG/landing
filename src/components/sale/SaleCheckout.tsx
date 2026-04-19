@@ -3,17 +3,19 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Seo from "../Seo";
 import { StepHeader } from "../ui";
+import AddressAutocomplete from "../ui/AddressAutocomplete";
 import ContactsSection, {
   type ContactsValue,
 } from "../wizards/shared/ContactsSection";
 import PriceSubmit from "../wizards/shared/PriceSubmit";
 import Separator from "../wizards/shared/Separator";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
+import { useOrderPreview } from "../../hooks/useOrderPreview";
 import {
   createSaleOrder,
+  previewSaleOrder,
   type SaleOrderPayload,
 } from "../../services/orderService";
-import { ALMATY_CENTER } from "../ui/MapPicker";
 import type { SaleItem } from "../../services/catalogService";
 
 function Stepper({
@@ -73,20 +75,34 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
     phone: "",
     email: "",
   });
+  const [addressText, setAddressText] = useState("");
+  const [addressCoords, setAddressCoords] = useState<{ lat: number; lon: number } | null>(null);
 
-  const total = item.price * count;
+  const itemsTotal = item.price * count;
 
-  const payload: SaleOrderPayload = {
-    address_lat: ALMATY_CENTER.lat,
-    address_lon: ALMATY_CENTER.lng,
-    payment_channel: contacts.contactType,
-    items: [{ equipment_id: Number(item.id), quantity: count }],
-  };
+  const addressValid = addressText.trim().length >= 3 && addressCoords !== null;
+
+  const payload: SaleOrderPayload | null = addressValid
+    ? {
+        address_lat: addressCoords!.lat,
+        address_lon: addressCoords!.lon,
+        address_text: addressText,
+        payment_channel: contacts.contactType,
+        items: [{ equipment_id: Number(item.id), quantity: count }],
+      }
+    : null;
+
+  const preview = useOrderPreview(payload, previewSaleOrder);
+  const total = preview.data ? Number(preview.data.total) : itemsTotal;
+  const deliveryFee = total - itemsTotal;
 
   const submitState = useOrderSubmit({
     contacts,
-    canProceed: item.inStock && count >= 1,
-    buildOrder: async () => createSaleOrder(payload),
+    canProceed: item.inStock && count >= 1 && addressValid,
+    buildOrder: async () => {
+      if (!payload) throw new Error("payload not ready");
+      return createSaleOrder(payload);
+    },
   });
 
   const disabledReason = !item.inStock
@@ -192,7 +208,50 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
             <span className="font-body font-semibold text-2xl leading-8 text-cta-main whitespace-nowrap">
               {total.toLocaleString("ru-RU")} {t("wizard.rental.currency")}
             </span>
+            {deliveryFee > 0 && (
+              <span className="font-body text-sm leading-4 text-neutral-500 whitespace-nowrap">
+                {t("catalog.sale.checkout.summaryDelivery", {
+                  defaultValue: "в т.ч. доставка {{amount}} ₸",
+                  amount: deliveryFee.toLocaleString("ru-RU"),
+                })}
+              </span>
+            )}
           </div>
+        </div>
+      </section>
+
+      <Separator />
+
+      {/* Address — ТЗ §3.7 / BUG-015: buyer must provide delivery address */}
+      <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6 lg:py-12">
+        <StepHeader
+          step={1}
+          title={t("catalog.sale.checkout.addressStep", {
+            defaultValue: "Адрес доставки",
+          })}
+        />
+        <div className="mt-4 max-w-[640px]">
+          <AddressAutocomplete
+            value={addressText}
+            onChange={(v) => {
+              setAddressText(v);
+              if (!v) setAddressCoords(null);
+            }}
+            onSelect={(r) => {
+              setAddressText(r.displayName);
+              setAddressCoords({ lat: r.lat, lon: r.lng });
+            }}
+            placeholder={t("catalog.sale.checkout.addressPlaceholder", {
+              defaultValue: "г. Алматы, ул. ...",
+            })}
+          />
+          {submitState.attempted && !addressValid && (
+            <p className="mt-2 font-body text-sm text-red-600">
+              {t("catalog.sale.checkout.addressRequired", {
+                defaultValue: "Укажите адрес доставки",
+              })}
+            </p>
+          )}
         </div>
       </section>
 
@@ -200,7 +259,7 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
 
       {/* Contacts */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6 lg:py-12">
-        <StepHeader step={1} title={t("catalog.sale.checkout.contactsStep")} />
+        <StepHeader step={2} title={t("catalog.sale.checkout.contactsStep")} />
         <ContactsSection value={contacts} onChange={setContacts} errors={submitState.fieldErrors} />
       </section>
 
