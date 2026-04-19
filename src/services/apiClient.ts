@@ -95,6 +95,49 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
   return { request };
 }
 
+// ---------------------------------------------------------------------------
+// Module-level singleton wiring
+// ---------------------------------------------------------------------------
+// AuthProvider configures this on mount via `configureApiClient`; services
+// then import `fetchJson` without plumbing the client through every call.
+// Before configuration (SSR, tests without AuthProvider), `fetchJson` falls
+// back to an unauthenticated client that points at VITE_API_URL and never
+// refreshes. This keeps unit tests that hit public endpoints trivial.
+
+function resolveBaseUrl(): string {
+  const env = (import.meta.env.VITE_API_URL as string | undefined) ?? "/api";
+  return env;
+}
+
+let activeClient: ApiClient = createApiClient({
+  baseUrl: resolveBaseUrl(),
+  getAccessToken: () => null,
+  onRefresh: async () => null,
+  onAuthError: () => {},
+});
+
+export function configureApiClient(
+  config: Omit<ApiClientConfig, "baseUrl"> & { baseUrl?: string },
+): void {
+  activeClient = createApiClient({
+    baseUrl: config.baseUrl ?? resolveBaseUrl(),
+    getAccessToken: config.getAccessToken,
+    onRefresh: config.onRefresh,
+    onAuthError: config.onAuthError,
+  });
+}
+
+export function getApiClient(): ApiClient {
+  return activeClient;
+}
+
+export function fetchJson<T = unknown>(
+  path: string,
+  init?: RequestInit,
+): Promise<T> {
+  return activeClient.request<T>(path, init);
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await parseBody(response);

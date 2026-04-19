@@ -8,6 +8,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useNavigate } from "react-router-dom";
+import { configureApiClient } from "../services/apiClient";
 import {
   refresh as refreshToken,
   sendOtp as sendOtpRequest,
@@ -82,6 +84,41 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const refreshTokenRef = useRef<string | null>(null);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
+  const navigate = useNavigate();
+
+  const handleAuthError = useCallback(() => {
+    accessTokenRef.current = null;
+    refreshTokenRef.current = null;
+    clearSession();
+    setUser(null);
+    setStatus("anonymous");
+    navigate("/login", { replace: true });
+  }, [navigate]);
+
+  const handleRefresh = useCallback(async (): Promise<string | null> => {
+    const current = refreshTokenRef.current;
+    if (!current) return null;
+    try {
+      const { access } = await refreshToken(current);
+      accessTokenRef.current = access;
+      return access;
+    } catch {
+      accessTokenRef.current = null;
+      refreshTokenRef.current = null;
+      clearSession();
+      setUser(null);
+      setStatus("anonymous");
+      return null;
+    }
+  }, []);
+
+  useEffect(() => {
+    configureApiClient({
+      getAccessToken: () => accessTokenRef.current,
+      onRefresh: handleRefresh,
+      onAuthError: handleAuthError,
+    });
+  }, [handleRefresh, handleAuthError]);
 
   useEffect(() => {
     let cancelled = false;
