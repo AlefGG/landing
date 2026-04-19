@@ -1,6 +1,6 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useNavigate } from "react-router-dom";
+import { Link } from "react-router-dom";
 import Seo from "../Seo";
 import { StepHeader } from "../ui";
 import ContactsSection, {
@@ -8,7 +8,12 @@ import ContactsSection, {
 } from "../wizards/shared/ContactsSection";
 import PriceSubmit from "../wizards/shared/PriceSubmit";
 import Separator from "../wizards/shared/Separator";
-import { createLead } from "../../services/leadsService";
+import { useOrderSubmit } from "../../hooks/useOrderSubmit";
+import {
+  createSaleOrder,
+  type SaleOrderPayload,
+} from "../../services/orderService";
+import { ALMATY_CENTER } from "../ui/MapPicker";
 import type { SaleItem } from "../../services/catalogService";
 
 function Stepper({
@@ -56,8 +61,7 @@ function Stepper({
 }
 
 export default function SaleCheckout({ item }: { item: SaleItem }) {
-  const { t, i18n } = useTranslation();
-  const navigate = useNavigate();
+  const { t } = useTranslation();
 
   const name = item.name;
   const description = item.description;
@@ -69,66 +73,27 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
     phone: "",
     email: "",
   });
-  const [submitAttempted, setSubmitAttempted] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
 
   const total = item.price * count;
 
-  const phoneDigits = useMemo(
-    () => contacts.phone.replace(/\D/g, ""),
-    [contacts.phone]
-  );
-  const emailTrim = contacts.email.trim();
-
-  const nameValid = contacts.name.trim().length > 0;
-  const phoneValid = phoneDigits.length === 11;
-  const emailValid = emailTrim.length === 0 || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailTrim);
-
-  const fieldErrors = submitAttempted
-    ? {
-        name: nameValid ? undefined : t("validation.required"),
-        phone: phoneValid ? undefined : t("validation.phoneInvalid"),
-        email: emailValid ? undefined : t("validation.emailInvalid"),
-      }
-    : {};
-
-  const canSubmit =
-    item.inStock && count >= 1 && nameValid && phoneValid && emailValid;
-
-  const disabledReason = !canSubmit
-    ? !item.inStock
-      ? t("catalog.sale.checkout.errors.outOfStock")
-      : submitAttempted
-        ? t("catalog.sale.checkout.errors.fillAll")
-        : undefined
-    : undefined;
-
-  const handleSubmit = async () => {
-    setSubmitAttempted(true);
-    if (!canSubmit) return;
-    setSubmitting(true);
-    try {
-      const normalized = phoneDigits.startsWith("8")
-        ? "7" + phoneDigits.slice(1)
-        : phoneDigits;
-      const { redirectTo } = await createLead({
-        name: contacts.name.trim(),
-        phone: normalized,
-        service: "sale",
-        locale: i18n.language,
-        source: "sale-checkout",
-        email: contacts.email.trim() || undefined,
-        itemId: item.id,
-        count,
-        contactType: contacts.contactType,
-        amount: total,
-      });
-      navigate(redirectTo);
-    } catch (err) {
-      console.error(err);
-      setSubmitting(false);
-    }
+  const payload: SaleOrderPayload = {
+    address_lat: ALMATY_CENTER.lat,
+    address_lon: ALMATY_CENTER.lng,
+    payment_channel: contacts.contactType,
+    items: [{ equipment_id: Number(item.id), quantity: count }],
   };
+
+  const submitState = useOrderSubmit({
+    contacts,
+    canProceed: item.inStock && count >= 1,
+    buildOrder: async () => createSaleOrder(payload),
+  });
+
+  const disabledReason = !item.inStock
+    ? t("catalog.sale.checkout.errors.outOfStock")
+    : submitState.submitting
+      ? t("catalog.sale.checkout.submitting")
+      : submitState.submitError ?? submitState.validationError ?? undefined;
 
   const title = t("catalog.sale.checkout.title");
 
@@ -236,20 +201,16 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
       {/* Contacts */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6 lg:py-12">
         <StepHeader step={1} title={t("catalog.sale.checkout.contactsStep")} />
-        <ContactsSection value={contacts} onChange={setContacts} errors={fieldErrors} />
+        <ContactsSection value={contacts} onChange={setContacts} errors={submitState.fieldErrors} />
       </section>
 
       <Separator />
 
       <PriceSubmit
         price={total}
-        disabled={!canSubmit || submitting}
-        disabledReason={
-          submitting
-            ? t("catalog.sale.checkout.submitting")
-            : disabledReason
-        }
-        onSubmit={handleSubmit}
+        disabled={submitState.buttonDisabled}
+        disabledReason={disabledReason}
+        onSubmit={submitState.submit}
       />
     </div>
   );

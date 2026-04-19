@@ -1,7 +1,13 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
-import { useWizardSubmit } from "../../hooks/useWizardSubmit";
+import { useOrderSubmit } from "../../hooks/useOrderSubmit";
+import { useOrderPreview } from "../../hooks/useOrderPreview";
+import {
+  createConstructionOrder,
+  previewConstructionOrder,
+  type ConstructionOrderPayload,
+} from "../../services/orderService";
 import RentalFaq from "../RentalFaq";
 import { Select } from "../ui";
 import {
@@ -38,13 +44,46 @@ export default function ConstructionWizard() {
 
   const discount = getConstructionDiscount(months);
   const monthlyPriceApprox = BASE_DAY_PRICE * 30;
-  const totalPrice = Math.round(monthlyPriceApprox * months * (1 - discount));
+  const fallbackTotal = Math.round(monthlyPriceApprox * months * (1 - discount));
 
-  const wizardSubmit = useWizardSubmit({
-    service: "rental",
-    source: "construction-wizard",
-    amount: totalPrice,
+  const addressesPayload = trip.items
+    .map((item) => {
+      if (!item.location) return null;
+      return {
+        address_text: item.text || "",
+        lat: item.location.lat,
+        lon: item.location.lng,
+        quantity: 1,
+      };
+    })
+    .filter((x): x is NonNullable<typeof x> => x !== null);
+
+  // Start date — first day next week to satisfy start_date in future.
+  const startDate = new Date();
+  startDate.setDate(startDate.getDate() + 7);
+  startDate.setHours(10, 0, 0, 0);
+
+  const previewPayload: ConstructionOrderPayload | null =
+    addressesPayload.length > 0
+      ? {
+          months,
+          start_date: startDate.toISOString(),
+          logistics_type: "standard",
+          payment_channel: contacts.contactType,
+          addresses: addressesPayload,
+        }
+      : null;
+
+  const preview = useOrderPreview(previewPayload, previewConstructionOrder);
+  const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
+
+  const submitState = useOrderSubmit({
     contacts,
+    canProceed: !!previewPayload,
+    buildOrder: async () => {
+      if (!previewPayload) throw new Error("payload not ready");
+      return createConstructionOrder(previewPayload);
+    },
   });
 
   return (
@@ -132,7 +171,7 @@ export default function ConstructionWizard() {
           <ContactsSection
             value={contacts}
             onChange={setContacts}
-            errors={wizardSubmit.fieldErrors}
+            errors={submitState.fieldErrors}
           />
         </div>
       </section>
@@ -141,13 +180,13 @@ export default function ConstructionWizard() {
 
       <PriceSubmit
         price={totalPrice}
-        disabled={wizardSubmit.buttonDisabled}
+        disabled={submitState.buttonDisabled}
         disabledReason={
-          wizardSubmit.submitting
+          submitState.submitting
             ? t("payment.uploader.submitting")
-            : wizardSubmit.validationError ?? undefined
+            : submitState.submitError ?? submitState.validationError ?? undefined
         }
-        onSubmit={wizardSubmit.submit}
+        onSubmit={submitState.submit}
       />
 
       <RentalFaq />

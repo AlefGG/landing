@@ -4,16 +4,23 @@ import { Link, Navigate, useParams } from "react-router-dom";
 import Seo from "../components/Seo";
 import KaspiPayment from "../components/payment/KaspiPayment";
 import LegalPayment from "../components/payment/LegalPayment";
-import {
-  getOrderSummary,
-  type OrderSummary,
-  type ServiceKind,
-} from "../services/leadsService";
+import { getOrder, type OrderDTO } from "../services/ordersService";
 
 type LoadState =
   | { status: "loading" }
-  | { status: "ready"; summary: OrderSummary }
+  | { status: "ready"; order: OrderDTO }
   | { status: "missing" };
+
+function deriveServiceLabelKey(serviceType: OrderDTO["service_type"]): string {
+  switch (serviceType) {
+    case "sale":
+      return "payment.serviceLabels.sale";
+    case "sanitation":
+      return "payment.serviceLabels.sanitation";
+    default:
+      return "payment.serviceLabels.rental";
+  }
+}
 
 export default function PaymentPage() {
   const { t } = useTranslation();
@@ -26,10 +33,15 @@ export default function PaymentPage() {
       return;
     }
     let cancelled = false;
-    getOrderSummary(orderId).then((summary) => {
-      if (cancelled) return;
-      setState(summary ? { status: "ready", summary } : { status: "missing" });
-    });
+    getOrder(orderId)
+      .then((order) => {
+        if (cancelled) return;
+        setState(order ? { status: "ready", order } : { status: "missing" });
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setState({ status: "missing" });
+      });
     return () => {
       cancelled = true;
     };
@@ -43,10 +55,11 @@ export default function PaymentPage() {
     return <Navigate to="/" replace />;
   }
 
-  const { summary } = state;
+  const { order } = state;
   const title = t("payment.title");
-  const serviceLabel = t(`payment.serviceLabels.${summary.service}` as `payment.serviceLabels.${ServiceKind}`);
-  const formattedAmount = summary.amount.toLocaleString("ru-RU");
+  const serviceLabel = t(deriveServiceLabelKey(order.service_type) as "payment.serviceLabels.sale");
+  const amount = Number(order.total_price);
+  const formattedAmount = amount.toLocaleString("ru-RU");
 
   return (
     <div className="bg-white overflow-x-clip">
@@ -92,7 +105,7 @@ export default function PaymentPage() {
         <div className="flex flex-col lg:flex-row gap-2 lg:gap-8 font-body text-base lg:text-xl leading-6 text-neutral-700">
           <span>
             {t("payment.orderNumber")}{" "}
-            <strong className="text-neutral-900">#{summary.orderId}</strong>
+            <strong className="text-neutral-900">#{order.order_number}</strong>
           </span>
           <span>
             {t("payment.service")}:{" "}
@@ -106,10 +119,10 @@ export default function PaymentPage() {
       </section>
 
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-8 lg:py-12">
-        {summary.contactType === "legal" ? (
-          <LegalPayment orderId={summary.orderId} />
+        {order.payment_channel === "legal" ? (
+          <LegalPayment orderId={order.order_number} />
         ) : (
-          <KaspiPayment orderId={summary.orderId} amount={summary.amount} />
+          <KaspiPayment orderId={order.order_number} amount={amount} />
         )}
       </section>
     </div>

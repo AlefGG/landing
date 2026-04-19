@@ -1,20 +1,49 @@
-/**
- * Orders service.
- *
- * Mock implementation: returns a fixed list of 4 orders covering all statuses.
- * Replace both functions with real fetch calls once these endpoints land:
- *   GET /api/orders/my/      — list current user's orders
- *   GET /api/orders/{id}/    — detail
- */
+import { fetchJson, ApiError } from "./apiClient";
 
 export type OrderStatus =
-  | "pending"
+  | "draft"
+  | "pending_payment"
+  | "awaiting_accountant_review"
   | "processing"
   | "assigned"
   | "completed"
-  | "cancelled";
+  | "cancelled"
+  // legacy frontend statuses kept for Phase 4 mock compatibility:
+  | "pending";
+
+export type BackendServiceType =
+  | "rental_event"
+  | "rental_emergency"
+  | "rental_construction"
+  | "sanitation"
+  | "sale";
+
+export type PaymentChannel = "individual" | "legal";
 
 export type OrderService = "rental" | "sanitation" | "sale";
+
+export type OrderDTO = {
+  order_number: string;
+  service_type: BackendServiceType;
+  status: OrderStatus;
+  total_price: string;
+  payment_channel: PaymentChannel;
+  created_at: string;
+  pricing_snapshot: Record<string, unknown> | null;
+};
+
+export async function getOrder(orderNumber: string): Promise<OrderDTO | null> {
+  try {
+    return await fetchJson<OrderDTO>(`/orders/${orderNumber}/`);
+  } catch (err) {
+    if (err instanceof ApiError && err.status === 404) return null;
+    throw err;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Phase 4 — list + detail. Kept as mocks until that phase lands.
+// ---------------------------------------------------------------------------
 
 export type OrderListItem = {
   id: string;
@@ -26,19 +55,13 @@ export type OrderListItem = {
 };
 
 export type OrderDetail = OrderListItem & {
-  contactType: "individual" | "legal";
+  contactType: PaymentChannel;
   contactName: string;
   contactPhone: string;
   contactEmail?: string;
   address?: string;
   paymentReceiptUrl?: string;
 };
-
-const MOCK_DELAY_MS = 200;
-
-function wait(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
-}
 
 function daysAgo(n: number): string {
   const d = new Date();
@@ -60,48 +83,9 @@ const MOCK_ORDERS: OrderDetail[] = [
     contactEmail: "asel@example.com",
     address: "Алматы, пр. Достык 132",
   },
-  {
-    id: "ord-2",
-    service: "sanitation",
-    status: "processing",
-    createdAt: daysAgo(3),
-    amount: 420000,
-    summaryKey: "sanitation",
-    contactType: "legal",
-    contactName: "ТОО Строймаркет",
-    contactPhone: "+77272501212",
-    contactEmail: "office@stroymarket.kz",
-    address: "Алматы, Тажибаева 155",
-  },
-  {
-    id: "ord-3",
-    service: "rental",
-    status: "completed",
-    createdAt: daysAgo(45),
-    amount: 2250000,
-    summaryKey: "rentalConstruction",
-    contactType: "legal",
-    contactName: "ТОО BI Group",
-    contactPhone: "+77017778899",
-    contactEmail: "projects@bi.kz",
-    address: "Алматы, ЖК Акбулак",
-    paymentReceiptUrl: "/assets/mocks/receipt.pdf",
-  },
-  {
-    id: "ord-4",
-    service: "sale",
-    status: "cancelled",
-    createdAt: daysAgo(10),
-    amount: 1100000,
-    summaryKey: "saleLux2",
-    contactType: "individual",
-    contactName: "Мурат Ержанов",
-    contactPhone: "+77079990011",
-  },
 ];
 
 export async function listMyOrders(): Promise<OrderListItem[]> {
-  await wait(MOCK_DELAY_MS);
   return MOCK_ORDERS.map((o) => ({
     id: o.id,
     service: o.service,
@@ -112,8 +96,7 @@ export async function listMyOrders(): Promise<OrderListItem[]> {
   }));
 }
 
-export async function getOrder(id: string): Promise<OrderDetail | null> {
-  await wait(MOCK_DELAY_MS);
+export async function getOrderDetailMock(id: string): Promise<OrderDetail | null> {
   const found = MOCK_ORDERS.find((o) => o.id === id);
   return found ? { ...found } : null;
 }

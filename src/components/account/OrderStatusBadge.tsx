@@ -1,8 +1,11 @@
 import { useTranslation } from "react-i18next";
 import type { OrderStatus } from "../../services/ordersService";
 
-const CLASSES: Record<OrderStatus, string> = {
+const CLASSES: Partial<Record<OrderStatus, string>> = {
   pending: "bg-neutral-100 text-neutral-700",
+  draft: "bg-neutral-100 text-neutral-700",
+  pending_payment: "bg-neutral-100 text-neutral-700",
+  awaiting_accountant_review: "bg-blue-50 text-blue-700",
   processing: "bg-blue-50 text-blue-700",
   assigned: "bg-yellow-50 text-yellow-800",
   completed: "bg-green-50 text-green-700",
@@ -18,7 +21,7 @@ export default function OrderStatusBadge({ status }: Props) {
   return (
     <span
       data-testid={`order-status-${status}`}
-      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold font-body ${CLASSES[status]}`}
+      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold font-body ${CLASSES[status] ?? "bg-neutral-100 text-neutral-700"}`}
     >
       {t(`auth.orders.status.${status}`)}
     </span>

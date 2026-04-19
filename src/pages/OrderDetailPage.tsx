@@ -4,7 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { Button } from "../components/ui";
 import OrderStatusBadge from "../components/account/OrderStatusBadge";
 import {
-  getOrder,
+  getOrderDetailMock as getOrder,
   type OrderDetail,
 } from "../services/ordersService";
 import { formatAbsoluteDate } from "../utils/date";

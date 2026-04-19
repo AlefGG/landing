@@ -3,7 +3,13 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { StepHeader, Calendar, MapPicker, AddressList } from "./ui";
 import { useAddressTrip } from "../hooks/useAddressTrip";
-import { useWizardSubmit } from "../hooks/useWizardSubmit";
+import { useOrderSubmit } from "../hooks/useOrderSubmit";
+import { useOrderPreview } from "../hooks/useOrderPreview";
+import {
+  createSanitationOrder,
+  previewSanitationOrder,
+  type SanitationOrderPayload,
+} from "../services/orderService";
 import ContactsSection, { type ContactsValue } from "./wizards/shared/ContactsSection";
 import Faq from "./Faq";
 import Seo from "./Seo";
@@ -150,15 +156,34 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
   const atLeastOneService = serviceEnabled || cleaningEnabled;
 
-  const wizardSubmit = useWizardSubmit(
-    {
-      service: "sanitation",
-      source: "sanitation-wizard",
-      amount: 125000,
-      contacts,
+  const firstLocation = trip.locations[0] ?? null;
+  const startIso = startDate ? new Date(startDate.setHours(10, 0, 0, 0)).toISOString() : null;
+
+  const previewPayload: SanitationOrderPayload | null =
+    firstLocation && cabinCount > 0 && atLeastOneService
+      ? {
+          address_lat: firstLocation.lat,
+          address_lon: firstLocation.lng,
+          address_text: trip.items[0]?.text ?? "",
+          num_toilets: cabinCount,
+          pump_frequency: serviceEnabled ? serviceFrequency : null,
+          cleaning_frequency: cleaningEnabled ? cleaningFrequency : null,
+          payment_channel: contacts.contactType,
+          date_start: startIso,
+        }
+      : null;
+
+  const preview = useOrderPreview(previewPayload, previewSanitationOrder);
+  const totalPrice = preview.data ? Number(preview.data.total) : 125000;
+
+  const wizardSubmit = useOrderSubmit({
+    contacts,
+    canProceed: atLeastOneService && !!previewPayload,
+    buildOrder: async () => {
+      if (!previewPayload) throw new Error("payload not ready");
+      return createSanitationOrder(previewPayload);
     },
-    !atLeastOneService,
-  );
+  });
 
   useEffect(() => {
     if (!calendarOpen) return;
@@ -446,7 +471,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
         <div className="lg:px-[104px] px-[12px] lg:px-0 flex flex-col lg:flex-row items-stretch lg:items-center gap-6">
           <div className="flex items-center gap-2 whitespace-nowrap justify-end lg:justify-start">
             <span className="font-body text-xl text-neutral-900">{t(`${k}.price`)}</span>
-            <span className="font-body font-semibold text-2xl leading-8 text-cta-main">125 000</span>
+            <span className="font-body font-semibold text-2xl leading-8 text-cta-main">{totalPrice.toLocaleString("ru-RU")}</span>
             <span className="font-body text-xl text-neutral-900">₸</span>
           </div>
           <div className="flex flex-col gap-2 w-full lg:w-[272px]">

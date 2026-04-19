@@ -1,7 +1,14 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
-import { useWizardSubmit } from "../../hooks/useWizardSubmit";
+import { useCabinTypes, findCabinIdBySlug } from "../../hooks/useCabinTypes";
+import { useOrderSubmit } from "../../hooks/useOrderSubmit";
+import { useOrderPreview } from "../../hooks/useOrderPreview";
+import {
+  createRentalOrder,
+  previewRentalOrder,
+  type RentalOrderPayload,
+} from "../../services/orderService";
 import RentalFaq from "../RentalFaq";
 import {
   StepLabel,
@@ -18,6 +25,15 @@ import {
 } from "./shared";
 import DateTimeRange, { type DateTimeRangeValue } from "./shared/DateTimeRange";
 import AddressStep from "./shared/AddressStep";
+
+function toIsoDateTime(date: Date, time: string): string | null {
+  if (!time) return null;
+  const [h, m] = time.split(":").map(Number);
+  if (Number.isNaN(h) || Number.isNaN(m)) return null;
+  const d = new Date(date);
+  d.setHours(h, m, 0, 0);
+  return d.toISOString();
+}
 
 export default function EmergencyWizard() {
   const { t } = useTranslation();
@@ -42,14 +58,48 @@ export default function EmergencyWizard() {
     email: "",
   });
 
-  const surchargeAmount = Math.round(BASE_DAY_PRICE * EMERGENCY_SURCHARGE_RATE);
-  const totalPrice = BASE_DAY_PRICE + surchargeAmount;
+  const { types: cabinTypes } = useCabinTypes("rental");
+  const cabinTypeId = findCabinIdBySlug(cabinTypes, selectedCabin);
 
-  const wizardSubmit = useWizardSubmit({
-    service: "rental",
-    source: "emergency-wizard",
-    amount: totalPrice,
+  const startIso = dateTime.startDate
+    ? toIsoDateTime(dateTime.startDate, dateTime.startTime)
+    : null;
+  const endIso = dateTime.startDate
+    ? toIsoDateTime(dateTime.startDate, dateTime.endTime)
+    : null;
+  const firstLocation = trip.locations[0] ?? null;
+
+  const previewPayload: RentalOrderPayload | null =
+    cabinTypeId && startIso && endIso && endIso > startIso && firstLocation
+      ? {
+          service_type: "rental_emergency",
+          date_start: startIso,
+          date_end: endIso,
+          address_lat: firstLocation.lat,
+          address_lon: firstLocation.lng,
+          address_text: trip.items[0]?.text ?? "",
+          logistics_type: "standard",
+          payment_channel: contacts.contactType,
+          items: [{ cabin_type: cabinTypeId, quantity: 1 }],
+        }
+      : null;
+
+  const preview = useOrderPreview(previewPayload, previewRentalOrder);
+
+  const fallbackSurcharge = Math.round(BASE_DAY_PRICE * EMERGENCY_SURCHARGE_RATE);
+  const fallbackTotal = BASE_DAY_PRICE + fallbackSurcharge;
+  const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
+  const surchargeAmount = preview.data
+    ? Math.round(Number(preview.data.total) * EMERGENCY_SURCHARGE_RATE / (1 + EMERGENCY_SURCHARGE_RATE))
+    : fallbackSurcharge;
+
+  const submitState = useOrderSubmit({
     contacts,
+    canProceed: !!previewPayload,
+    buildOrder: async () => {
+      if (!previewPayload) throw new Error("payload not ready");
+      return createRentalOrder(previewPayload);
+    },
   });
 
   return (
@@ -137,7 +187,7 @@ export default function EmergencyWizard() {
           <ContactsSection
             value={contacts}
             onChange={setContacts}
-            errors={wizardSubmit.fieldErrors}
+            errors={submitState.fieldErrors}
           />
         </div>
       </section>
@@ -146,13 +196,13 @@ export default function EmergencyWizard() {
 
       <PriceSubmit
         price={totalPrice}
-        disabled={wizardSubmit.buttonDisabled}
+        disabled={submitState.buttonDisabled}
         disabledReason={
-          wizardSubmit.submitting
+          submitState.submitting
             ? t("payment.uploader.submitting")
-            : wizardSubmit.validationError ?? undefined
+            : submitState.submitError ?? submitState.validationError ?? undefined
         }
-        onSubmit={wizardSubmit.submit}
+        onSubmit={submitState.submit}
       />
 
       <RentalFaq />
