@@ -1,5 +1,6 @@
 import { useRef, useEffect } from "react";
 import { Calendar, TimeDropdown } from "../../ui";
+import type { CalendarDayMeta } from "../../ui/Calendar/Calendar";
 import { formatDate } from "./phoneFormat";
 
 export type DateTimeRangeValue = {
@@ -18,6 +19,7 @@ export default function DateTimeRange({
   onToggleStartTime,
   endTimeOpen,
   onToggleEndTime,
+  dayMeta,
 }: {
   value: DateTimeRangeValue;
   onChange: (v: DateTimeRangeValue) => void;
@@ -28,6 +30,7 @@ export default function DateTimeRange({
   onToggleStartTime: () => void;
   endTimeOpen: boolean;
   onToggleEndTime: () => void;
+  dayMeta?: (date: Date) => CalendarDayMeta | undefined;
 }) {
   const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -68,6 +71,7 @@ export default function DateTimeRange({
                 onChange({ ...value, startDate: d as Date });
                 onToggleCalendar();
               }}
+              dayMeta={dayMeta}
             />
           </div>
         )}

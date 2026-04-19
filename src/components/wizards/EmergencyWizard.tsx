@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useCabinTypes, findCabinIdBySlug } from "../../hooks/useCabinTypes";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
+import { useRentalAvailability, dateKey } from "../../hooks/useAvailabilityCalendar";
 import {
   createRentalOrder,
   previewRentalOrder,
@@ -61,6 +62,13 @@ export default function EmergencyWizard() {
   const { types: cabinTypes } = useCabinTypes("rental");
   const cabinTypeId = findCabinIdBySlug(cabinTypes, selectedCabin);
 
+  const availability = useRentalAvailability("rental_emergency", cabinTypeId);
+  const startDateBlocked = useMemo(() => {
+    if (!dateTime.startDate) return { blocked: false, reason: null as string | null };
+    const meta = availability.dayMap.get(dateKey(dateTime.startDate));
+    return { blocked: meta?.blocked ?? false, reason: meta?.reason ?? null };
+  }, [dateTime.startDate, availability.dayMap]);
+
   const startIso = dateTime.startDate
     ? toIsoDateTime(dateTime.startDate, dateTime.startTime)
     : null;
@@ -95,7 +103,7 @@ export default function EmergencyWizard() {
 
   const submitState = useOrderSubmit({
     contacts,
-    canProceed: !!previewPayload,
+    canProceed: !startDateBlocked.blocked && !!previewPayload,
     buildOrder: async () => {
       if (!previewPayload) throw new Error("payload not ready");
       return createRentalOrder(previewPayload);
@@ -142,7 +150,20 @@ export default function EmergencyWizard() {
             onToggleStartTime={() => setStartTimeOpen((v) => !v)}
             endTimeOpen={endTimeOpen}
             onToggleEndTime={() => setEndTimeOpen((v) => !v)}
+            dayMeta={(d) => {
+              const meta = availability.dayMap.get(dateKey(d));
+              return meta
+                ? { blocked: meta.blocked, reason: meta.reason }
+                : undefined;
+            }}
           />
+          {startDateBlocked.blocked && (
+            <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
+              {t(`wizard.event.dateBlocked`, {
+                reason: startDateBlocked.reason ?? t(`wizard.event.dateBlockedFallback`),
+              })}
+            </div>
+          )}
         </div>
       </section>
 
@@ -198,9 +219,11 @@ export default function EmergencyWizard() {
         price={totalPrice}
         disabled={submitState.buttonDisabled}
         disabledReason={
-          submitState.submitting
-            ? t("payment.uploader.submitting")
-            : submitState.submitError ?? submitState.validationError ?? undefined
+          startDateBlocked.blocked
+            ? t(`wizard.event.dateBlockedShort`)
+            : submitState.submitting
+              ? t("payment.uploader.submitting")
+              : submitState.submitError ?? submitState.validationError ?? undefined
         }
         onSubmit={submitState.submit}
       />

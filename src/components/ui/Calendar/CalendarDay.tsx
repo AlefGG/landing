@@ -8,6 +8,8 @@ type CalendarDayProps = {
   isRangeEnd: boolean;
   onClick?: () => void;
   disabled?: boolean;
+  title?: string;
+  blocked?: boolean;
 };
 
 export default function CalendarDay({
@@ -20,12 +22,14 @@ export default function CalendarDay({
   isRangeEnd,
   onClick,
   disabled,
+  title,
+  blocked,
 }: CalendarDayProps) {
   let classes =
     "size-[40px] flex items-center justify-center text-[16px] font-body";
 
   if (disabled) {
-    classes += " cursor-default opacity-40";
+    classes += " cursor-not-allowed";
   } else {
     classes += " cursor-pointer";
   }
@@ -37,10 +41,16 @@ export default function CalendarDay({
     classes += " bg-blue-5 text-dark-blue-80";
     if (isRangeStart) classes += " rounded-tl-[20px] rounded-bl-[20px]";
     if (isRangeEnd) classes += " rounded-tr-[20px] rounded-br-[20px]";
+  } else if (blocked) {
+    classes += " bg-neutral-200 text-neutral-500 line-through";
   } else if (!isCurrentMonth) {
     classes += " text-neutral-400";
   } else {
     classes += " text-neutral-900";
+  }
+
+  if (!isSelected && !isInRange && disabled && !blocked) {
+    classes += " opacity-40";
   }
 
   if (isToday) {
@@ -53,6 +63,8 @@ export default function CalendarDay({
       disabled={disabled}
       onClick={onClick}
       className={classes}
+      title={title}
+      data-blocked={blocked ? "true" : undefined}
     >
       {day}
     </button>

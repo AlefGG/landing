@@ -5,6 +5,7 @@ import { StepHeader, Calendar, MapPicker, AddressList } from "./ui";
 import { useAddressTrip } from "../hooks/useAddressTrip";
 import { useOrderSubmit } from "../hooks/useOrderSubmit";
 import { useOrderPreview } from "../hooks/useOrderPreview";
+import { useSanitationAvailability, dateKey } from "../hooks/useAvailabilityCalendar";
 import {
   createSanitationOrder,
   previewSanitationOrder,
@@ -175,6 +176,14 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
   const preview = useOrderPreview(previewPayload, previewSanitationOrder);
   const totalPrice = preview.data ? Number(preview.data.total) : 125000;
+
+  const availability = useSanitationAvailability();
+  const startDateAvailability = startDate ? availability.dayMap.get(dateKey(startDate)) : null;
+  const insufficientTrucks =
+    startDateAvailability != null && machineCount > startDateAvailability.trucksAvailable;
+  const insufficientCleaners =
+    startDateAvailability != null && crewCount > startDateAvailability.cleanersAvailable;
+  const hasShortage = insufficientTrucks || insufficientCleaners;
 
   const wizardSubmit = useOrderSubmit({
     contacts,
@@ -399,6 +408,26 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
               {t(`${k}.step3CalcHint`)}
             </p>
+            {hasShortage && (
+              <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900 flex flex-col gap-1">
+                {insufficientTrucks && startDateAvailability && (
+                  <span>
+                    {t(`${k}.step4TrucksShortage`, {
+                      available: startDateAvailability.trucksAvailable,
+                      required: machineCount,
+                    })}
+                  </span>
+                )}
+                {insufficientCleaners && startDateAvailability && (
+                  <span>
+                    {t(`${k}.step4CleanersShortage`, {
+                      available: startDateAvailability.cleanersAvailable,
+                      required: crewCount,
+                    })}
+                  </span>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -426,6 +455,14 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
                     onChange={(d) => {
                       setStartDate(d as Date);
                       setCalendarOpen(false);
+                    }}
+                    dayMeta={(d) => {
+                      const meta = availability.dayMap.get(dateKey(d));
+                      if (!meta) return undefined;
+                      const blocked = meta.trucksAvailable <= 0 && meta.cleanersAvailable <= 0;
+                      return blocked
+                        ? { blocked: true, reason: t(`${k}.step4FleetExhausted`) }
+                        : undefined;
                     }}
                   />
                 </div>

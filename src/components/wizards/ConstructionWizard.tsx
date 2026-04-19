@@ -1,8 +1,10 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
+import { useCabinTypes } from "../../hooks/useCabinTypes";
+import { useRentalAvailability, dateKey } from "../../hooks/useAvailabilityCalendar";
 import {
   createConstructionOrder,
   previewConstructionOrder,
@@ -42,6 +44,14 @@ export default function ConstructionWizard() {
 
   const cabin = constructionCabins[0]!;
 
+  const { types: constructionCabinTypes } = useCabinTypes("construction");
+  const constructionCabinId = constructionCabinTypes?.[0]?.id ?? null;
+  const availability = useRentalAvailability("rental_construction", constructionCabinId);
+  const startDateMeta = useMemo(() => {
+    const meta = availability.dayMap.get(dateKey(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)));
+    return meta ?? null;
+  }, [availability.dayMap]);
+
   const discount = getConstructionDiscount(months);
   const monthlyPriceApprox = BASE_DAY_PRICE * 30;
   const fallbackTotal = Math.round(monthlyPriceApprox * months * (1 - discount));
@@ -79,7 +89,7 @@ export default function ConstructionWizard() {
 
   const submitState = useOrderSubmit({
     contacts,
-    canProceed: !!previewPayload,
+    canProceed: !!previewPayload && !(startDateMeta?.blocked ?? false),
     buildOrder: async () => {
       if (!previewPayload) throw new Error("payload not ready");
       return createConstructionOrder(previewPayload);
@@ -145,6 +155,13 @@ export default function ConstructionWizard() {
                 })}
               </p>
             )}
+            {startDateMeta?.blocked && (
+              <div className="mt-4 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
+                {t(`wizard.event.dateBlocked`, {
+                  reason: startDateMeta.reason ?? t(`wizard.event.dateBlockedFallback`),
+                })}
+              </div>
+            )}
           </div>
         </div>
       </section>
@@ -182,9 +199,11 @@ export default function ConstructionWizard() {
         price={totalPrice}
         disabled={submitState.buttonDisabled}
         disabledReason={
-          submitState.submitting
-            ? t("payment.uploader.submitting")
-            : submitState.submitError ?? submitState.validationError ?? undefined
+          startDateMeta?.blocked
+            ? t(`wizard.event.dateBlockedShort`)
+            : submitState.submitting
+              ? t("payment.uploader.submitting")
+              : submitState.submitError ?? submitState.validationError ?? undefined
         }
         onSubmit={submitState.submit}
       />

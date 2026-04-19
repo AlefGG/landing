@@ -19,12 +19,19 @@ const MONTH_NAMES = [
   "December",
 ];
 
+export type CalendarDayMeta = {
+  blocked?: boolean;
+  reason?: string | null;
+  disabled?: boolean;
+};
+
 export type CalendarProps = {
   mode: "single" | "dateRange" | "weekRange" | "yearMonth";
   value: Date | [Date, Date] | null;
   onChange: (value: Date | [Date, Date]) => void;
   locale?: string;
   className?: string;
+  dayMeta?: (date: Date) => CalendarDayMeta | undefined;
 };
 
 function getMonday(date: Date): Date {
@@ -48,6 +55,7 @@ export default function Calendar({
   value,
   onChange,
   className = "",
+  dayMeta,
 }: CalendarProps) {
   const {
     currentMonth,
@@ -147,6 +155,7 @@ export default function Calendar({
             selectedRange={selectedRange}
             mode={mode}
             onDayClick={handleDayClick}
+            dayMeta={dayMeta}
           />
         </>
       ) : (

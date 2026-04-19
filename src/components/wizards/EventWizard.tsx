@@ -4,6 +4,7 @@ import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useCabinTypes, findCabinIdBySlug } from "../../hooks/useCabinTypes";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
+import { useRentalAvailability, dateKey } from "../../hooks/useAvailabilityCalendar";
 import {
   createRentalOrder,
   previewRentalOrder,
@@ -62,6 +63,13 @@ export default function EventWizard() {
   const { types: cabinTypes } = useCabinTypes("rental");
   const cabinTypeId = findCabinIdBySlug(cabinTypes, selectedCabin);
 
+  const availability = useRentalAvailability("rental_event", cabinTypeId);
+  const startDateBlocked = useMemo(() => {
+    if (!dateTime.startDate) return { blocked: false, reason: null as string | null };
+    const meta = availability.dayMap.get(dateKey(dateTime.startDate));
+    return { blocked: meta?.blocked ?? false, reason: meta?.reason ?? null };
+  }, [dateTime.startDate, availability.dayMap]);
+
   const under24h = useMemo(() => {
     if (!dateTime.startDate || !dateTime.startTime) return false;
     const [h, m] = dateTime.startTime.split(":").map(Number);
@@ -109,7 +117,7 @@ export default function EventWizard() {
       : fallbackSurcharge
     : fallbackSurcharge;
 
-  const canProceed = !under24h && !!previewPayload;
+  const canProceed = !under24h && !startDateBlocked.blocked && !!previewPayload;
 
   const submitState = useOrderSubmit({
     contacts,
@@ -150,10 +158,23 @@ export default function EventWizard() {
             onToggleStartTime={() => setStartTimeOpen((v) => !v)}
             endTimeOpen={endTimeOpen}
             onToggleEndTime={() => setEndTimeOpen((v) => !v)}
+            dayMeta={(d) => {
+              const meta = availability.dayMap.get(dateKey(d));
+              return meta
+                ? { blocked: meta.blocked, reason: meta.reason }
+                : undefined;
+            }}
           />
           {under24h && (
             <div className="mt-2 rounded-[8px] bg-[#fff7de] border border-[#f2bc70] p-4 font-body text-base leading-6 text-neutral-900">
               {t(`${ek}.under24hWarning`)}
+            </div>
+          )}
+          {startDateBlocked.blocked && (
+            <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
+              {t(`${ek}.dateBlocked`, {
+                reason: startDateBlocked.reason ?? t(`${ek}.dateBlockedFallback`),
+              })}
             </div>
           )}
         </div>
@@ -221,11 +242,13 @@ export default function EventWizard() {
         disabledReason={
           under24h
             ? t(`${ek}.under24hBlock`)
-            : submitState.submitting
-              ? t("payment.uploader.submitting")
-              : submitState.submitError ??
-                submitState.validationError ??
-                undefined
+            : startDateBlocked.blocked
+              ? t(`${ek}.dateBlockedShort`)
+              : submitState.submitting
+                ? t("payment.uploader.submitting")
+                : submitState.submitError ??
+                  submitState.validationError ??
+                  undefined
         }
         onSubmit={submitState.submit}
       />

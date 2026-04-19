@@ -1,6 +1,12 @@
 import type { DayObject } from "./useCalendar";
 import CalendarDay from "./CalendarDay";
 
+export type DayMetaInfo = {
+  blocked?: boolean;
+  reason?: string | null;
+  disabled?: boolean;
+};
+
 type CalendarDayGridProps = {
   days: DayObject[];
   selectedDate?: Date | null;
@@ -8,6 +14,7 @@ type CalendarDayGridProps = {
   mode: "single" | "dateRange" | "weekRange";
   onDayClick: (date: Date) => void;
   weekDayLabels?: string[];
+  dayMeta?: (date: Date) => DayMetaInfo | undefined;
 };
 
 function sameDay(a: Date, b: Date) {
@@ -32,6 +39,7 @@ export default function CalendarDayGrid({
   mode,
   onDayClick,
   weekDayLabels = DEFAULT_LABELS,
+  dayMeta,
 }: CalendarDayGridProps) {
   const rangeStart = selectedRange?.[0] ?? null;
   const rangeEnd = selectedRange?.[1] ?? null;
@@ -62,6 +70,11 @@ export default function CalendarDayGrid({
         const isRangeEnd =
           rangeEnd ? sameDay(dayObj.date, rangeEnd) : false;
 
+        const meta = dayMeta?.(dayObj.date);
+        const blocked = meta?.blocked === true;
+        const disabled = blocked || meta?.disabled === true;
+        const title = meta?.reason ?? undefined;
+
         return (
           <CalendarDay
             key={i}
@@ -72,7 +85,13 @@ export default function CalendarDayGrid({
             isInRange={isInRng && !isRangeStart && !isRangeEnd}
             isRangeStart={isInRng && isRangeStart && !!rangeEnd}
             isRangeEnd={isInRng && isRangeEnd && !!rangeStart}
-            onClick={() => onDayClick(dayObj.date)}
+            onClick={() => {
+              if (disabled) return;
+              onDayClick(dayObj.date);
+            }}
+            disabled={disabled}
+            blocked={blocked}
+            title={title}
           />
         );
       })}
