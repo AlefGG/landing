@@ -134,9 +134,11 @@
         "all": "Все статусы"
       },
       "status": {
-        "pending": "Ожидание",
+        "draft": "Черновик",
+        "pending_payment": "Ожидает оплаты",
+        "awaiting_accountant_review": "На проверке бухгалтерии",
         "processing": "В обработке",
-        "assigned": "Назначено",
+        "assigned": "Назначен исполнитель",
         "completed": "Выполнено",
         "cancelled": "Отменено"
       },
@@ -145,11 +147,12 @@
         "sanitation": "Ассенизация",
         "sale": "Продажа"
       },
-      "summary": {
-        "rentalEvent": "Мероприятие · 5 кабин · 3 дня",
-        "rentalConstruction": "Стройка · 15 кабин · 3 мес",
-        "sanitation": "14 кабин · 2 р/нед · 4 нед",
-        "saleLux2": "Люкс · 2 шт"
+      "serviceType": {
+        "rental_event": "Аренда — Мероприятие",
+        "rental_emergency": "Аренда — ЧС",
+        "rental_construction": "Аренда — Стройка",
+        "sanitation": "Ассенизация",
+        "sale": "Продажа"
       },
       "card": {
         "amount": "{{amount}} ₸"
@@ -163,14 +166,20 @@
         },
         "service": "Услуга",
         "date": "Дата заявки",
+        "dateStart": "Начало",
+        "dateEnd": "Окончание",
         "amount": "Сумма",
         "address": "Адрес",
+        "addresses": "Адреса",
+        "items": "Состав",
+        "sanitation": "Параметры обслуживания",
         "summary": "Состав",
         "contactType": {
           "individual": "Физлицо",
           "legal": "Юрлицо"
         },
         "payReceipt": "Скачать чек",
+        "payReceipted": "Чек загружен, ожидает подтверждения",
         "payAction": "Перейти к оплате",
         "payPending": "Ожидает оплаты",
         "notFound": "Заявка не найдена",

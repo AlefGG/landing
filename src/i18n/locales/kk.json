@@ -134,7 +134,9 @@
         "all": "Барлық мәртебелер"
       },
       "status": {
-        "pending": "Күтуде",
+        "draft": "Жоба",
+        "pending_payment": "Төлемді күтуде",
+        "awaiting_accountant_review": "Бухгалтер тексеруінде",
         "processing": "Өңделуде",
         "assigned": "Тағайындалды",
         "completed": "Орындалды",
@@ -145,11 +147,12 @@
         "sanitation": "Ассенизация",
         "sale": "Сату"
       },
-      "summary": {
-        "rentalEvent": "Іс-шара · 5 кабина · 3 күн",
-        "rentalConstruction": "Құрылыс · 15 кабина · 3 ай",
-        "sanitation": "14 кабина · аптасына 2 р · 4 апта",
-        "saleLux2": "Люкс · 2 дана"
+      "serviceType": {
+        "rental_event": "Жалдау — Іс-шара",
+        "rental_emergency": "Жалдау — ТЖ",
+        "rental_construction": "Жалдау — Құрылыс",
+        "sanitation": "Ассенизация",
+        "sale": "Сату"
       },
       "card": {
         "amount": "{{amount}} ₸"
@@ -163,14 +166,20 @@
         },
         "service": "Қызмет",
         "date": "Өтінім күні",
+        "dateStart": "Басталу",
+        "dateEnd": "Аяқталу",
         "amount": "Сома",
         "address": "Мекенжай",
+        "addresses": "Мекенжайлар",
+        "items": "Құрамы",
+        "sanitation": "Қызмет параметрлері",
         "summary": "Құрамы",
         "contactType": {
           "individual": "Жеке тұлға",
           "legal": "Заңды тұлға"
         },
         "payReceipt": "Түбіртекті жүктеу",
+        "payReceipted": "Түбіртек жүктелді, растау күтілуде",
         "payAction": "Төлемге өту",
         "payPending": "Төлемді күтуде",
         "notFound": "Өтінім табылмады",

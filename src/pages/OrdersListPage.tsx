@@ -9,7 +9,8 @@ import {
 } from "../services/ordersService";
 
 const STATUSES: OrderStatus[] = [
-  "pending",
+  "pending_payment",
+  "awaiting_accountant_review",
   "processing",
   "assigned",
   "completed",
@@ -20,12 +21,20 @@ export default function OrdersListPage() {
   const { t } = useTranslation();
   const [orders, setOrders] = useState<OrderListItem[] | null>(null);
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let cancelled = false;
-    listMyOrders().then((list) => {
-      if (!cancelled) setOrders(list);
-    });
+    setError(null);
+    listMyOrders()
+      .then((list) => {
+        if (!cancelled) setOrders(list);
+      })
+      .catch((err) => {
+        if (cancelled) return;
+        setError(err instanceof Error ? err.message : String(err));
+        setOrders([]);
+      });
     return () => {
       cancelled = true;
     };
@@ -51,6 +60,9 @@ export default function OrdersListPage() {
         className="rounded-[12px] border border-dashed border-neutral-300 bg-white p-10 text-center"
         data-testid="orders-empty"
       >
+        {error && (
+          <p className="font-body text-sm text-red-600 mb-4">{error}</p>
+        )}
         <p className="font-body text-base text-neutral-700 mb-4">
           {t("auth.orders.empty.title")}
         </p>
@@ -95,7 +107,7 @@ export default function OrdersListPage() {
       ) : (
         <div className="grid gap-4 grid-cols-1 lg:grid-cols-2">
           {visible.map((o) => (
-            <OrderCard key={o.id} order={o} />
+            <OrderCard key={o.orderNumber} order={o} />
           ))}
         </div>
       )}

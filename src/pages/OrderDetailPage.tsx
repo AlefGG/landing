@@ -4,16 +4,31 @@ import { Link, useParams } from "react-router-dom";
 import { Button } from "../components/ui";
 import OrderStatusBadge from "../components/account/OrderStatusBadge";
 import {
-  getOrderDetailMock as getOrder,
+  getOrderDetail,
+  type BackendServiceType,
   type OrderDetail,
 } from "../services/ordersService";
 import { formatAbsoluteDate } from "../utils/date";
-import { formatPhone } from "../components/wizards/shared/phoneFormat";
 
 type LoadState =
   | { kind: "loading" }
   | { kind: "notFound" }
   | { kind: "ok"; order: OrderDetail };
+
+function serviceLabelKey(t: BackendServiceType): string {
+  switch (t) {
+    case "rental_event":
+      return "auth.orders.serviceType.rental_event";
+    case "rental_emergency":
+      return "auth.orders.serviceType.rental_emergency";
+    case "rental_construction":
+      return "auth.orders.serviceType.rental_construction";
+    case "sanitation":
+      return "auth.orders.serviceType.sanitation";
+    case "sale":
+      return "auth.orders.serviceType.sale";
+  }
+}
 
 export default function OrderDetailPage() {
   const { t, i18n } = useTranslation();
@@ -23,7 +38,7 @@ export default function OrderDetailPage() {
   useEffect(() => {
     let cancelled = false;
     setState({ kind: "loading" });
-    getOrder(id).then((o) => {
+    getOrderDetail(id).then((o) => {
       if (cancelled) return;
       setState(o ? { kind: "ok", order: o } : { kind: "notFound" });
     });
@@ -61,10 +76,10 @@ export default function OrderDetailPage() {
 
   const { order } = state;
   const amountFmt = order.amount.toLocaleString("ru-RU");
-  const canPay = order.status === "pending" && !order.paymentReceiptUrl;
+  const canPay = order.status === "pending_payment" && !order.hasPaymentReceipt;
 
   return (
-    <div data-testid={`order-detail-${order.id}`}>
+    <div data-testid={`order-detail-${order.orderNumber}`}>
       <Link
         to="/account/orders"
         className="inline-flex font-body text-sm text-neutral-600 hover:text-neutral-900 mb-4"
@@ -76,12 +91,12 @@ export default function OrderDetailPage() {
       <div className="rounded-[12px] border border-neutral-200 bg-white p-6 mb-4">
         <div className="flex items-center justify-between mb-2">
           <h2 className="font-display text-lg lg:text-xl font-semibold text-neutral-900">
-            #{order.id}
+            #{order.orderNumber}
           </h2>
           <OrderStatusBadge status={order.status} />
         </div>
         <div className="font-body text-sm text-neutral-500">
-          {t(`auth.orders.service.${order.service}`)}
+          {t(serviceLabelKey(order.serviceType) as "auth.orders.serviceType.rental_event")}
         </div>
       </div>
 
@@ -89,38 +104,60 @@ export default function OrderDetailPage() {
         <Row label={t("auth.orders.detail.date")}>
           {formatAbsoluteDate(order.createdAt, i18n.language)}
         </Row>
-        <Row label={t("auth.orders.detail.summary")}>
-          {t(`auth.orders.summary.${order.summaryKey}`)}
-        </Row>
-        {order.address && (
-          <Row label={t("auth.orders.detail.address")}>{order.address}</Row>
+        {order.dateStart && (
+          <Row label={t("auth.orders.detail.dateStart")}>
+            {formatAbsoluteDate(order.dateStart, i18n.language)}
+          </Row>
+        )}
+        {order.dateEnd && (
+          <Row label={t("auth.orders.detail.dateEnd")}>
+            {formatAbsoluteDate(order.dateEnd, i18n.language)}
+          </Row>
+        )}
+        {order.addressText && (
+          <Row label={t("auth.orders.detail.address")}>{order.addressText}</Row>
+        )}
+        {order.items.length > 0 && (
+          <Row label={t("auth.orders.detail.items")}>
+            <ul className="flex flex-col gap-1">
+              {order.items.map((item, idx) => (
+                <li key={idx} className="font-body text-sm text-neutral-900">
+                  {(item.cabin_type_name ?? item.equipment_name ?? "—") +
+                    " × " +
+                    item.quantity}
+                </li>
+              ))}
+            </ul>
+          </Row>
+        )}
+        {order.addresses.length > 0 && (
+          <Row label={t("auth.orders.detail.addresses")}>
+            <ul className="flex flex-col gap-1">
+              {order.addresses.map((a, idx) => (
+                <li key={idx} className="font-body text-sm text-neutral-900">
+                  {a.address_text} · {a.quantity} шт
+                </li>
+              ))}
+            </ul>
+          </Row>
+        )}
+        {order.sanitation && (
+          <Row label={t("auth.orders.detail.sanitation")}>
+            {order.sanitation.num_toilets} шт ·{" "}
+            {order.sanitation.pump_frequency ?? 1}/нед откачка ·{" "}
+            {order.sanitation.cleaning_frequency ?? 1}/нед уборка
+          </Row>
         )}
         <Row label={t("auth.orders.detail.amount")}>
           {t("auth.orders.card.amount", { amount: amountFmt })}
         </Row>
       </Section>
 
-      <Section title={t("auth.orders.detail.section.contacts")}>
-        <Row label={t("auth.orders.detail.contactType." + order.contactType)}>
-          {order.contactName}
-        </Row>
-        <Row label={t("auth.profile.phone")}>{formatPhone(order.contactPhone)}</Row>
-        {order.contactEmail && (
-          <Row label={t("auth.profile.email")}>{order.contactEmail}</Row>
-        )}
-      </Section>
-
       <Section title={t("auth.orders.detail.section.payment")}>
-        {order.paymentReceiptUrl ? (
-          <a
-            href={order.paymentReceiptUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="font-body text-sm font-semibold text-cta-main hover:underline"
-            data-testid="order-receipt-link"
-          >
-            {t("auth.orders.detail.payReceipt")}
-          </a>
+        {order.hasPaymentReceipt ? (
+          <span className="font-body text-sm text-neutral-600">
+            {t("auth.orders.detail.payReceipted")}
+          </span>
         ) : canPay ? (
           <div className="flex items-center gap-4 flex-wrap">
             <span className="font-body text-sm text-neutral-600">
@@ -129,7 +166,7 @@ export default function OrderDetailPage() {
             <Button
               variant="cta"
               size="md"
-              href={`/orders/${order.id}/pay`}
+              href={`/orders/${order.orderNumber}/pay`}
               data-testid="order-pay-action"
             >
               {t("auth.orders.detail.payAction")}

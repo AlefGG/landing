@@ -1,8 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { OrderStatus } from "../../services/ordersService";
 
-const CLASSES: Partial<Record<OrderStatus, string>> = {
-  pending: "bg-neutral-100 text-neutral-700",
+const CLASSES: Record<OrderStatus, string> = {
   draft: "bg-neutral-100 text-neutral-700",
   pending_payment: "bg-neutral-100 text-neutral-700",
   awaiting_accountant_review: "bg-blue-50 text-blue-700",
