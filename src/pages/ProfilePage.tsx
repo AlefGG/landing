@@ -11,19 +11,19 @@ const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 export default function ProfilePage() {
   const { t } = useTranslation();
   const { user, updateProfile } = useAuth();
-  const [name, setName] = useState(user?.name ?? "");
+  const [name, setName] = useState(user?.first_name ?? "");
   const [email, setEmail] = useState(user?.email ?? "");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [state, setState] = useState<SaveState>("idle");
 
   useEffect(() => {
-    setName(user?.name ?? "");
+    setName(user?.first_name ?? "");
     setEmail(user?.email ?? "");
   }, [user]);
 
   if (!user) return null;
 
-  const dirty = (user.name ?? "") !== name || (user.email ?? "") !== email;
+  const dirty = (user.first_name ?? "") !== name || (user.email ?? "") !== email;
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -36,7 +36,7 @@ export default function ProfilePage() {
 
     setState("saving");
     try {
-      await updateProfile({ name: name.trim(), email: email.trim() });
+      await updateProfile({ first_name: name.trim(), email: email.trim() });
       setState("saved");
       setTimeout(() => setState("idle"), 2000);
     } catch {

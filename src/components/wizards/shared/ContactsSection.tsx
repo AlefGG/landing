@@ -49,7 +49,7 @@ export default function ContactsSection({
       prevUseProfileRef.current = false;
       return;
     }
-    const profileName = user?.name ?? "";
+    const profileName = user?.first_name ?? "";
     const profilePhone = user?.phone ? formatPhone(user.phone) : "";
     const profileEmail = user?.email ?? "";
     const justTurnedOn = !prevUseProfileRef.current;
