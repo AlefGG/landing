@@ -95,7 +95,8 @@ export default function EmergencyWizard() {
   const preview = useOrderPreview(previewPayload, previewRentalOrder);
 
   const fallbackSurcharge = Math.round(BASE_DAY_PRICE * EMERGENCY_SURCHARGE_RATE);
-  const fallbackTotal = BASE_DAY_PRICE + fallbackSurcharge;
+  // BUG-017: suppress the demo constant until the user has real inputs.
+  const fallbackTotal = previewPayload ? BASE_DAY_PRICE + fallbackSurcharge : 0;
   const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
   const surchargeAmount = preview.data
     ? Math.round(Number(preview.data.total) * EMERGENCY_SURCHARGE_RATE / (1 + EMERGENCY_SURCHARGE_RATE))

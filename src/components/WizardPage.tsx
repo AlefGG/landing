@@ -175,7 +175,9 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
       : null;
 
   const preview = useOrderPreview(previewPayload, previewSanitationOrder);
-  const totalPrice = preview.data ? Number(preview.data.total) : 125000;
+  // BUG-017: do NOT fall back to a hard-coded demo price while inputs are
+  // incomplete — show 0 (PriceSubmit renders «—» for 0 via its default).
+  const totalPrice = preview.data ? Number(preview.data.total) : 0;
 
   const availability = useSanitationAvailability();
   const startDateAvailability = startDate ? availability.dayMap.get(dateKey(startDate)) : null;

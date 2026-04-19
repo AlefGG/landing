@@ -33,16 +33,37 @@ export type KaspiQrResponse = {
 
 export class PaymentUploadError extends Error {
   readonly code: PaymentValidationError | "uploadFailed" | "notConfigured";
+  readonly detail?: string;
   override readonly cause?: unknown;
   constructor(
     code: PaymentValidationError | "uploadFailed" | "notConfigured",
     cause?: unknown,
+    detail?: string,
   ) {
     super(code);
     this.name = "PaymentUploadError";
     this.code = code;
     this.cause = cause;
+    this.detail = detail;
   }
+}
+
+function extractBackendDetail(e: ApiError): string | undefined {
+  const b = e.body;
+  if (!b || typeof b !== "object") return undefined;
+  const body = b as Record<string, unknown>;
+  const pickString = (v: unknown): string | undefined => {
+    if (typeof v === "string") return v;
+    if (Array.isArray(v) && v.length > 0 && typeof v[0] === "string")
+      return v[0] as string;
+    return undefined;
+  };
+  return (
+    pickString(body["detail"]) ??
+    pickString(body["file"]) ??
+    pickString(body["non_field_errors"]) ??
+    undefined
+  );
 }
 
 export function validatePaymentFile(file: File): PaymentValidationError | null {
@@ -69,7 +90,7 @@ export async function uploadPaymentFile(
     );
   } catch (e) {
     if (e instanceof ApiError) {
-      throw new PaymentUploadError("uploadFailed", e);
+      throw new PaymentUploadError("uploadFailed", e, extractBackendDetail(e));
     }
     throw e;
   }

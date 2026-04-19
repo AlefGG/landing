@@ -54,7 +54,6 @@ export default function ConstructionWizard() {
 
   const discount = getConstructionDiscount(months);
   const monthlyPriceApprox = BASE_DAY_PRICE * 30;
-  const fallbackTotal = Math.round(monthlyPriceApprox * months * (1 - discount));
 
   const addressesPayload = trip.items
     .map((item) => {
@@ -85,6 +84,11 @@ export default function ConstructionWizard() {
       : null;
 
   const preview = useOrderPreview(previewPayload, previewConstructionOrder);
+  // BUG-017: only fall back to a heuristic total when the user has already
+  // started the wizard; otherwise show 0 so the widget doesn't lie.
+  const fallbackTotal = previewPayload
+    ? Math.round(monthlyPriceApprox * months * (1 - discount))
+    : 0;
   const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
 
   const submitState = useOrderSubmit({

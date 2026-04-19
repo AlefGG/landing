@@ -71,9 +71,20 @@ export default function EventWizard() {
   }, [dateTime.startDate, availability.dayMap]);
 
   const under24h = useMemo(() => {
-    if (!dateTime.startDate || !dateTime.startTime) return false;
-    const [h, m] = dateTime.startTime.split(":").map(Number);
-    const startMs = new Date(dateTime.startDate).setHours(h ?? 0, m ?? 0, 0, 0);
+    if (!dateTime.startDate) return false;
+    // BUG-035: warn as soon as the picked day alone is inside the 24h
+    // window (before the user has filled startTime) — use the earliest
+    // moment of the chosen day as the reference point.
+    const dayStart = new Date(dateTime.startDate);
+    dayStart.setHours(0, 0, 0, 0);
+    const startMs = dateTime.startTime
+      ? (() => {
+          const [h, m] = dateTime.startTime.split(":").map(Number);
+          const d = new Date(dateTime.startDate);
+          d.setHours(h ?? 0, m ?? 0, 0, 0);
+          return d.getTime();
+        })()
+      : dayStart.getTime();
     return startMs - Date.now() < 24 * 60 * 60 * 1000;
   }, [dateTime.startDate, dateTime.startTime]);
 
@@ -105,7 +116,10 @@ export default function EventWizard() {
   const fallbackSurcharge = expressMounting
     ? Math.round(BASE_DAY_PRICE * EXPRESS_SURCHARGE_RATE)
     : 0;
-  const fallbackTotal = BASE_DAY_PRICE + fallbackSurcharge;
+  // BUG-017: only fall back to the demo constant when the user has
+  // *some* inputs (previewPayload is being built). With an empty form
+  // display 0 — PriceSubmit turns that into «—».
+  const fallbackTotal = previewPayload ? BASE_DAY_PRICE + fallbackSurcharge : 0;
   const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
   const surchargeAmount = preview.data
     ? (preview.data.pricing_snapshot as { express_surcharge?: string })
@@ -159,10 +173,28 @@ export default function EventWizard() {
             endTimeOpen={endTimeOpen}
             onToggleEndTime={() => setEndTimeOpen((v) => !v)}
             dayMeta={(d) => {
+              // BUG-037: disable past dates regardless of fleet availability
+              // so users cannot pick a day the backend would reject.
+              const startOfDay = new Date(d);
+              startOfDay.setHours(0, 0, 0, 0);
+              const startOfToday = new Date();
+              startOfToday.setHours(0, 0, 0, 0);
+              if (startOfDay < startOfToday) return { disabled: true };
               const meta = availability.dayMap.get(dateKey(d));
-              return meta
-                ? { blocked: meta.blocked, reason: meta.reason }
-                : undefined;
+              if (meta) {
+                // BUG-036: surface a tooltip reason for fleet-full days.
+                return {
+                  blocked: meta.blocked,
+                  reason:
+                    meta.reason ??
+                    (meta.blocked
+                      ? t(`${k}.step3FleetFull`, {
+                          defaultValue: "Нет свободных кабин",
+                        })
+                      : null),
+                };
+              }
+              return undefined;
             }}
           />
           {under24h && (

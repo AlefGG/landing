@@ -32,6 +32,7 @@ export default function FileUploader({
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
   const [error, setError] = useState<PaymentValidationError | "uploadFailed" | null>(null);
+  const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);
 
@@ -84,8 +85,10 @@ export default function FileUploader({
     } catch (err) {
       if (err instanceof PaymentUploadError) {
         setError(err.code);
+        setErrorDetail(err.detail ?? null);
       } else {
         setError("uploadFailed");
+        setErrorDetail(null);
       }
       setSubmitting(false);
     }
@@ -157,6 +160,7 @@ export default function FileUploader({
           role="alert"
         >
           {t(`payment.errors.${error}`)}
+          {errorDetail ? ` — ${errorDetail}` : null}
         </p>
       )}
 

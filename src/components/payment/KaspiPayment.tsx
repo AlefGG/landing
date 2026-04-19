@@ -14,12 +14,21 @@ type QrState =
   | { status: "missing" }
   | { status: "error" };
 
+function deriveServiceSlug(serviceType?: string): string {
+  if (!serviceType) return "rental";
+  if (serviceType === "sale") return "sale";
+  if (serviceType === "sanitation") return "sanitation";
+  return "rental"; // rental_event / rental_emergency / rental_construction
+}
+
 export default function KaspiPayment({
   orderId,
   amount,
+  serviceType,
 }: {
   orderId: string;
   amount: number;
+  serviceType?: string;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -56,8 +65,9 @@ export default function KaspiPayment({
 
   const handleUpload = async (file: File) => {
     await uploadPaymentFile(orderId, file);
+    const service = deriveServiceSlug(serviceType);
     navigate(
-      `/success?type=individual&order=${encodeURIComponent(orderId)}&amount=${encodeURIComponent(formattedAmount)}`,
+      `/success?type=individual&order=${encodeURIComponent(orderId)}&amount=${encodeURIComponent(formattedAmount)}&service=${service}`,
     );
   };
 
