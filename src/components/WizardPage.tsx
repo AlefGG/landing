@@ -171,6 +171,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
           cleaning_frequency: cleaningEnabled ? cleaningFrequency : null,
           payment_channel: contacts.contactType,
           date_start: startIso,
+          weeks: durationWeeks,
         }
       : null;
 
@@ -395,6 +396,16 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
                 {t(`${k}.step3ValidateAtLeastOne`)}
               </p>
             )}
+            {cabinCount === 0 && (
+              <p
+                className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-red-600"
+                role="alert"
+              >
+                {t(`${k}.step3RequireAtLeastOneToilet`, {
+                  defaultValue: "Укажите хотя бы один биотуалет",
+                })}
+              </p>
+            )}
           </div>
 
           <h3 className="font-heading text-[20px] lg:text-[32px] font-extrabold leading-[24px] lg:leading-[32px] text-neutral-900 mt-10 lg:mt-12">
@@ -404,7 +415,9 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             <p className="font-body text-base lg:text-xl leading-6 text-neutral-600">
               {t(`${k}.step3ResourcesRequired`)}{" "}
               <strong className="text-neutral-900">
-                {machineCount} {t(`${k}.step3Machine`)} · {crewCount} {t(`${k}.step3Crew`)}
+                {machineCount} {t(`${k}.step3Machine`, { count: machineCount })}
+                {" · "}
+                {crewCount} {t(`${k}.step3Crew`, { count: crewCount })}
               </strong>
             </p>
             <p className="font-body text-sm lg:text-base leading-4 lg:leading-6 text-neutral-500">
@@ -475,17 +488,28 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
                 {t(`${k}.step4DurationWeeks`)}
               </label>
-              <input
-                type="number"
-                min={1}
-                max={52}
-                value={durationWeeks}
-                onChange={(e) => {
-                  const n = parseInt(e.target.value, 10);
-                  if (!isNaN(n) && n >= 1 && n <= 52) setDurationWeeks(n);
-                }}
-                className="h-10 lg:h-[44px] rounded-[8px] border border-neutral-400 bg-white px-3 font-body text-base leading-6 text-neutral-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  type="number"
+                  min={1}
+                  max={52}
+                  value={durationWeeks}
+                  onChange={(e) => {
+                    const n = parseInt(e.target.value, 10);
+                    if (!isNaN(n) && n >= 1 && n <= 52) setDurationWeeks(n);
+                  }}
+                  className="h-10 lg:h-[44px] flex-1 rounded-[8px] border border-neutral-400 bg-white px-3 font-body text-base leading-6 text-neutral-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                />
+                <span className="font-body text-base lg:text-xl leading-6 text-neutral-600">
+                  {t(`${k}.step4DurationWeeksUnit`, {
+                    count: durationWeeks,
+                    defaultValue_one: "неделя",
+                    defaultValue_few: "недели",
+                    defaultValue_many: "недель",
+                    defaultValue: "недель",
+                  })}
+                </span>
+              </div>
             </div>
           </div>
         </div>

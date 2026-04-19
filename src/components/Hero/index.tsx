@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
+import { Link } from "react-router-dom";
 import { useCountUp } from "../../hooks/useCountUp";
 
 const fadeUp = (delay: number, reduced: boolean) =>
@@ -139,6 +140,31 @@ export default function Hero() {
           >
             {t("hero.subtitle")}
           </motion.p>
+
+          {/* BUG-008: three primary CTAs in hero for desktop. */}
+          <motion.div
+            className="mt-6 flex flex-wrap gap-3 justify-end"
+            {...fadeUp(0.8, prefersReducedMotion)}
+          >
+            <Link
+              to="/rental"
+              className="bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-base leading-6 rounded-[40px] px-6 py-2"
+            >
+              {t("buttons.rental")}
+            </Link>
+            <Link
+              to="/sanitation"
+              className="bg-white border border-cta-main text-cta-main font-body font-semibold text-base leading-6 rounded-[40px] px-6 py-2"
+            >
+              {t("buttons.sanitation")}
+            </Link>
+            <Link
+              to="/sale"
+              className="bg-white border border-cta-main text-cta-main font-body font-semibold text-base leading-6 rounded-[40px] px-6 py-2"
+            >
+              {t("buttons.sale")}
+            </Link>
+          </motion.div>
         </div>
 
         {/* 24/7 card */}

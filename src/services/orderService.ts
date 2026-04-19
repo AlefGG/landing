@@ -43,6 +43,7 @@ export type SanitationOrderPayload = {
   cleaning_frequency?: Frequency | null;
   payment_channel: PaymentChannel;
   date_start?: string | null;
+  weeks?: number;
 };
 
 export type SaleOrderPayload = {
