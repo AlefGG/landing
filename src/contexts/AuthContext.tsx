@@ -73,12 +73,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const navigate = useNavigate();
 
   const handleAuthError = useCallback(() => {
+    const hadSession = accessTokenRef.current !== null || refreshTokenRef.current !== null;
     accessTokenRef.current = null;
     refreshTokenRef.current = null;
     clearRefresh();
     setUser(null);
     setStatus("anonymous");
-    navigate("/login", { replace: true });
+    if (hadSession) {
+      navigate("/login", { replace: true });
+    }
   }, [navigate]);
 
   const handleRefresh = useCallback(async (): Promise<string | null> => {

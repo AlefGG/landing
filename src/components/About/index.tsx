@@ -40,7 +40,7 @@ export default function About() {
                 )}
               </div>
               <p className="font-body font-normal text-[13px] leading-4 text-neutral-800">
-                {t(fact.label)}
+                {t(fact.desc)}
               </p>
             </div>
           ))}

@@ -31,8 +31,11 @@ export default function Seo({ pageKey, titleOverride, descriptionOverride }: Seo
       : "";
   const ogUrl = origin ? `${origin}${location.pathname}` : location.pathname;
 
+  // BUG-042: key props force React to treat tags as new when `lang` flips,
+  // so react-helmet-async re-emits them and the static <meta> from index.html
+  // gets replaced after the locale switch (otherwise the stale RU content stays).
   return (
-    <Helmet>
+    <Helmet key={lang}>
       <html lang={lang} />
       <title>{title}</title>
       <meta name="description" content={description} />
