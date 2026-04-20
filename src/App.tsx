@@ -3,7 +3,6 @@ import { HelmetProvider } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { MotionConfig } from "framer-motion";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import Seo from "./components/Seo";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import LandingPage from "./pages/LandingPage";
@@ -45,7 +44,6 @@ export default function App() {
       <MotionConfig reducedMotion="user">
         <BrowserRouter>
           <AuthProvider>
-            <Seo />
             <a href="#main" className="skip-to-content">
               {t("a11y.skipToContent")}
             </a>

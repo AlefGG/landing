@@ -1,3 +1,4 @@
+import Seo from "../components/Seo";
 import Hero from "../components/Hero";
 import StatsBanner from "../components/StatsBanner";
 import Services from "../components/Services";
@@ -12,6 +13,7 @@ import Faq from "../components/Faq";
 export default function LandingPage() {
   return (
     <>
+      <Seo />
       <Hero />
       <StatsBanner />
       <Services />
