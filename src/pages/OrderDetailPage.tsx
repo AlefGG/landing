@@ -180,31 +180,36 @@ export default function OrderDetailPage() {
         </Row>
       </Section>
 
-      <Section title={t("auth.orders.detail.section.payment")}>
-        {order.hasPaymentReceipt ? (
-          <span className="font-body text-sm text-neutral-600">
-            {t("auth.orders.detail.payReceipted")}
-          </span>
-        ) : canPay ? (
-          <div className="flex items-center gap-4 flex-wrap">
+      {/* BUG-071: hide the "Оплата" section on cancelled orders —
+          otherwise the bottom card keeps advertising "Ожидает оплаты"
+          while the top badge already reads "Отменено". */}
+      {order.status !== "cancelled" && (
+        <Section title={t("auth.orders.detail.section.payment")}>
+          {order.hasPaymentReceipt ? (
             <span className="font-body text-sm text-neutral-600">
+              {t("auth.orders.detail.payReceipted")}
+            </span>
+          ) : canPay ? (
+            <div className="flex items-center gap-4 flex-wrap">
+              <span className="font-body text-sm text-neutral-600">
+                {t("auth.orders.detail.payPending")}
+              </span>
+              <Button
+                variant="cta"
+                size="md"
+                href={`/orders/${order.orderNumber}/pay`}
+                data-testid="order-pay-action"
+              >
+                {t("auth.orders.detail.payAction")}
+              </Button>
+            </div>
+          ) : (
+            <span className="font-body text-sm text-neutral-500">
               {t("auth.orders.detail.payPending")}
             </span>
-            <Button
-              variant="cta"
-              size="md"
-              href={`/orders/${order.orderNumber}/pay`}
-              data-testid="order-pay-action"
-            >
-              {t("auth.orders.detail.payAction")}
-            </Button>
-          </div>
-        ) : (
-          <span className="font-body text-sm text-neutral-500">
-            {t("auth.orders.detail.payPending")}
-          </span>
-        )}
-      </Section>
+          )}
+        </Section>
+      )}
 
       {order.assignedExecutor && (
         <Section

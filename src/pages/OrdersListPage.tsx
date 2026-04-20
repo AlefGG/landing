@@ -27,10 +27,16 @@ export default function OrdersListPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  // BUG-072: push the status filter to the backend via ?status=… so that
+  // matching orders on unloaded pages surface too. A client-side filter
+  // over page-1 results (20 rows) hides older completed/cancelled orders
+  // until the user pages all the way through.
   useEffect(() => {
     let cancelled = false;
     setError(null);
-    listMyOrders({ page: 1 })
+    setOrders(null);
+    const statusParam = filter === "all" ? undefined : filter;
+    listMyOrders({ page: 1, status: statusParam })
       .then((p) => {
         if (cancelled) return;
         setOrders(p.results);
@@ -45,13 +51,14 @@ export default function OrdersListPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [filter]);
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     try {
-      const next = await listMyOrders({ page: page + 1 });
+      const statusParam = filter === "all" ? undefined : filter;
+      const next = await listMyOrders({ page: page + 1, status: statusParam });
       setOrders((prev) => (prev ? [...prev, ...next.results] : next.results));
       setHasMore(next.hasMore);
       setPage((p) => p + 1);
@@ -62,11 +69,9 @@ export default function OrdersListPage() {
     }
   };
 
-  const visible = useMemo(() => {
-    if (!orders) return [];
-    if (filter === "all") return orders;
-    return orders.filter((o) => o.status === filter);
-  }, [orders, filter]);
+  // Server filters by status already; keep a client-side identity map so
+  // the rendered list stays consistent while a refetch is in flight.
+  const visible = useMemo(() => orders ?? [], [orders]);
 
   if (orders === null) {
     return (
@@ -76,7 +81,7 @@ export default function OrdersListPage() {
     );
   }
 
-  if (orders.length === 0) {
+  if (orders.length === 0 && filter === "all") {
     return (
       <div
         className="rounded-[12px] border border-dashed border-neutral-300 bg-white p-10 text-center"
@@ -133,7 +138,7 @@ export default function OrdersListPage() {
           ))}
         </div>
       )}
-      {hasMore && filter === "all" && (
+      {hasMore && (
         <div className="mt-6 flex justify-center">
           <Button
             variant="ghost"
