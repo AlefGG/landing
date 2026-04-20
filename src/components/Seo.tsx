@@ -47,6 +47,9 @@ export default function Seo({ pageKey, titleOverride, descriptionOverride }: Seo
       {/* TODO: add real og:image file at /assets/og-image.png (1200x630) */}
       <meta property="og:image" content="/assets/og-image.png" />
       <meta name="twitter:card" content="summary_large_image" />
+      {/* BUG-068: emit a canonical link for every indexed route so
+          RU / KK and trailing-slash variants collapse to a single URL. */}
+      <link rel="canonical" href={ogUrl} />
     </Helmet>
   );
 }
