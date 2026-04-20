@@ -10,7 +10,7 @@ export type AddressEntry = {
 type Props = {
   items: AddressEntry[];
   onChange: (id: string, text: string) => void;
-  onSelect: (id: string, location: LatLng) => void;
+  onSelect: (id: string, text: string, location: LatLng) => void;
   onAdd: () => void;
   onRemove: (id: string) => void;
   placeholder?: string;
@@ -33,7 +33,9 @@ export default function AddressList({
           <AddressAutocomplete
             value={item.text}
             onChange={(v) => onChange(item.id, v)}
-            onSelect={(r) => onSelect(item.id, { lat: r.lat, lng: r.lng })}
+            onSelect={(r) =>
+              onSelect(item.id, r.displayName, { lat: r.lat, lng: r.lng })
+            }
             placeholder={placeholder}
             className="flex-1 max-w-full lg:max-w-[488px]"
           />

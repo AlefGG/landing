@@ -323,7 +323,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             <AddressList
               items={trip.items}
               onChange={trip.setText}
-              onSelect={trip.setLocation}
+              onSelect={trip.setEntry}
               onAdd={trip.addEntry}
               onRemove={trip.removeEntry}
               placeholder={t(`${k}.step2Placeholder`)}

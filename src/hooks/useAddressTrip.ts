@@ -31,6 +31,13 @@ export function useAddressTrip(serviceType: DeliveryServiceType) {
     setItems((prev) => prev.map((x) => (x.id === id ? { ...x, location } : x)));
   }, []);
 
+  // BUG-055: set text + location atomically when the user picks a
+  // suggestion, so previewDelivery sees both fields in one state pass
+  // and we can't lose one entry's location to an interleaved render.
+  const setEntry = useCallback((id: string, text: string, location: LatLng) => {
+    setItems((prev) => prev.map((x) => (x.id === id ? { ...x, text, location } : x)));
+  }, []);
+
   const addEntry = useCallback(() => {
     setItems((prev) => [...prev, makeEntry()]);
   }, []);
@@ -139,6 +146,7 @@ export function useAddressTrip(serviceType: DeliveryServiceType) {
     deliveryCost: Math.round(totalDeliveryFee),
     setText,
     setLocation,
+    setEntry,
     addEntry,
     removeEntry,
     appendFromMap,

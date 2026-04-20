@@ -15,7 +15,7 @@ export default function AddressStep({ trip }: { trip: Trip }) {
       <AddressList
         items={trip.items}
         onChange={trip.setText}
-        onSelect={trip.setLocation}
+        onSelect={trip.setEntry}
         onAdd={trip.addEntry}
         onRemove={trip.removeEntry}
         placeholder={t(`${k}.step4Placeholder`)}

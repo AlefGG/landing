@@ -36,7 +36,9 @@ export default function ConstructionWizard() {
   const [months, setMonths] = useState<number>(1);
   const trip = useAddressTrip("construction");
   const [contacts, setContacts] = useState<ContactsValue>({
-    contactType: "legal",
+    // BUG-055: default to individual — payment_channel must mirror an
+    // explicit Физлицо/Юрлицо click, not a hard-coded default.
+    contactType: "individual",
     name: "",
     phone: "",
     email: "",
