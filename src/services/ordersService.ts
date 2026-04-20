@@ -89,12 +89,39 @@ function mapListItem(raw: RawListItem): OrderListItem {
   };
 }
 
+type Paginated<T> = {
+  count: number;
+  next: string | null;
+  previous: string | null;
+  results: T[];
+};
+
+export type MyOrdersPage = {
+  count: number;
+  hasMore: boolean;
+  nextUrl: string | null;
+  results: OrderListItem[];
+};
+
 export async function listMyOrders(params?: {
   status?: OrderStatus;
-}): Promise<OrderListItem[]> {
-  const qs = params?.status ? `?status=${encodeURIComponent(params.status)}` : "";
-  const raw = await fetchJson<RawListItem[]>(`/orders/my/${qs}`);
-  return raw.map(mapListItem);
+  page?: number;
+  pageSize?: number;
+}): Promise<MyOrdersPage> {
+  const search = new URLSearchParams();
+  if (params?.status) search.set("status", params.status);
+  if (params?.page) search.set("page", String(params.page));
+  if (params?.pageSize) search.set("page_size", String(params.pageSize));
+  const qs = search.toString();
+  const raw = await fetchJson<Paginated<RawListItem>>(
+    `/orders/my/${qs ? `?${qs}` : ""}`,
+  );
+  return {
+    count: raw.count,
+    hasMore: raw.next !== null,
+    nextUrl: raw.next,
+    results: raw.results.map(mapListItem),
+  };
 }
 
 type RawDetailItem = {
@@ -122,6 +149,22 @@ type RawDetailSanitation = {
   cleaners_required: number | null;
 };
 
+type RawAssignedExecutor = {
+  full_name: string;
+  phone: string;
+};
+
+type RawAttachment = {
+  label: string;
+  name: string;
+  url: string | null;
+};
+
+type RawStatusEvent = {
+  status: OrderStatus;
+  at: string | null;
+};
+
 type RawDetail = {
   order_number: string;
   service_type: BackendServiceType;
@@ -143,6 +186,10 @@ type RawDetail = {
   addresses: RawDetailAddress[];
   sanitation: RawDetailSanitation | null;
   has_payment_receipt: boolean;
+  assigned_executor?: RawAssignedExecutor | null;
+  attachments?: RawAttachment[];
+  status_history?: RawStatusEvent[];
+  can_cancel?: boolean;
 };
 
 export type OrderDetail = {
@@ -163,6 +210,10 @@ export type OrderDetail = {
   sanitation: RawDetailSanitation | null;
   hasPaymentReceipt: boolean;
   pricingSnapshot: Record<string, unknown> | null;
+  assignedExecutor: RawAssignedExecutor | null;
+  attachments: RawAttachment[];
+  statusHistory: RawStatusEvent[];
+  canCancel: boolean;
 };
 
 export async function getOrderDetail(
@@ -188,9 +239,17 @@ export async function getOrderDetail(
       sanitation: raw.sanitation,
       hasPaymentReceipt: raw.has_payment_receipt,
       pricingSnapshot: raw.pricing_snapshot,
+      assignedExecutor: raw.assigned_executor ?? null,
+      attachments: raw.attachments ?? [],
+      statusHistory: raw.status_history ?? [],
+      canCancel: raw.can_cancel ?? false,
     };
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;
     throw err;
   }
+}
+
+export async function cancelOrder(orderNumber: string): Promise<void> {
+  await fetchJson(`/orders/${orderNumber}/cancel/`, { method: "POST" });
 }

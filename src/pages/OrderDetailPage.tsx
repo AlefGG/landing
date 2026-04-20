@@ -4,6 +4,7 @@ import { Link, useParams } from "react-router-dom";
 import { Button } from "../components/ui";
 import OrderStatusBadge from "../components/account/OrderStatusBadge";
 import {
+  cancelOrder,
   getOrderDetail,
   type BackendServiceType,
   type OrderDetail,
@@ -34,6 +35,13 @@ export default function OrderDetailPage() {
   const { t, i18n } = useTranslation();
   const { id = "" } = useParams<{ id: string }>();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
+  const [cancelling, setCancelling] = useState(false);
+  const [cancelError, setCancelError] = useState<string | null>(null);
+
+  const reload = async () => {
+    const o = await getOrderDetail(id);
+    setState(o ? { kind: "ok", order: o } : { kind: "notFound" });
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -46,6 +54,25 @@ export default function OrderDetailPage() {
       cancelled = true;
     };
   }, [id]);
+
+  const onCancel = async () => {
+    const confirmed = window.confirm(
+      t("auth.orders.detail.cancelConfirm", {
+        defaultValue: "Отменить заявку? Действие нельзя отменить.",
+      }),
+    );
+    if (!confirmed) return;
+    setCancelling(true);
+    setCancelError(null);
+    try {
+      await cancelOrder(id);
+      await reload();
+    } catch (err) {
+      setCancelError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCancelling(false);
+    }
+  };
 
   if (state.kind === "loading") {
     return (
@@ -178,6 +205,90 @@ export default function OrderDetailPage() {
           </span>
         )}
       </Section>
+
+      {order.assignedExecutor && (
+        <Section
+          title={t("auth.orders.detail.section.executor", {
+            defaultValue: "Исполнитель",
+          })}
+        >
+          <Row label={t("auth.orders.detail.executorName", { defaultValue: "ФИО" })}>
+            {order.assignedExecutor.full_name}
+          </Row>
+          <Row label={t("auth.orders.detail.executorPhone", { defaultValue: "Телефон" })}>
+            <a
+              href={`tel:${order.assignedExecutor.phone}`}
+              className="text-cta-main hover:underline"
+            >
+              {order.assignedExecutor.phone}
+            </a>
+          </Row>
+        </Section>
+      )}
+
+      {order.attachments.length > 0 && (
+        <Section
+          title={t("auth.orders.detail.section.attachments", {
+            defaultValue: "Файлы",
+          })}
+        >
+          <ul className="flex flex-col gap-2">
+            {order.attachments.map((a, idx) => (
+              <li key={idx} className="font-body text-sm text-neutral-900">
+                {a.url ? (
+                  <a href={a.url} className="text-cta-main hover:underline" target="_blank" rel="noreferrer">
+                    {a.label}
+                  </a>
+                ) : (
+                  <span>{a.label}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </Section>
+      )}
+
+      <Section
+        title={t("auth.orders.detail.section.timeline", {
+          defaultValue: "История статусов",
+        })}
+      >
+        <ul className="flex flex-col gap-2" data-testid="order-timeline">
+          {order.statusHistory.map((ev, idx) => (
+            <li key={idx} className="flex flex-col lg:flex-row lg:gap-4 lg:items-baseline">
+              <span className="font-body text-xs text-neutral-500 lg:w-40">
+                {ev.at ? formatAbsoluteDate(ev.at, i18n.language) : "—"}
+              </span>
+              <span className="font-body text-sm text-neutral-900">
+                {t(`auth.orders.status.${ev.status}`, { defaultValue: ev.status })}
+              </span>
+            </li>
+          ))}
+        </ul>
+      </Section>
+
+      {order.canCancel && (
+        <Section
+          title={t("auth.orders.detail.section.cancel", { defaultValue: "Отмена" })}
+        >
+          <div className="flex flex-col gap-2">
+            <Button
+              variant="ghost"
+              size="md"
+              onClick={onCancel}
+              disabled={cancelling}
+              data-testid="order-cancel-action"
+            >
+              {cancelling
+                ? t("auth.orders.detail.cancelLoading", { defaultValue: "Отменяем…" })
+                : t("auth.orders.detail.cancelAction", { defaultValue: "Отменить заявку" })}
+            </Button>
+            {cancelError && (
+              <span className="font-body text-sm text-red-600">{cancelError}</span>
+            )}
+          </div>
+        </Section>
+      )}
     </div>
   );
 }

@@ -23,12 +23,19 @@ export default function OrdersListPage() {
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
   const [error, setError] = useState<string | null>(null);
 
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+
   useEffect(() => {
     let cancelled = false;
     setError(null);
-    listMyOrders()
-      .then((list) => {
-        if (!cancelled) setOrders(list);
+    listMyOrders({ page: 1 })
+      .then((p) => {
+        if (cancelled) return;
+        setOrders(p.results);
+        setHasMore(p.hasMore);
+        setPage(1);
       })
       .catch((err) => {
         if (cancelled) return;
@@ -39,6 +46,21 @@ export default function OrdersListPage() {
       cancelled = true;
     };
   }, []);
+
+  const loadMore = async () => {
+    if (loadingMore || !hasMore) return;
+    setLoadingMore(true);
+    try {
+      const next = await listMyOrders({ page: page + 1 });
+      setOrders((prev) => (prev ? [...prev, ...next.results] : next.results));
+      setHasMore(next.hasMore);
+      setPage((p) => p + 1);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setLoadingMore(false);
+    }
+  };
 
   const visible = useMemo(() => {
     if (!orders) return [];
@@ -109,6 +131,20 @@ export default function OrdersListPage() {
           {visible.map((o) => (
             <OrderCard key={o.orderNumber} order={o} />
           ))}
+        </div>
+      )}
+      {hasMore && filter === "all" && (
+        <div className="mt-6 flex justify-center">
+          <Button
+            variant="ghost"
+            size="md"
+            onClick={loadMore}
+            disabled={loadingMore}
+          >
+            {loadingMore
+              ? t("auth.orders.loadMoreLoading", { defaultValue: "Загружаем…" })
+              : t("auth.orders.loadMore", { defaultValue: "Показать ещё" })}
+          </Button>
         </div>
       )}
     </div>
