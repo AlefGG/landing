@@ -34,6 +34,11 @@ type AuthContextValue = {
 
 const STORAGE_KEYS = {
   refresh: "auth.refresh",
+  // BUG-059: historical builds persisted the access JWT in localStorage.
+  // Current build only keeps it in memory, but logout must still purge
+  // the legacy key so a post-rewrite browser cannot leak a stale token
+  // for the remainder of ACCESS_TOKEN_LIFETIME.
+  legacyAccess: "auth.access",
 } as const;
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -60,6 +65,7 @@ function clearRefresh(): void {
   if (typeof window === "undefined") return;
   try {
     window.localStorage.removeItem(STORAGE_KEYS.refresh);
+    window.localStorage.removeItem(STORAGE_KEYS.legacyAccess);
   } catch {
     // ignore
   }

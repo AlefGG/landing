@@ -35,10 +35,18 @@ export default function ProfilePage() {
     }
 
     setState("saving");
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim();
     try {
-      await updateProfile({ first_name: name.trim(), email: email.trim() });
+      await updateProfile({ first_name: trimmedName, email: trimmedEmail });
+      // BUG-060: force the inputs to reflect what we just saved so the
+      // useEffect([user]) resync cannot briefly blank the form if the
+      // PATCH response has a serializer hiccup. Also keeps the "saved"
+      // label visible long enough for the user to notice.
+      setName(trimmedName);
+      setEmail(trimmedEmail);
       setState("saved");
-      setTimeout(() => setState("idle"), 2000);
+      setTimeout(() => setState("idle"), 4000);
     } catch {
       setState("error");
     }
@@ -107,16 +115,22 @@ export default function ProfilePage() {
             ? t("auth.profile.saving")
             : t("auth.profile.submit")}
         </Button>
-        {state === "saved" && (
-          <span className="font-body text-sm text-green-700" data-testid="profile-saved">
-            {t("auth.profile.saved")}
-          </span>
-        )}
-        {state === "error" && (
-          <span className="font-body text-sm text-red-600" data-testid="profile-save-error">
-            {t("auth.profile.errors.saveFailed")}
-          </span>
-        )}
+        <span
+          role="status"
+          aria-live="polite"
+          className="font-body text-sm"
+        >
+          {state === "saved" && (
+            <span className="text-green-700" data-testid="profile-saved">
+              ✓ {t("auth.profile.saved")}
+            </span>
+          )}
+          {state === "error" && (
+            <span className="text-red-600" data-testid="profile-save-error">
+              {t("auth.profile.errors.saveFailed")}
+            </span>
+          )}
+        </span>
       </div>
     </form>
   );
