@@ -4,6 +4,7 @@ import EventWizard from "./EventWizard";
 import EmergencyWizard from "./EmergencyWizard";
 import ConstructionWizard from "./ConstructionWizard";
 import WizardHero from "./shared/WizardHero";
+import { StepLabel, Separator, RadioRow } from "./shared";
 
 type TabKey = "event" | "emergency" | "construction";
 
@@ -12,46 +13,54 @@ export default function RentalTabs() {
   const k = "wizard.rental" as const;
   const [tab, setTab] = useState<TabKey>("event");
 
-  const tabs: { key: TabKey; label: string }[] = [
-    { key: "event", label: t(`${k}.step1Event`) },
-    { key: "emergency", label: t(`${k}.step1Emergency`) },
-    { key: "construction", label: t(`${k}.step1Construction`) },
+  const options: { key: TabKey; label: string; description: string }[] = [
+    {
+      key: "event",
+      label: t(`${k}.step1Event`),
+      description: t(`${k}.step1EventDesc`),
+    },
+    {
+      key: "construction",
+      label: t(`${k}.step1Construction`),
+      description: t(`${k}.step1ConstructionDesc`),
+    },
+    {
+      key: "emergency",
+      label: t(`${k}.step1Emergency`),
+      description: t(`${k}.step1EmergencyDesc`),
+    },
   ];
 
   return (
     <div className="bg-white overflow-x-clip">
       <WizardHero title={t(`${k}.title`)} />
 
-      <section className="max-w-[1216px] mx-auto px-4 lg:px-8 pt-4 lg:pt-6">
+      <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div
-          role="tablist"
+          className="lg:px-[104px]"
+          role="radiogroup"
           aria-label={t(`${k}.step1Title`)}
-          className="flex gap-2 lg:gap-4 overflow-x-auto scrollbar-none lg:px-[104px]"
         >
-          {tabs.map(({ key, label }) => {
-            const active = tab === key;
-            return (
-              <button
+          <StepLabel step={1} title={t(`${k}.step1Title`)} />
+          <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col lg:flex-row gap-8 lg:gap-[72px]">
+            {options.map(({ key, label, description }) => (
+              <RadioRow
                 key={key}
-                role="tab"
-                aria-selected={active}
+                selected={tab === key}
                 onClick={() => setTab(key)}
-                className={`shrink-0 rounded-[40px] px-6 py-3 font-body text-base leading-6 transition-colors ${
-                  active
-                    ? "bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white"
-                    : "bg-white text-neutral-600 border border-neutral-300"
-                }`}
-              >
-                {label}
-              </button>
-            );
-          })}
+                label={label}
+                description={description}
+              />
+            ))}
+          </div>
         </div>
       </section>
 
-      {tab === "event" && <EventWizard />}
-      {tab === "emergency" && <EmergencyWizard />}
-      {tab === "construction" && <ConstructionWizard />}
+      <Separator />
+
+      {tab === "event" && <EventWizard stepOffset={1} />}
+      {tab === "emergency" && <EmergencyWizard stepOffset={1} />}
+      {tab === "construction" && <ConstructionWizard stepOffset={1} />}
     </div>
   );
 }
