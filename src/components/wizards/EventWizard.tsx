@@ -36,7 +36,7 @@ function toIsoDateTime(date: Date, time: string): string | null {
   return d.toISOString();
 }
 
-export default function EventWizard() {
+export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } = {}) {
   const { t } = useTranslation();
   const k = "wizard.rental" as const;
   const ek = "wizard.event" as const;
@@ -44,10 +44,12 @@ export default function EventWizard() {
   const [selectedCabin, setSelectedCabin] = useState<CabinType>("standard");
   const [dateTime, setDateTime] = useState<DateTimeRangeValue>({
     startDate: null,
+    endDate: null,
     startTime: "",
     endTime: "",
   });
-  const [calendarOpen, setCalendarOpen] = useState(false);
+  const [startCalendarOpen, setStartCalendarOpen] = useState(false);
+  const [endCalendarOpen, setEndCalendarOpen] = useState(false);
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
   const trip = useAddressTrip("rental");
@@ -91,13 +93,28 @@ export default function EventWizard() {
   const startIso = dateTime.startDate
     ? toIsoDateTime(dateTime.startDate, dateTime.startTime)
     : null;
+  // BUG-077: rental period must carry an explicit end date (ТЗ п.25).
+  // Fall back to startDate while user has not picked endDate yet so the
+  // preview stays same-day; submit is gated on both being present below.
   const endIso = dateTime.startDate
-    ? toIsoDateTime(dateTime.startDate, dateTime.endTime)
+    ? toIsoDateTime(dateTime.endDate ?? dateTime.startDate, dateTime.endTime)
     : null;
+  const windowExceeds90 = useMemo(() => {
+    if (!dateTime.startDate || !dateTime.endDate) return false;
+    const ms =
+      dateTime.endDate.getTime() - dateTime.startDate.getTime();
+    return ms > 90 * 24 * 60 * 60 * 1000;
+  }, [dateTime.startDate, dateTime.endDate]);
   const firstLocation = trip.locations[0] ?? null;
 
   const previewPayload: RentalOrderPayload | null =
-    cabinTypeId && startIso && endIso && endIso > startIso && firstLocation
+    cabinTypeId &&
+    dateTime.endDate &&
+    startIso &&
+    endIso &&
+    endIso > startIso &&
+    !windowExceeds90 &&
+    firstLocation
       ? {
           service_type: "rental_event",
           date_start: startIso,
@@ -131,7 +148,8 @@ export default function EventWizard() {
       : fallbackSurcharge
     : fallbackSurcharge;
 
-  const canProceed = !under24h && !startDateBlocked.blocked && !!previewPayload;
+  const canProceed =
+    !under24h && !startDateBlocked.blocked && !windowExceeds90 && !!previewPayload;
 
   const submitState = useOrderSubmit({
     contacts,
@@ -147,7 +165,7 @@ export default function EventWizard() {
       {/* Step 1: Cabins */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
-          <StepLabel step={1} title={t(`${k}.step2Title`)} />
+          <StepLabel step={1 + stepOffset} title={t(`${k}.step2Title`)} />
           <CabinSelector value={selectedCabin} onChange={setSelectedCabin} />
         </div>
       </section>
@@ -157,17 +175,20 @@ export default function EventWizard() {
       {/* Step 2: Period */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
-          <StepLabel step={2} title={t(`${k}.step3Title`)} />
+          <StepLabel step={2 + stepOffset} title={t(`${k}.step3Title`)} />
           <DateTimeRange
             value={dateTime}
             onChange={setDateTime}
             labels={{
               startDate: t(`${k}.step3StartDate`),
+              endDate: t(`${k}.step3EndDate`),
               startTime: t(`${k}.step3StartTime`),
               endTime: t(`${k}.step3EndTime`),
             }}
-            calendarOpen={calendarOpen}
-            onToggleCalendar={() => setCalendarOpen((v) => !v)}
+            startCalendarOpen={startCalendarOpen}
+            onToggleStartCalendar={() => setStartCalendarOpen((v) => !v)}
+            endCalendarOpen={endCalendarOpen}
+            onToggleEndCalendar={() => setEndCalendarOpen((v) => !v)}
             startTimeOpen={startTimeOpen}
             onToggleStartTime={() => setStartTimeOpen((v) => !v)}
             endTimeOpen={endTimeOpen}
@@ -196,10 +217,49 @@ export default function EventWizard() {
               }
               return undefined;
             }}
+            endDayMeta={(d) => {
+              // BUG-077: end date must be >= startDate and within 90-day
+              // window (backend RENTAL_MAX_WINDOW_DAYS).
+              const startOfDay = new Date(d);
+              startOfDay.setHours(0, 0, 0, 0);
+              if (dateTime.startDate) {
+                const minEnd = new Date(dateTime.startDate);
+                minEnd.setHours(0, 0, 0, 0);
+                if (startOfDay < minEnd) return { disabled: true };
+                const maxEnd = new Date(minEnd);
+                maxEnd.setDate(maxEnd.getDate() + 90);
+                if (startOfDay > maxEnd) return { disabled: true };
+              } else {
+                const startOfToday = new Date();
+                startOfToday.setHours(0, 0, 0, 0);
+                if (startOfDay < startOfToday) return { disabled: true };
+              }
+              const meta = availability.dayMap.get(dateKey(d));
+              if (meta) {
+                return {
+                  blocked: meta.blocked,
+                  reason:
+                    meta.reason ??
+                    (meta.blocked
+                      ? t(`${k}.step3FleetFull`, {
+                          defaultValue: "Нет свободных кабин",
+                        })
+                      : null),
+                };
+              }
+              return undefined;
+            }}
           />
           {under24h && (
             <div className="mt-2 rounded-[8px] bg-[#fff7de] border border-[#f2bc70] p-4 font-body text-base leading-6 text-neutral-900">
               {t(`${ek}.under24hWarning`)}
+            </div>
+          )}
+          {windowExceeds90 && (
+            <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
+              {t(`${k}.step3WindowExceeds`, {
+                defaultValue: "Срок аренды не может превышать 90 дней",
+              })}
             </div>
           )}
           {startDateBlocked.blocked && (
@@ -217,7 +277,7 @@ export default function EventWizard() {
       {/* Step 3: Address */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
-          <StepLabel step={3} title={t(`${k}.step4Title`)} />
+          <StepLabel step={3 + stepOffset} title={t(`${k}.step4Title`)} />
           <AddressStep trip={trip} />
         </div>
       </section>
@@ -227,7 +287,7 @@ export default function EventWizard() {
       {/* Step 4: Options */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
-          <StepLabel step={4} title={t(`${k}.step5Title`)} />
+          <StepLabel step={4 + stepOffset} title={t(`${k}.step5Title`)} />
           <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col lg:flex-row gap-8 lg:gap-[72px]">
             <Toggle checked={cleaning} onChange={setCleaning} label={t(`${k}.step5Cleaning`)} />
             <Toggle
@@ -257,7 +317,7 @@ export default function EventWizard() {
       {/* Step 5: Contacts */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
-          <StepLabel step={5} title={t(`${k}.step6Title`)} />
+          <StepLabel step={5 + stepOffset} title={t(`${k}.step6Title`)} />
           <ContactsSection
             value={contacts}
             onChange={setContacts}
@@ -274,7 +334,11 @@ export default function EventWizard() {
         disabledReason={
           under24h
             ? t(`${ek}.under24hBlock`)
-            : startDateBlocked.blocked
+            : windowExceeds90
+              ? t(`${k}.step3WindowExceedsShort`, {
+                  defaultValue: "Период аренды > 90 дней",
+                })
+              : startDateBlocked.blocked
               ? t(`${ek}.dateBlockedShort`)
               : submitState.submitting
                 ? t("payment.uploader.submitting")
