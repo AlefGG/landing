@@ -56,7 +56,7 @@ export default function DateTimeRange({
         <button
           type="button"
           onClick={onToggleCalendar}
-          className={`flex h-10 w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-base leading-6 ${
+          className={`flex h-10 lg:h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-base leading-6 ${
             value.startDate ? "text-neutral-900" : "text-neutral-300"
           }`}
         >
