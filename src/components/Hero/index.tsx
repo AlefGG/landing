@@ -1,7 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
-import { Link } from "react-router-dom";
 import { useCountUp } from "../../hooks/useCountUp";
 
 const fadeUp = (delay: number, reduced: boolean) =>
@@ -140,31 +139,6 @@ export default function Hero() {
           >
             {t("hero.subtitle")}
           </motion.p>
-
-          {/* BUG-008: three primary CTAs in hero for desktop. */}
-          <motion.div
-            className="mt-6 flex flex-wrap gap-3 justify-end"
-            {...fadeUp(0.8, prefersReducedMotion)}
-          >
-            <Link
-              to="/rental"
-              className="bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-base leading-6 rounded-[40px] px-6 py-2"
-            >
-              {t("buttons.rental")}
-            </Link>
-            <Link
-              to="/sanitation"
-              className="bg-white border border-cta-main text-cta-main font-body font-semibold text-base leading-6 rounded-[40px] px-6 py-2"
-            >
-              {t("buttons.sanitation")}
-            </Link>
-            <Link
-              to="/sale"
-              className="bg-white border border-cta-main text-cta-main font-body font-semibold text-base leading-6 rounded-[40px] px-6 py-2"
-            >
-              {t("buttons.sale")}
-            </Link>
-          </motion.div>
         </div>
 
         {/* 24/7 card */}
@@ -269,31 +243,6 @@ export default function Hero() {
             className="w-[336px] h-[260px] object-contain shrink-0 max-w-none"
           />
         </div>
-
-        {/* BUG-039: three primary CTAs in hero for mobile (parity with desktop). */}
-        <motion.div
-          className="relative z-10 w-full px-3 flex flex-col gap-2"
-          {...fadeUp(0.8, prefersReducedMotion)}
-        >
-          <Link
-            to="/rental"
-            className="bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-base leading-6 rounded-[40px] px-6 py-2 text-center"
-          >
-            {t("buttons.rental")}
-          </Link>
-          <Link
-            to="/sanitation"
-            className="bg-white border border-cta-main text-cta-main font-body font-semibold text-base leading-6 rounded-[40px] px-6 py-2 text-center"
-          >
-            {t("buttons.sanitation")}
-          </Link>
-          <Link
-            to="/sale"
-            className="bg-white border border-cta-main text-cta-main font-body font-semibold text-base leading-6 rounded-[40px] px-6 py-2 text-center"
-          >
-            {t("buttons.sale")}
-          </Link>
-        </motion.div>
 
         {/* Stats row — 3 small cards */}
         <div className="relative z-10 w-full px-3 flex gap-2 items-stretch h-[72px]">
