@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -63,6 +63,13 @@ function LocateButton() {
   const map = useMap();
   const [busy, setBusy] = useState(false);
 
+  const buttonRef = useCallback((node: HTMLButtonElement | null) => {
+    if (node) {
+      L.DomEvent.disableClickPropagation(node);
+      L.DomEvent.disableScrollPropagation(node);
+    }
+  }, []);
+
   const handle = () => {
     if (!navigator.geolocation || busy) return;
     setBusy(true);
@@ -78,6 +85,7 @@ function LocateButton() {
 
   return (
     <button
+      ref={buttonRef}
       type="button"
       onClick={handle}
       aria-label="Моё местоположение"
