@@ -63,7 +63,7 @@ export default function DateTimeRange({
           {value.startDate ? formatDate(value.startDate) : labels.startDate}
         </button>
         {calendarOpen && (
-          <div className="absolute top-full left-0 z-50 mt-1">
+          <div className="absolute top-full left-0 z-[1100] mt-1">
             <Calendar
               mode="single"
               value={value.startDate}
