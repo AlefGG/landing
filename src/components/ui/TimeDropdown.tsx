@@ -97,14 +97,16 @@ export default function TimeDropdown({
         onKeyDown={handleKeyDown}
         className={`flex h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-[16px] leading-[24px] ${value ? "text-neutral-900" : "text-neutral-300"}`}
       >
-        {value || placeholder}
+        <span className="block w-full truncate whitespace-nowrap">
+          {value || placeholder}
+        </span>
       </button>
 
       {isOpen && (
         <div
           ref={listRef}
           role="listbox"
-          className="absolute top-full left-0 z-50 mt-[4px] max-h-[312px] w-[192px] overflow-y-auto rounded-[8px] border border-neutral-200 bg-white shadow-[0px_7px_16px_0px_rgba(93,96,120,0.2)] [&::-webkit-scrollbar]:w-[5px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-neutral-300 [&::-webkit-scrollbar-track]:bg-transparent"
+          className="absolute top-full left-0 z-[1100] mt-[4px] max-h-[312px] w-[192px] overflow-y-auto rounded-[8px] border border-neutral-200 bg-white shadow-[0px_7px_16px_0px_rgba(93,96,120,0.2)] [&::-webkit-scrollbar]:w-[5px] [&::-webkit-scrollbar-thumb]:rounded-full [&::-webkit-scrollbar-thumb]:bg-neutral-300 [&::-webkit-scrollbar-track]:bg-transparent"
         >
           {options.map((option, index) => {
             const isSelected = option.time === value;

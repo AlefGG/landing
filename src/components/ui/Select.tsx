@@ -127,7 +127,7 @@ export default function Select({
         <div
           ref={listRef}
           role="listbox"
-          className="absolute top-full left-0 z-50 mt-[4px] max-h-[200px] w-full overflow-y-auto rounded-[8px] border border-neutral-200 bg-white shadow-[0px_7px_16px_0px_rgba(93,96,120,0.2)]"
+          className="absolute top-full left-0 z-[1100] mt-[4px] max-h-[200px] w-full overflow-y-auto rounded-[8px] border border-neutral-200 bg-white shadow-[0px_7px_16px_0px_rgba(93,96,120,0.2)]"
         >
           {options.map((option, index) => {
             const isSelected = option.value === value;
