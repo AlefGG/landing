@@ -142,6 +142,8 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
   const [startDate, setStartDate] = useState<Date | null>(null);
   const [durationWeeks, setDurationWeeks] = useState<number>(1);
+  const [durationWeeksInput, setDurationWeeksInput] = useState<string>("1");
+  const [cabinCountInput, setCabinCountInput] = useState<string>("0");
   const [calendarOpen, setCalendarOpen] = useState(false);
   const calendarRef = useRef<HTMLDivElement>(null);
 
@@ -278,7 +280,11 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
             <div className="flex items-center gap-2 w-[160px]">
               <button
                 type="button"
-                onClick={() => setCabinCount(Math.max(0, cabinCount - 1))}
+                onClick={() => {
+                  const next = Math.max(0, cabinCount - 1);
+                  setCabinCount(next);
+                  setCabinCountInput(String(next));
+                }}
                 className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
                 aria-label="Уменьшить"
               >
@@ -288,16 +294,34 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               </button>
               <input
                 type="number"
-                value={cabinCount}
+                value={cabinCountInput}
                 onChange={(e) => {
-                  const n = parseInt(e.target.value, 10);
+                  const raw = e.target.value;
+                  setCabinCountInput(raw);
+                  if (raw === "") {
+                    setCabinCount(0);
+                    return;
+                  }
+                  const n = parseInt(raw, 10);
                   if (!isNaN(n) && n >= 0) setCabinCount(n);
+                }}
+                onBlur={() => {
+                  if (cabinCountInput === "" || isNaN(parseInt(cabinCountInput, 10))) {
+                    setCabinCount(0);
+                    setCabinCountInput("0");
+                  } else {
+                    setCabinCountInput(String(cabinCount));
+                  }
                 }}
                 className="h-10 flex-1 min-w-0 rounded-[8px] border border-neutral-400 bg-white px-2 text-center font-body text-xl text-neutral-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
               />
               <button
                 type="button"
-                onClick={() => setCabinCount(cabinCount + 1)}
+                onClick={() => {
+                  const next = cabinCount + 1;
+                  setCabinCount(next);
+                  setCabinCountInput(String(next));
+                }}
                 className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
                 aria-label="Увеличить"
               >
@@ -498,10 +522,25 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
                   type="number"
                   min={1}
                   max={52}
-                  value={durationWeeks}
+                  value={durationWeeksInput}
                   onChange={(e) => {
-                    const n = parseInt(e.target.value, 10);
+                    const raw = e.target.value;
+                    setDurationWeeksInput(raw);
+                    if (raw === "") return;
+                    const n = parseInt(raw, 10);
                     if (!isNaN(n) && n >= 1 && n <= 52) setDurationWeeks(n);
+                  }}
+                  onBlur={() => {
+                    const n = parseInt(durationWeeksInput, 10);
+                    if (isNaN(n) || n < 1) {
+                      setDurationWeeks(1);
+                      setDurationWeeksInput("1");
+                    } else if (n > 52) {
+                      setDurationWeeks(52);
+                      setDurationWeeksInput("52");
+                    } else {
+                      setDurationWeeksInput(String(n));
+                    }
                   }}
                   className="h-10 lg:h-[44px] flex-1 rounded-[8px] border border-neutral-400 bg-white px-3 font-body text-base leading-6 text-neutral-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
                 />

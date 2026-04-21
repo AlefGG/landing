@@ -1,3 +1,5 @@
+import { useEffect, useState } from "react";
+
 export default function QuantityStepper({
   value,
   onChange,
@@ -11,8 +13,25 @@ export default function QuantityStepper({
   max?: number;
   ariaLabel?: string;
 }) {
-  const dec = () => onChange(Math.max(min, value - 1));
-  const inc = () => onChange(Math.min(max, value + 1));
+  const [input, setInput] = useState<string>(String(value));
+
+  useEffect(() => {
+    setInput(String(value));
+  }, [value]);
+
+  const clamp = (n: number) => Math.min(max, Math.max(min, n));
+
+  const dec = () => {
+    const next = clamp(value - 1);
+    onChange(next);
+    setInput(String(next));
+  };
+  const inc = () => {
+    const next = clamp(value + 1);
+    onChange(next);
+    setInput(String(next));
+  };
+
   return (
     <div className="flex items-center gap-2 w-[160px]" aria-label={ariaLabel}>
       <button
@@ -28,12 +47,26 @@ export default function QuantityStepper({
       </button>
       <input
         type="number"
-        value={value}
+        value={input}
         min={min}
         max={max}
         onChange={(e) => {
-          const n = parseInt(e.target.value, 10);
+          const raw = e.target.value;
+          setInput(raw);
+          if (raw === "") return;
+          const n = parseInt(raw, 10);
           if (!isNaN(n) && n >= min && n <= max) onChange(n);
+        }}
+        onBlur={() => {
+          const n = parseInt(input, 10);
+          if (isNaN(n)) {
+            onChange(min);
+            setInput(String(min));
+          } else {
+            const c = clamp(n);
+            onChange(c);
+            setInput(String(c));
+          }
         }}
         className="h-10 flex-1 min-w-0 rounded-[8px] border border-neutral-400 bg-white px-2 text-center font-body text-xl text-neutral-900 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
       />
