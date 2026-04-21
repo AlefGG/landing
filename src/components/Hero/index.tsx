@@ -190,9 +190,21 @@ export default function Hero() {
       </div>
 
       {/* Mobile layout */}
-      <div className="lg:hidden relative flex flex-col items-center gap-4 pt-6 pb-4">
+      <div className="lg:hidden relative flex flex-col items-center gap-4 pb-4">
+        {/* Gradient background — covers chips/lang above (via negative top) through 24/7 card.
+            Ends near island image so stats sit on white. */}
+        <div
+          aria-hidden="true"
+          className="absolute left-3 right-3 rounded-2xl pointer-events-none z-0"
+          style={{
+            top: "-104px",
+            bottom: "260px",
+            background: "linear-gradient(180deg, #F1F1F1 0%, #E3EFFF 100%)",
+          }}
+        />
+
         {/* Title + subtitle/24-7 card row */}
-        <div className="relative z-10 w-full px-3 flex flex-col gap-4 items-start">
+        <div className="relative z-10 w-full px-3 pt-6 flex flex-col gap-4 items-start">
           <motion.h1
             id="hero-heading-mobile"
             className="font-heading font-extrabold text-[32px] leading-[32px] text-cta-main text-left w-full"
@@ -205,7 +217,7 @@ export default function Hero() {
 
           <div className="flex gap-4 items-start w-full">
             <motion.div
-              className="flex flex-col gap-2 w-[182px] shrink-0"
+              className="flex flex-col gap-2 flex-1 min-w-0 pt-2"
               {...fadeUp(0.6, prefersReducedMotion)}
             >
               <p className="font-body font-semibold text-base leading-6 text-neutral-800 opacity-80">
@@ -214,33 +226,33 @@ export default function Hero() {
             </motion.div>
 
             <motion.div
-              className="relative w-[138px] h-[192px] shrink-0 bg-white rounded-[14.905px] shadow-[0px_4.968px_12.421px_0px_rgba(94,117,138,0.18)] overflow-hidden"
+              className="relative w-[180px] h-[260px] shrink-0 bg-white rounded-2xl shadow-[0px_8px_20px_0px_rgba(94,117,138,0.18)] overflow-hidden"
               {...fadeUp(0.8, prefersReducedMotion)}
             >
-              <p className="absolute top-[11px] left-[29px] font-body text-[11px] leading-3 text-neutral-700">
+              <p className="absolute top-3 left-4 font-body text-sm leading-4 text-neutral-700">
                 {t("hero.emergency")}
               </p>
-              <p className="absolute top-[9px] left-[69px] font-heading font-light text-base leading-[34.779px] text-cta-main">
+              <p className="absolute top-2 right-4 font-heading font-light text-[22px] leading-[32px] text-cta-main">
                 {t("hero.emergencyBadge")}
               </p>
               <img
                 src="/assets/images/cabin-hero.png"
                 alt={t("a11y.heroCabin")}
-                className="absolute left-[33px] top-[30px] w-[78px] h-[132px] object-contain"
+                className="absolute left-1/2 -translate-x-1/2 top-[38px] w-[116px] h-[176px] object-contain"
               />
-              <p className="absolute top-[168px] left-[8px] w-[122px] font-body text-[11px] leading-3 text-neutral-700 text-center whitespace-pre-line">
+              <p className="absolute bottom-3 left-2 right-2 font-body text-[11px] leading-3 text-neutral-700 text-center whitespace-pre-line">
                 {t("hero.emergencyTime")}
               </p>
             </motion.div>
           </div>
         </div>
 
-        {/* Hero image — floating island (mobile) */}
-        <div className="relative z-10 w-full px-3 flex items-center justify-center">
+        {/* Hero image — floating island (mobile). Enlarged to match design. */}
+        <div className="relative z-10 w-full flex items-center justify-center">
           <img
             src="/assets/images/hero-bg.png"
             alt={t("a11y.heroCity")}
-            className="w-[336px] h-[260px] object-contain shrink-0 max-w-none"
+            className="w-full max-w-[480px] h-auto object-contain shrink-0"
           />
         </div>
 
