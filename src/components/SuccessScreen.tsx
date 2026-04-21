@@ -33,7 +33,7 @@ function CheckBadge({ className = "" }: { className?: string }) {
 
 function Row({ label, children }: { label: string; children: React.ReactNode }) {
   return (
-    <div className="w-full px-0 lg:px-[296px] py-4 lg:py-6 border-b border-neutral-200 last:border-b-0">
+    <div className="w-full py-4 lg:py-6 border-b border-neutral-200 last:border-b-0">
       <div className="flex items-center justify-between gap-4">
         <span className="font-body text-base leading-6 text-neutral-600">{label}</span>
         <div className="font-body font-semibold text-base leading-6 text-neutral-700 text-right">
@@ -140,13 +140,13 @@ export default function SuccessScreen() {
       </section>
 
       {/* Details */}
-      <section className="max-w-[1216px] mx-auto px-4 lg:px-8">
-        <div className="lg:px-[192px] flex flex-col border-t border-neutral-200">
+      <section className="max-w-[832px] mx-auto px-4 lg:px-8">
+        <div className="flex flex-col border-t border-neutral-200">
           <Row label={t("success.orderNumber")}>{`#${orderNumber}`}</Row>
           <Row label={t("success.service")}>{serviceLabel}</Row>
           <Row label={t("success.date")}>{formattedDate}</Row>
           <Row label={t("success.amount")}>
-            <span className="inline-flex items-center gap-2">
+            <span className="inline-flex items-center gap-2 whitespace-nowrap">
               <span className="font-body font-semibold text-base leading-6 text-neutral-700">
                 {t("success.price")}
               </span>
@@ -162,7 +162,7 @@ export default function SuccessScreen() {
             <span className="text-cta-main">{t("success.statusProcessing")}</span>
           </Row>
 
-          <div className="w-full px-0 lg:px-[296px] py-4 lg:py-6 border-b border-neutral-200">
+          <div className="w-full py-4 lg:py-6">
             <p className="font-body text-sm leading-4 text-neutral-400">{t(noteKey)}</p>
           </div>
 
