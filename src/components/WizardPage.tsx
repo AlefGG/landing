@@ -451,7 +451,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
       {/* Step 4: Start date + duration weeks */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
-        <div className="lg:px-[104px] px-[12px] lg:px-0">
+        <div className="lg:px-[104px]">
           <StepHeader step={4} title={t(`${k}.step4Title`)} />
           <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col lg:flex-row items-stretch lg:items-start gap-4 lg:gap-8">
             <div className="relative w-full lg:w-[280px]" ref={calendarRef}>
