@@ -20,3 +20,4 @@ export {
 export type { ConstructionDiscountRow } from "./pricingConstants";
 export { default as ConstructionDiscountTable } from "./ConstructionDiscountTable";
 export { default as SurchargeNotice } from "./SurchargeNotice";
+export { default as QuantityStepper } from "./QuantityStepper";

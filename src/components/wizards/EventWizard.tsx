@@ -17,6 +17,7 @@ import {
   CabinSelector,
   ContactsSection,
   PriceSubmit,
+  QuantityStepper,
   Toggle,
   SurchargeNotice,
   BASE_DAY_PRICE,
@@ -42,6 +43,7 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
   const ek = "wizard.event" as const;
 
   const [selectedCabin, setSelectedCabin] = useState<CabinType>("standard");
+  const [cabinQuantity, setCabinQuantity] = useState<number>(1);
   const [dateTime, setDateTime] = useState<DateTimeRangeValue>({
     startDate: null,
     endDate: null,
@@ -124,7 +126,7 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
           address_text: trip.items[0]?.text ?? "",
           logistics_type: expressMounting ? "express" : "standard",
           payment_channel: contacts.contactType,
-          items: [{ cabin_type: cabinTypeId, quantity: 1 }],
+          items: [{ cabin_type: cabinTypeId, quantity: cabinQuantity }],
         }
       : null;
 
@@ -167,6 +169,15 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
         <div className="lg:px-[104px]">
           <StepLabel step={1 + stepOffset} title={t(`${k}.step2Title`)} />
           <CabinSelector value={selectedCabin} onChange={setSelectedCabin} />
+          <div className="mt-6 flex flex-col gap-2">
+            <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
+              {t(`${k}.step2QuantityLabel`)}
+            </label>
+            <QuantityStepper value={cabinQuantity} onChange={setCabinQuantity} min={1} />
+            <p className="font-body text-sm leading-4 text-neutral-500">
+              {t(`${k}.step2QuantityHint`)}
+            </p>
+          </div>
         </div>
       </section>
 

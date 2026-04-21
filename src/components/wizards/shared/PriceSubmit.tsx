@@ -47,7 +47,7 @@ export default function PriceSubmit({
               <path d="M5.44 12h5.4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </button>
-          {disabled && disabledReason && (
+          {disabledReason && (
             <p className="font-body text-sm leading-4 text-red-600">{disabledReason}</p>
           )}
         </div>
