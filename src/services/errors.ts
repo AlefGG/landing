@@ -1,3 +1,4 @@
+import type { TFunction } from "i18next";
 import { ApiError, AuthExpiredError } from "./apiClient";
 import { OrderValidationError } from "./orderService";
 
@@ -101,4 +102,26 @@ export function normalizeError(err: unknown): NormalizedError {
     status: null,
     detail: import.meta.env.DEV ? String(err) : undefined,
   };
+}
+
+export type MessageVariant = "short" | "title" | "hint";
+
+export function errorMessage(
+  err: NormalizedError,
+  t: TFunction,
+  overrideKey?: string,
+  variant: MessageVariant = "short",
+): string {
+  const candidates: string[] = [];
+  if (overrideKey) {
+    candidates.push(`${overrideKey}.${err.kind}`);
+    candidates.push(`${overrideKey}.${variant}`);
+  }
+  candidates.push(`errors.${err.kind}.${variant}`);
+  candidates.push(`errors.unknown.${variant}`);
+  for (const key of candidates) {
+    const value = t(key, { defaultValue: "" });
+    if (value) return value;
+  }
+  return t("errors.unknown.short", { defaultValue: "Error" });
 }
