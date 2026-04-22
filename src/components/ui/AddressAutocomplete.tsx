@@ -87,6 +87,7 @@ export default function AddressAutocomplete({
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => suggestions.length > 0 && setOpen(true)}
         placeholder={placeholder}
+        aria-label={placeholder}
         className="!h-10 !pl-10"
       />
       {open && (
