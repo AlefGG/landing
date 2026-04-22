@@ -295,6 +295,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               <input
                 type="number"
                 value={cabinCountInput}
+                aria-label={t(`${k}.step2Count`) || "Количество кабин"}
                 onChange={(e) => {
                   const raw = e.target.value;
                   setCabinCountInput(raw);
@@ -523,6 +524,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
                   min={1}
                   max={52}
                   value={durationWeeksInput}
+                  aria-label={t(`${k}.step4DurationWeeks`)}
                   onChange={(e) => {
                     const raw = e.target.value;
                     setDurationWeeksInput(raw);

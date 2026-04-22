@@ -44,6 +44,7 @@ function Stepper({
       <input
         type="number"
         value={value}
+        aria-label="Количество"
         onChange={(e) => {
           const n = parseInt(e.target.value, 10);
           if (!isNaN(n) && n >= min) onChange(n);

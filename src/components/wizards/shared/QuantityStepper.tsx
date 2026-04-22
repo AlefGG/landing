@@ -33,7 +33,7 @@ export default function QuantityStepper({
   };
 
   return (
-    <div className="flex items-center gap-2 w-[160px]" aria-label={ariaLabel}>
+    <div className="flex items-center gap-2 w-[160px]" role="group" aria-label={ariaLabel}>
       <button
         type="button"
         onClick={dec}
@@ -50,6 +50,7 @@ export default function QuantityStepper({
         value={input}
         min={min}
         max={max}
+        aria-label={ariaLabel ?? "Количество"}
         onChange={(e) => {
           const raw = e.target.value;
           setInput(raw);
