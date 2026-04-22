@@ -96,7 +96,7 @@ export default function KaspiPayment({
               className="w-full aspect-square rounded-2xl border border-neutral-200 bg-neutral-50 flex items-center justify-center p-4 text-center"
               data-testid="kaspi-qr-fallback"
             >
-              <p className="font-body text-sm leading-4 text-neutral-400">
+              <p className="font-body text-sm leading-4 text-neutral-500">
                 {qr.status === "loading"
                   ? t("payment.kaspi.qrLoading")
                   : qr.status === "missing"

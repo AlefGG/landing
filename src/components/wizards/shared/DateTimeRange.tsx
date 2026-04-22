@@ -88,7 +88,7 @@ export default function DateTimeRange({
           onClick={onToggleStartCalendar}
           data-testid="wizard-start-date-button"
           className={`flex h-10 lg:h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-base leading-6 ${
-            value.startDate ? "text-neutral-900" : "text-neutral-300"
+            value.startDate ? "text-neutral-900" : "text-neutral-500"
           }`}
         >
           {value.startDate ? formatDate(value.startDate) : labels.startDate}
@@ -131,7 +131,7 @@ export default function DateTimeRange({
           type="button"
           onClick={onToggleEndCalendar}
           className={`flex h-10 lg:h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-base leading-6 ${
-            value.endDate ? "text-neutral-900" : "text-neutral-300"
+            value.endDate ? "text-neutral-900" : "text-neutral-500"
           }`}
         >
           {value.endDate ? formatDate(value.endDate) : labels.endDate}

@@ -124,7 +124,7 @@ export default function Footer() {
           </div>
 
           {/* Copyright */}
-          <p className="font-body text-sm leading-4 text-neutral-300 text-center mt-8 lg:mt-12">
+          <p className="font-body text-sm leading-4 text-neutral-500 text-center mt-8 lg:mt-12">
             {t("footer.copyright")}
           </p>
         </div>

@@ -94,7 +94,7 @@ export default function Select({
   return (
     <div ref={containerRef} className={`relative ${className}`}>
       {label && (
-        <label className="mb-[8px] block font-body text-[16px] font-semibold leading-[24px] text-neutral-400">
+        <label className="mb-[8px] block font-body text-[16px] font-semibold leading-[24px] text-neutral-600">
           {label}
         </label>
       )}
@@ -103,7 +103,7 @@ export default function Select({
         type="button"
         onClick={() => setIsOpen((prev) => !prev)}
         onKeyDown={handleKeyDown}
-        className={`flex h-[40px] w-full items-center rounded-[8px] border border-neutral-500 bg-white px-[11px] text-left font-body text-[16px] leading-[24px] ${selectedLabel ? "text-neutral-900" : "text-neutral-300"}`}
+        className={`flex h-[40px] w-full items-center rounded-[8px] border border-neutral-500 bg-white px-[11px] text-left font-body text-[16px] leading-[24px] ${selectedLabel ? "text-neutral-900" : "text-neutral-500"}`}
       >
         <span className="flex-1 truncate">{selectedLabel || placeholder}</span>
         <svg

@@ -235,7 +235,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
         <div className="relative max-w-[1216px] mx-auto px-4 lg:px-8 pt-4 lg:pt-6">
           <nav aria-label="Breadcrumb" className="flex items-center gap-0.5 text-xs font-body mb-2 lg:mb-8">
-            <Link to="/" className="text-[#2d84c1] underline leading-4 text-xs px-[10px] py-[8px]">
+            <Link to="/" className="text-[#1F5F8F] underline leading-4 text-xs px-[10px] py-[8px]">
               Home
             </Link>
             <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 text-neutral-500" aria-hidden="true">
@@ -487,7 +487,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               <button
                 type="button"
                 onClick={() => setCalendarOpen((v) => !v)}
-                className={`flex h-10 lg:h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-base leading-6 ${startDate ? "text-neutral-900" : "text-neutral-300"}`}
+                className={`flex h-10 lg:h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-base leading-6 ${startDate ? "text-neutral-900" : "text-neutral-500"}`}
               >
                 {startDate ? formatDate(startDate) : t(`${k}.step4StartDate`)}
               </button>

@@ -95,7 +95,7 @@ export default function TimeDropdown({
         type="button"
         onClick={onToggle}
         onKeyDown={handleKeyDown}
-        className={`flex h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-[16px] leading-[24px] ${value ? "text-neutral-900" : "text-neutral-300"}`}
+        className={`flex h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-[16px] leading-[24px] ${value ? "text-neutral-900" : "text-neutral-500"}`}
       >
         <span className="block w-full truncate whitespace-nowrap">
           {value || placeholder}

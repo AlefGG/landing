@@ -99,7 +99,7 @@ export default function SuccessScreen() {
 
         <div className="relative max-w-[1216px] mx-auto px-4 lg:px-8 pt-4 lg:pt-6">
           <nav aria-label="Breadcrumb" className="flex items-center gap-0.5 text-xs font-body mb-3 lg:mb-8">
-            <Link to="/" className="text-[#2d84c1] underline leading-4 text-xs px-[10px] py-[8px]">
+            <Link to="/" className="text-[#1F5F8F] underline leading-4 text-xs px-[10px] py-[8px]">
               {t("success.breadcrumbHome")}
             </Link>
             <svg
@@ -163,7 +163,7 @@ export default function SuccessScreen() {
           </Row>
 
           <div className="w-full py-4 lg:py-6">
-            <p className="font-body text-sm leading-4 text-neutral-400">{t(noteKey)}</p>
+            <p className="font-body text-sm leading-4 text-neutral-500">{t(noteKey)}</p>
           </div>
 
           {/* CTA */}
