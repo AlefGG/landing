@@ -10,6 +10,7 @@ type CalendarDayProps = {
   disabled?: boolean;
   title?: string;
   blocked?: boolean;
+  dateIso?: string;
 };
 
 export default function CalendarDay({
@@ -24,6 +25,7 @@ export default function CalendarDay({
   disabled,
   title,
   blocked,
+  dateIso,
 }: CalendarDayProps) {
   let classes =
     "size-[40px] flex items-center justify-center text-[16px] font-body";
@@ -65,6 +67,8 @@ export default function CalendarDay({
       className={classes}
       title={title}
       data-blocked={blocked ? "true" : undefined}
+      data-testid={dateIso ? `calendar-day-${dateIso}` : undefined}
+      data-date={dateIso}
     >
       {day}
     </button>

@@ -86,6 +86,7 @@ export default function DateTimeRange({
         <button
           type="button"
           onClick={onToggleStartCalendar}
+          data-testid="wizard-start-date-button"
           className={`flex h-10 lg:h-[44px] w-full items-center rounded-[8px] border border-neutral-400 bg-white px-[11px] text-left font-body text-base leading-6 ${
             value.startDate ? "text-neutral-900" : "text-neutral-300"
           }`}
@@ -93,7 +94,7 @@ export default function DateTimeRange({
           {value.startDate ? formatDate(value.startDate) : labels.startDate}
         </button>
         {startCalendarOpen && (
-          <div className="absolute top-full left-0 z-[1100] mt-1">
+          <div className="absolute top-full left-0 z-[1100] mt-1" data-testid="wizard-start-calendar">
             <Calendar
               mode="single"
               value={value.startDate}

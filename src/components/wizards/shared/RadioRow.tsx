@@ -4,17 +4,21 @@ export default function RadioRow({
   label,
   description,
   className = "",
+  testId,
 }: {
   selected: boolean;
   onClick: () => void;
   label: string;
   description?: string;
   className?: string;
+  testId?: string;
 }) {
   return (
     <button
       type="button"
       onClick={onClick}
+      data-testid={testId}
+      aria-pressed={selected}
       className={`flex flex-col items-start gap-2 text-left ${className}`}
     >
       <div className="flex items-center gap-2">

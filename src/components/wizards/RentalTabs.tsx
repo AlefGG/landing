@@ -50,6 +50,7 @@ export default function RentalTabs() {
                 onClick={() => setTab(key)}
                 label={label}
                 description={description}
+                testId={`rental-tab-${key}`}
               />
             ))}
           </div>

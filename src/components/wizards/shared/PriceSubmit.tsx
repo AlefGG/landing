@@ -31,6 +31,7 @@ export default function PriceSubmit({
         <div className="flex flex-col gap-2 w-full lg:w-[272px]">
           <button
             type="button"
+            data-testid="wizard-submit-button"
             onClick={onSubmit}
             disabled={disabled}
             className="flex items-center justify-between gap-4 bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-base leading-6 rounded-[40px] pl-10 pr-8 py-3 w-full disabled:opacity-50 disabled:cursor-not-allowed"

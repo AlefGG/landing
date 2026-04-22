@@ -92,6 +92,7 @@ export default function CalendarDayGrid({
             disabled={disabled}
             blocked={blocked}
             title={title}
+            dateIso={`${dayObj.date.getFullYear()}-${String(dayObj.date.getMonth() + 1).padStart(2, "0")}-${String(dayObj.date.getDate()).padStart(2, "0")}`}
           />
         );
       })}
