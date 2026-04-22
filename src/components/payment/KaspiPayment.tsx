@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
@@ -6,13 +6,18 @@ import {
   uploadPaymentFile,
   PaymentUploadError,
 } from "../../services/paymentService";
+import {
+  errorMessage,
+  normalizeError,
+  type NormalizedError,
+} from "../../services/errors";
 import FileUploader from "./FileUploader";
 
 type QrState =
   | { status: "loading" }
   | { status: "ready"; url: string }
   | { status: "missing" }
-  | { status: "error" };
+  | { status: "error"; error: NormalizedError };
 
 function deriveServiceSlug(serviceType?: string): string {
   if (!serviceType) return "rental";
@@ -37,9 +42,10 @@ export default function KaspiPayment({
 
   const formattedAmount = amount.toLocaleString("ru-RU");
 
-  useEffect(() => {
+  const loadQr = useCallback(() => {
     let cancelled = false;
     let revokeUrl: string | null = null;
+    setQr({ status: "loading" });
     fetchKaspiQrImage(orderId)
       .then(({ objectUrl }) => {
         if (cancelled) {
@@ -54,7 +60,7 @@ export default function KaspiPayment({
         if (err instanceof PaymentUploadError && err.code === "notConfigured") {
           setQr({ status: "missing" });
         } else {
-          setQr({ status: "error" });
+          setQr({ status: "error", error: normalizeError(err) });
         }
       });
     return () => {
@@ -62,6 +68,11 @@ export default function KaspiPayment({
       if (revokeUrl) URL.revokeObjectURL(revokeUrl);
     };
   }, [orderId]);
+
+  useEffect(() => {
+    const cleanup = loadQr();
+    return cleanup;
+  }, [loadQr]);
 
   const handleUpload = async (file: File) => {
     await uploadPaymentFile(orderId, file);
@@ -93,7 +104,7 @@ export default function KaspiPayment({
             />
           ) : (
             <div
-              className="w-full aspect-square rounded-2xl border border-neutral-200 bg-neutral-50 flex items-center justify-center p-4 text-center"
+              className="w-full aspect-square rounded-2xl border border-neutral-200 bg-neutral-50 flex flex-col items-center justify-center p-4 text-center gap-2"
               data-testid="kaspi-qr-fallback"
             >
               <p className="font-body text-sm leading-4 text-neutral-500">
@@ -101,8 +112,18 @@ export default function KaspiPayment({
                   ? t("payment.kaspi.qrLoading")
                   : qr.status === "missing"
                     ? t("payment.kaspi.qrMissing")
-                    : t("payment.kaspi.qrError")}
+                    : errorMessage(qr.error, t, undefined, "short")}
               </p>
+              {qr.status === "error" && (
+                <button
+                  type="button"
+                  onClick={() => loadQr()}
+                  data-testid="kaspi-qr-retry"
+                  className="font-body text-sm text-cta-main underline"
+                >
+                  {t("errors.retry")}
+                </button>
+              )}
             </div>
           )}
         </div>
