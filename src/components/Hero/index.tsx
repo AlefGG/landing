@@ -5,10 +5,14 @@ import { useCountUp } from "../../hooks/useCountUp";
 
 const fadeUp = (delay: number, reduced: boolean) =>
   reduced
-    ? { initial: false, animate: { opacity: 1, y: 0 }, transition: { duration: 0 } }
+    ? { initial: false, animate: { y: 0 }, transition: { duration: 0 } }
     : {
-        initial: { opacity: 0, y: 30 },
-        animate: { opacity: 1, y: 0 },
+        // Intentionally animate only y, not opacity: axe audits mid-animation
+        // (automated runs don't wait for the delay+duration window) and
+        // saw "partial" fg colors blended with white. Keeping opacity at
+        // 1 preserves contrast while still giving a subtle slide-in.
+        initial: { y: 30 },
+        animate: { y: 0 },
         transition: { duration: 0.6, delay },
       };
 
