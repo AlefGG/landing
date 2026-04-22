@@ -1,8 +1,13 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useParams } from "react-router-dom";
-import { Button } from "../components/ui";
+import { Link, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Button, InlineError, PageError } from "../components/ui";
 import OrderStatusBadge from "../components/account/OrderStatusBadge";
+import { useMutationError } from "../hooks/useMutationError";
+import {
+  normalizeError,
+  type NormalizedError,
+} from "../services/errors";
 import {
   cancelOrder,
   getOrderDetail,
@@ -14,6 +19,7 @@ import { formatAbsoluteDate } from "../utils/date";
 type LoadState =
   | { kind: "loading" }
   | { kind: "notFound" }
+  | { kind: "error"; error: NormalizedError }
   | { kind: "ok"; order: OrderDetail };
 
 function serviceLabelKey(t: BackendServiceType): string {
@@ -34,26 +40,36 @@ function serviceLabelKey(t: BackendServiceType): string {
 export default function OrderDetailPage() {
   const { t, i18n } = useTranslation();
   const { id = "" } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [state, setState] = useState<LoadState>({ kind: "loading" });
-  const [cancelling, setCancelling] = useState(false);
-  const [cancelError, setCancelError] = useState<string | null>(null);
+  const cancelMutation = useMutationError();
 
-  const reload = async () => {
-    const o = await getOrderDetail(id);
-    setState(o ? { kind: "ok", order: o } : { kind: "notFound" });
-  };
+  const load = useCallback(async () => {
+    setState({ kind: "loading" });
+    const loadedForId = id;
+    try {
+      const o = await getOrderDetail(id);
+      if (loadedForId !== id) return;
+      setState(o ? { kind: "ok", order: o } : { kind: "notFound" });
+    } catch (err) {
+      if (loadedForId !== id) return;
+      const normalized = normalizeError(err);
+      if (normalized.kind === "notFound") {
+        setState({ kind: "notFound" });
+        return;
+      }
+      if (normalized.kind === "auth") {
+        navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
+        return;
+      }
+      setState({ kind: "error", error: normalized });
+    }
+  }, [id, location.pathname, navigate]);
 
   useEffect(() => {
-    let cancelled = false;
-    setState({ kind: "loading" });
-    getOrderDetail(id).then((o) => {
-      if (cancelled) return;
-      setState(o ? { kind: "ok", order: o } : { kind: "notFound" });
-    });
-    return () => {
-      cancelled = true;
-    };
-  }, [id]);
+    void load();
+  }, [load]);
 
   const onCancel = async () => {
     const confirmed = window.confirm(
@@ -62,16 +78,8 @@ export default function OrderDetailPage() {
       }),
     );
     if (!confirmed) return;
-    setCancelling(true);
-    setCancelError(null);
-    try {
-      await cancelOrder(id);
-      await reload();
-    } catch (err) {
-      setCancelError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setCancelling(false);
-    }
+    const result = await cancelMutation.runSafe(() => cancelOrder(id));
+    if (result !== undefined) await load();
   };
 
   if (state.kind === "loading") {
@@ -79,6 +87,17 @@ export default function OrderDetailPage() {
       <div className="font-body text-sm text-neutral-500" data-testid="order-loading">
         …
       </div>
+    );
+  }
+
+  if (state.kind === "error") {
+    return (
+      <PageError
+        error={state.error}
+        overrideKey="errors.orderDetail"
+        onRetry={load}
+        backHref="/account/orders"
+      />
     );
   }
 
@@ -281,15 +300,18 @@ export default function OrderDetailPage() {
               variant="ghost"
               size="md"
               onClick={onCancel}
-              disabled={cancelling}
+              disabled={cancelMutation.pending}
               data-testid="order-cancel-action"
             >
-              {cancelling
+              {cancelMutation.pending
                 ? t("auth.orders.detail.cancelLoading", { defaultValue: "Отменяем…" })
                 : t("auth.orders.detail.cancelAction", { defaultValue: "Отменить заявку" })}
             </Button>
-            {cancelError && (
-              <span className="font-body text-sm text-red-600">{cancelError}</span>
+            {cancelMutation.error && (
+              <InlineError
+                error={cancelMutation.error}
+                overrideKey="errors.orderCancel"
+              />
             )}
           </div>
         </Section>
