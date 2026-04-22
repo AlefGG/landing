@@ -12,6 +12,7 @@ import {
   validatePaymentFile,
   type PaymentValidationError,
 } from "../../services/paymentService";
+import { normalizeError } from "../../services/errors";
 
 type UploaderProps = {
   title: string;
@@ -87,8 +88,13 @@ export default function FileUploader({
         setError(err.code);
         setErrorDetail(err.detail ?? null);
       } else {
+        const normalized = normalizeError(err);
         setError("uploadFailed");
-        setErrorDetail(null);
+        setErrorDetail(
+          normalized.kind === "network"
+            ? t("errors.network.short")
+            : normalized.detail ?? null,
+        );
       }
       setSubmitting(false);
     }
