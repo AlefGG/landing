@@ -1,7 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../components/ui";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Button, InlineError, PageError } from "../components/ui";
 import OrderCard from "../components/account/OrderCard";
+import {
+  normalizeError,
+  type NormalizedError,
+} from "../services/errors";
 import {
   listMyOrders,
   type OrderListItem,
@@ -19,43 +24,46 @@ const STATUSES: OrderStatus[] = [
 
 export default function OrdersListPage() {
   const { t } = useTranslation();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [orders, setOrders] = useState<OrderListItem[] | null>(null);
   const [filter, setFilter] = useState<OrderStatus | "all">("all");
-  const [error, setError] = useState<string | null>(null);
+  const [loadError, setLoadError] = useState<NormalizedError | null>(null);
+  const [loadMoreError, setLoadMoreError] = useState<NormalizedError | null>(null);
 
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  // BUG-072: push the status filter to the backend via ?status=… so that
-  // matching orders on unloaded pages surface too. A client-side filter
-  // over page-1 results (20 rows) hides older completed/cancelled orders
-  // until the user pages all the way through.
-  useEffect(() => {
-    let cancelled = false;
-    setError(null);
+  const refetch = useCallback(() => {
+    setLoadError(null);
     setOrders(null);
     const statusParam = filter === "all" ? undefined : filter;
     listMyOrders({ page: 1, status: statusParam })
       .then((p) => {
-        if (cancelled) return;
         setOrders(p.results);
         setHasMore(p.hasMore);
         setPage(1);
       })
       .catch((err) => {
-        if (cancelled) return;
-        setError(err instanceof Error ? err.message : String(err));
+        const normalized = normalizeError(err);
+        if (normalized.kind === "auth") {
+          navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
+          return;
+        }
+        setLoadError(normalized);
         setOrders([]);
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [filter]);
+  }, [filter, location.pathname, navigate]);
+
+  useEffect(() => {
+    refetch();
+  }, [refetch]);
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
+    setLoadMoreError(null);
     try {
       const statusParam = filter === "all" ? undefined : filter;
       const next = await listMyOrders({ page: page + 1, status: statusParam });
@@ -63,15 +71,23 @@ export default function OrdersListPage() {
       setHasMore(next.hasMore);
       setPage((p) => p + 1);
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setLoadMoreError(normalizeError(err));
     } finally {
       setLoadingMore(false);
     }
   };
 
-  // Server filters by status already; keep a client-side identity map so
-  // the rendered list stays consistent while a refetch is in flight.
   const visible = useMemo(() => orders ?? [], [orders]);
+
+  if (loadError) {
+    return (
+      <PageError
+        error={loadError}
+        overrideKey="errors.ordersList"
+        onRetry={refetch}
+      />
+    );
+  }
 
   if (orders === null) {
     return (
@@ -87,9 +103,6 @@ export default function OrdersListPage() {
         className="rounded-[12px] border border-dashed border-neutral-300 bg-white p-10 text-center"
         data-testid="orders-empty"
       >
-        {error && (
-          <p className="font-body text-sm text-red-600 mb-4">{error}</p>
-        )}
         <p className="font-body text-base text-neutral-700 mb-4">
           {t("auth.orders.empty.title")}
         </p>
@@ -139,7 +152,7 @@ export default function OrdersListPage() {
         </div>
       )}
       {hasMore && (
-        <div className="mt-6 flex justify-center">
+        <div className="mt-6 flex flex-col items-center gap-2">
           <Button
             variant="ghost"
             size="md"
@@ -150,6 +163,7 @@ export default function OrdersListPage() {
               ? t("auth.orders.loadMoreLoading", { defaultValue: "Загружаем…" })
               : t("auth.orders.loadMore", { defaultValue: "Показать ещё" })}
           </Button>
+          {loadMoreError && <InlineError error={loadMoreError} />}
         </div>
       )}
     </div>
