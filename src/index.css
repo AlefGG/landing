@@ -1,16 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  --color-cta-main: #59B002;
+  /* Brand greens darkened to meet WCAG 2.1 AA 4.5:1 for white text
+     on solid fills and 4.5:1 for cta-main used as accent text.
+     Originals kept in git history: cta-main #59B002, gradient
+     #6AC112→#4C9702 failed contrast. */
+  --color-cta-main: #3E7A01;
   --color-cta-blue: #036CB5;
-  --color-cta-gradient-from: #6AC112;
-  --color-cta-gradient-to: #4C9702;
+  --color-cta-gradient-from: #4E9702;
+  --color-cta-gradient-to: #2F5A01;
   --color-neutral-900: #222A2F;
   --color-neutral-800: #3C4449;
   --color-neutral-700: #596267;
-  --color-neutral-600: #798286;
-  --color-neutral-500: #949DA1;
-  --color-neutral-400: #B1BBBF;
+  /* Neutral 600/500 darkened for 4.5:1 on white (body/muted text).
+     Originals: 600 #798286 (4.12:1), 500 #949DA1 (2.92:1). */
+  --color-neutral-600: #5F676B;
+  --color-neutral-500: #717A7E;
+  --color-neutral-400: #8A9498;
   --color-neutral-300: #CED8DC;
   --color-neutral-200: #E2E8F0;
   --color-blue-20: #CADEF1;
