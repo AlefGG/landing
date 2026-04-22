@@ -1,10 +1,11 @@
 import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Button } from "../components/ui";
+import { Button, InlineError } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
+import { useMutationError } from "../hooks/useMutationError";
 import { formatPhone } from "../components/wizards/shared/phoneFormat";
 
-type SaveState = "idle" | "saving" | "saved" | "error";
+type SaveState = "idle" | "saving" | "saved";
 
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -15,6 +16,7 @@ export default function ProfilePage() {
   const [email, setEmail] = useState(user?.email ?? "");
   const [emailError, setEmailError] = useState<string | null>(null);
   const [state, setState] = useState<SaveState>("idle");
+  const mutation = useMutationError();
 
   useEffect(() => {
     setName(user?.first_name ?? "");
@@ -34,11 +36,13 @@ export default function ProfilePage() {
       return;
     }
 
-    setState("saving");
     const trimmedName = name.trim();
     const trimmedEmail = email.trim();
-    try {
-      await updateProfile({ first_name: trimmedName, email: trimmedEmail });
+    setState("saving");
+    const result = await mutation.runSafe(() =>
+      updateProfile({ first_name: trimmedName, email: trimmedEmail }),
+    );
+    if (result !== undefined) {
       // BUG-060: force the inputs to reflect what we just saved so the
       // useEffect([user]) resync cannot briefly blank the form if the
       // PATCH response has a serializer hiccup. Also keeps the "saved"
@@ -47,8 +51,8 @@ export default function ProfilePage() {
       setEmail(trimmedEmail);
       setState("saved");
       setTimeout(() => setState("idle"), 4000);
-    } catch {
-      setState("error");
+    } else {
+      setState("idle");
     }
   }
 
@@ -108,10 +112,10 @@ export default function ProfilePage() {
           type="submit"
           variant="cta"
           size="md"
-          disabled={!dirty || state === "saving"}
+          disabled={!dirty || state === "saving" || mutation.pending}
           data-testid="profile-submit"
         >
-          {state === "saving"
+          {state === "saving" || mutation.pending
             ? t("auth.profile.saving")
             : t("auth.profile.submit")}
         </Button>
@@ -125,13 +129,16 @@ export default function ProfilePage() {
               ✓ {t("auth.profile.saved")}
             </span>
           )}
-          {state === "error" && (
-            <span className="text-red-600" data-testid="profile-save-error">
-              {t("auth.profile.errors.saveFailed")}
-            </span>
-          )}
         </span>
       </div>
+
+      {mutation.error && (
+        <InlineError
+          error={mutation.error}
+          testId="profile-save-error"
+          className="text-red-600 font-body text-sm"
+        />
+      )}
     </form>
   );
 }
