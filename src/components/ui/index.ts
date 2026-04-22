@@ -18,3 +18,4 @@ export { default as AddressList } from "./AddressList";
 export type { AddressEntry } from "./AddressList";
 export { default as InlineError } from "./InlineError";
 export { default as PageError } from "./PageError";
+export { default as FieldErrors } from "./FieldErrors";
