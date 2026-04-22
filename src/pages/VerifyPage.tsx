@@ -9,11 +9,19 @@ import {
 } from "react";
 import { useTranslation } from "react-i18next";
 import { Link, Navigate, useNavigate, useSearchParams } from "react-router-dom";
-import { Button } from "../components/ui";
+import { Button, InlineError } from "../components/ui";
 import Seo from "../components/Seo";
 import { formatPhone } from "../components/wizards/shared/phoneFormat";
 import { useAuth } from "../contexts/AuthContext";
 import { InvalidOtpError } from "../services/authService";
+import {
+  normalizeError,
+  type NormalizedError,
+} from "../services/errors";
+
+type VerifyError =
+  | { kind: "invalidOtp" }
+  | { kind: "other"; error: NormalizedError };
 
 const CODE_LENGTH = 6;
 const RESEND_SECONDS = 60;
@@ -29,7 +37,8 @@ export default function VerifyPage() {
 
   const [digits, setDigits] = useState<string[]>(() => Array(CODE_LENGTH).fill(""));
   const [submitting, setSubmitting] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [submitErrorState, setSubmitErrorState] = useState<VerifyError | null>(null);
+  const [resendErrorState, setResendErrorState] = useState<NormalizedError | null>(null);
   const [resendIn, setResendIn] = useState(RESEND_SECONDS);
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
 
@@ -52,22 +61,22 @@ export default function VerifyPage() {
     async (fullCode: string) => {
       if (!phone || submitting) return;
       setSubmitting(true);
-      setError(null);
+      setSubmitErrorState(null);
       try {
         await login(phone, fullCode);
         navigate(redirect || "/", { replace: true });
       } catch (err) {
         if (err instanceof InvalidOtpError) {
-          setError(t("auth.verify.errors.invalidCode"));
+          setSubmitErrorState({ kind: "invalidOtp" });
         } else {
-          setError(t("auth.verify.errors.invalidCode"));
+          setSubmitErrorState({ kind: "other", error: normalizeError(err) });
         }
         setDigits(Array(CODE_LENGTH).fill(""));
         setSubmitting(false);
         inputsRef.current[0]?.focus();
       }
     },
-    [login, navigate, phone, redirect, submitting, t],
+    [login, navigate, phone, redirect, submitting],
   );
 
   useEffect(() => {
@@ -84,7 +93,7 @@ export default function VerifyPage() {
         next[index] = "";
         return next;
       });
-      setError(null);
+      setSubmitErrorState(null);
       return;
     }
     if (cleaned.length === 1) {
@@ -93,7 +102,7 @@ export default function VerifyPage() {
         next[index] = cleaned;
         return next;
       });
-      setError(null);
+      setSubmitErrorState(null);
       const nextInput = inputsRef.current[index + 1];
       if (nextInput) nextInput.focus();
       return;
@@ -107,7 +116,7 @@ export default function VerifyPage() {
       }
       return next;
     });
-    setError(null);
+    setSubmitErrorState(null);
     const target = Math.min(index + trimmed.length, CODE_LENGTH - 1);
     inputsRef.current[target]?.focus();
   }
@@ -144,19 +153,19 @@ export default function VerifyPage() {
       }
       return next;
     });
-    setError(null);
+    setSubmitErrorState(null);
     const target = Math.min(trimmed.length, CODE_LENGTH - 1);
     inputsRef.current[target]?.focus();
   }
 
   async function onResend() {
     if (resendIn > 0 || !phone) return;
+    setResendErrorState(null);
     try {
       const { expiresIn } = await sendOtp(phone);
       setResendIn(expiresIn || RESEND_SECONDS);
-      setError(null);
-    } catch {
-      setError(t("auth.login.errors.sendFailed"));
+    } catch (err) {
+      setResendErrorState(normalizeError(err));
     }
   }
 
@@ -230,22 +239,32 @@ export default function VerifyPage() {
               aria-label={`${t("auth.verify.title")} ${index + 1}`}
               data-testid={`otp-input-${index}`}
               className={`h-14 w-11 lg:h-16 lg:w-12 rounded-[8px] border bg-white text-center font-heading text-2xl leading-none text-neutral-900 focus:outline-none focus:ring-1 focus:ring-neutral-500 disabled:opacity-60 ${
-                error ? "border-red-500" : "border-neutral-400 focus:border-blue-20"
+                submitErrorState ? "border-red-500" : "border-neutral-400 focus:border-blue-20"
               }`}
             />
           ))}
         </div>
 
-        {error && (
+        {submitErrorState?.kind === "invalidOtp" && (
           <p
-            className="font-body text-sm leading-4 text-red-600 mb-4"
+            role="alert"
             data-testid="verify-error"
+            data-error-kind="invalidOtp"
+            className="font-body text-sm leading-4 text-red-600 mb-4"
           >
-            {error}
+            {t("auth.verify.errors.invalidCode")}
           </p>
         )}
+        {submitErrorState?.kind === "other" && (
+          <div className="mb-4">
+            <InlineError
+              error={submitErrorState.error}
+              testId="verify-error"
+            />
+          </div>
+        )}
 
-        <div className="mt-6">
+        <div className="mt-6 flex flex-col gap-2">
           <Button
             variant="ghost"
             size="md"
@@ -258,6 +277,13 @@ export default function VerifyPage() {
               ? t("auth.verify.resendIn", { seconds: resendIn })
               : t("auth.verify.resend")}
           </Button>
+          {resendErrorState && (
+            <InlineError
+              error={resendErrorState}
+              overrideKey="errors.verifyResend"
+              testId="resend-error"
+            />
+          )}
         </div>
       </div>
     </div>
