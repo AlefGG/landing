@@ -1,15 +1,18 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, Navigate, useParams } from "react-router-dom";
+import { Link, Navigate, useLocation, useNavigate, useParams } from "react-router-dom";
 import Seo from "../components/Seo";
 import KaspiPayment from "../components/payment/KaspiPayment";
 import LegalPayment from "../components/payment/LegalPayment";
+import { PageError } from "../components/ui";
+import { normalizeError, type NormalizedError } from "../services/errors";
 import { getOrder, type OrderDTO } from "../services/ordersService";
 
 type LoadState =
   | { status: "loading" }
   | { status: "ready"; order: OrderDTO }
-  | { status: "missing" };
+  | { status: "missing" }
+  | { status: "error"; error: NormalizedError };
 
 function deriveServiceLabelKey(serviceType: OrderDTO["service_type"]): string {
   switch (serviceType) {
@@ -25,27 +28,37 @@ function deriveServiceLabelKey(serviceType: OrderDTO["service_type"]): string {
 export default function PaymentPage() {
   const { t } = useTranslation();
   const { orderId } = useParams<{ orderId: string }>();
+  const navigate = useNavigate();
+  const location = useLocation();
   const [state, setState] = useState<LoadState>({ status: "loading" });
 
-  useEffect(() => {
+  const loadOrder = useCallback(async () => {
     if (!orderId) {
       setState({ status: "missing" });
       return;
     }
-    let cancelled = false;
-    getOrder(orderId)
-      .then((order) => {
-        if (cancelled) return;
-        setState(order ? { status: "ready", order } : { status: "missing" });
-      })
-      .catch(() => {
-        if (cancelled) return;
+    setState({ status: "loading" });
+    try {
+      const order = await getOrder(orderId);
+      setState(order ? { status: "ready", order } : { status: "missing" });
+    } catch (err) {
+      const normalized = normalizeError(err);
+      if (normalized.kind === "notFound") {
         setState({ status: "missing" });
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [orderId]);
+        return;
+      }
+      if (normalized.kind === "auth") {
+        const redirect = encodeURIComponent(location.pathname);
+        navigate(`/login?redirect=${redirect}`);
+        return;
+      }
+      setState({ status: "error", error: normalized });
+    }
+  }, [orderId, location.pathname, navigate]);
+
+  useEffect(() => {
+    void loadOrder();
+  }, [loadOrder]);
 
   if (state.status === "loading") {
     return <div className="min-h-[50vh]" aria-hidden="true" />;
@@ -53,6 +66,19 @@ export default function PaymentPage() {
 
   if (state.status === "missing") {
     return <Navigate to="/" replace />;
+  }
+
+  if (state.status === "error") {
+    return (
+      <div className="max-w-[1216px] mx-auto px-4 lg:px-8 py-8 lg:py-12">
+        <PageError
+          error={state.error}
+          overrideKey="errors.payment.loadFail"
+          onRetry={loadOrder}
+          backHref="/account/orders"
+        />
+      </div>
+    );
   }
 
   const { order } = state;
