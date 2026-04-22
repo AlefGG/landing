@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useCabinTypes, findCabinIdBySlug } from "../../hooks/useCabinTypes";
@@ -27,6 +27,7 @@ import {
 } from "./shared";
 import DateTimeRange, { type DateTimeRangeValue } from "./shared/DateTimeRange";
 import AddressStep from "./shared/AddressStep";
+import { InlineError, FieldErrors } from "../ui";
 
 function toIsoDateTime(date: Date, time: string): string | null {
   if (!time) return null;
@@ -153,9 +154,24 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
   const canProceed =
     !under24h && !startDateBlocked.blocked && !windowExceeds90 && !!previewPayload;
 
+  const mapServerField = useCallback((field: string): string | null => {
+    if (field === "items") return "cabins";
+    if (field === "date_start" || field === "date_end") return "dateRange";
+    if (
+      field === "address_lat" ||
+      field === "address_lon" ||
+      field === "address_text"
+    )
+      return "address";
+    if (field === "logistics_type") return "logistics";
+    if (field === "payment_channel") return "paymentChannel";
+    return null;
+  }, []);
+
   const submitState = useOrderSubmit({
     contacts,
     canProceed,
+    mapServerField,
     buildOrder: async () => {
       if (!previewPayload) throw new Error("payload not ready");
       return createRentalOrder(previewPayload);
@@ -339,6 +355,21 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
 
       <Separator />
 
+      {submitState.submitError && (
+        <div className="max-w-[1216px] mx-auto px-4 lg:px-8 mt-3 space-y-2 lg:px-[104px]">
+          <InlineError
+            error={submitState.submitError}
+            overrideKey="errors.orderCreate"
+          />
+          {Object.keys(submitState.unknownFieldErrors).length > 0 && (
+            <FieldErrors
+              fieldErrors={submitState.unknownFieldErrors}
+              knownFields={[]}
+            />
+          )}
+        </div>
+      )}
+
       <PriceSubmit
         price={totalPrice}
         disabled={submitState.buttonDisabled}
@@ -353,9 +384,7 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
               ? t(`${ek}.dateBlockedShort`)
               : submitState.submitting
                 ? t("payment.uploader.submitting")
-                : submitState.submitError ??
-                  submitState.validationError ??
-                  undefined
+                : submitState.validationError ?? undefined
         }
         onSubmit={submitState.submit}
       />

@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
@@ -11,7 +11,7 @@ import {
   type ConstructionOrderPayload,
 } from "../../services/orderService";
 import RentalFaq from "../RentalFaq";
-import { Select } from "../ui";
+import { Select, InlineError, FieldErrors } from "../ui";
 import {
   StepLabel,
   Separator,
@@ -93,9 +93,19 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
     : 0;
   const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
 
+  const mapServerField = useCallback((field: string): string | null => {
+    if (field === "months") return "duration";
+    if (field === "start_date") return "startDate";
+    if (field === "addresses") return "addresses";
+    if (field === "logistics_type") return "logistics";
+    if (field === "payment_channel") return "paymentChannel";
+    return null;
+  }, []);
+
   const submitState = useOrderSubmit({
     contacts,
     canProceed: !!previewPayload && !(startDateMeta?.blocked ?? false),
+    mapServerField,
     buildOrder: async () => {
       if (!previewPayload) throw new Error("payload not ready");
       return createConstructionOrder(previewPayload);
@@ -201,6 +211,21 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
 
       <Separator />
 
+      {submitState.submitError && (
+        <div className="max-w-[1216px] mx-auto px-4 lg:px-8 mt-3 space-y-2 lg:px-[104px]">
+          <InlineError
+            error={submitState.submitError}
+            overrideKey="errors.orderCreate"
+          />
+          {Object.keys(submitState.unknownFieldErrors).length > 0 && (
+            <FieldErrors
+              fieldErrors={submitState.unknownFieldErrors}
+              knownFields={[]}
+            />
+          )}
+        </div>
+      )}
+
       <PriceSubmit
         price={totalPrice}
         disabled={submitState.buttonDisabled}
@@ -209,7 +234,7 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
             ? t(`wizard.event.dateBlockedShort`)
             : submitState.submitting
               ? t("payment.uploader.submitting")
-              : submitState.submitError ?? submitState.validationError ?? undefined
+              : submitState.validationError ?? undefined
         }
         onSubmit={submitState.submit}
       />
