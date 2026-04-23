@@ -27,6 +27,12 @@ export function useCabinTypes(scenario: CabinTypeScenario) {
     fetchJson<CabinTypeDTO[]>(`/catalog/cabin-types/?scenario=${scenario}`)
       .then((data) => {
         if (cancelled) return;
+        if (!Array.isArray(data)) {
+          setError(new Error("Unexpected cabin-types response shape"));
+          setTypes(null);
+          setLoading(false);
+          return;
+        }
         setTypes(data);
         setLoading(false);
       })
@@ -55,7 +61,7 @@ export function findCabinIdBySlug(
   types: CabinTypeDTO[] | null,
   uiSlug: string,
 ): number | null {
-  if (!types) return null;
+  if (!Array.isArray(types)) return null;
   const backendSlug = UI_TO_BACKEND[uiSlug] ?? uiSlug;
   const found = types.find((t) => t.slug === backendSlug);
   return found ? found.id : null;
