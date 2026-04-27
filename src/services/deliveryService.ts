@@ -8,6 +8,8 @@ export type DeliveryPreview = {
   durationMin: number;
   deliveryFee: number;
   routeGeometry: Array<[number, number]> | null;
+  deliverySource: "zone" | "routing";
+  deliveryZone: { id: number; name: string; price: number } | null;
 };
 
 type RawDeliveryPreview = {
@@ -16,6 +18,8 @@ type RawDeliveryPreview = {
   duration_min: number;
   delivery_fee: string;
   route_geometry: Array<[number, number]> | null;
+  delivery_source?: "zone" | "routing";
+  delivery_zone?: { id: number; name: string; price: string } | null;
 };
 
 export async function previewDelivery(
@@ -41,6 +45,14 @@ export async function previewDelivery(
       durationMin: data.duration_min,
       deliveryFee: Number(data.delivery_fee),
       routeGeometry: data.route_geometry,
+      deliverySource: data.delivery_source ?? "routing",
+      deliveryZone: data.delivery_zone
+        ? {
+            id: data.delivery_zone.id,
+            name: data.delivery_zone.name,
+            price: Number(data.delivery_zone.price),
+          }
+        : null,
     };
   } catch (err) {
     if (err instanceof ApiError && err.status === 401) return null;
