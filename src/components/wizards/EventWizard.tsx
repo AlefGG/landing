@@ -2,6 +2,7 @@ import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useZones } from "../../hooks/useZones";
+import { useTimeSlots } from "../../hooks/useTimeSlots";
 import { useCabinTypes, findCabinIdBySlug } from "../../hooks/useCabinTypes";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
@@ -11,6 +12,10 @@ import {
   previewRentalOrder,
   type RentalOrderPayload,
 } from "../../services/orderService";
+import {
+  validateInstallDismantle,
+  type InstallDismantleValue,
+} from "../../utils/installDismantleValidator";
 import RentalFaq from "../RentalFaq";
 import {
   StepLabel,
@@ -26,18 +31,9 @@ import {
   type CabinType,
   type ContactsValue,
 } from "./shared";
-import DateTimeRange, { type DateTimeRangeValue } from "./shared/DateTimeRange";
+import InstallDismantleStep from "./shared/InstallDismantleStep";
 import AddressStep from "./shared/AddressStep";
 import { InlineError, FieldErrors } from "../ui";
-
-function toIsoDateTime(date: Date, time: string): string | null {
-  if (!time) return null;
-  const [h, m] = time.split(":").map(Number);
-  if (Number.isNaN(h) || Number.isNaN(m)) return null;
-  const d = new Date(date);
-  d.setHours(h, m, 0, 0);
-  return d.toISOString();
-}
 
 export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } = {}) {
   const { t } = useTranslation();
@@ -46,16 +42,14 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
 
   const [selectedCabin, setSelectedCabin] = useState<CabinType>("standard");
   const [cabinQuantity, setCabinQuantity] = useState<number>(1);
-  const [dateTime, setDateTime] = useState<DateTimeRangeValue>({
-    startDate: null,
-    endDate: null,
-    startTime: "",
-    endTime: "",
+  const [installDismantle, setInstallDismantle] = useState<InstallDismantleValue>({
+    installDate: null,
+    installSlotId: null,
+    dismantleDate: null,
+    dismantleSlotId: null,
   });
-  const [startCalendarOpen, setStartCalendarOpen] = useState(false);
-  const [endCalendarOpen, setEndCalendarOpen] = useState(false);
-  const [startTimeOpen, setStartTimeOpen] = useState(false);
-  const [endTimeOpen, setEndTimeOpen] = useState(false);
+  const [installConsent, setInstallConsent] = useState(false);
+  const { slots, loading: slotsLoading } = useTimeSlots();
   const trip = useAddressTrip("rental");
   const { zones } = useZones("rental_event");
   const [cleaning, setCleaning] = useState(true);
@@ -71,59 +65,22 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
   const cabinTypeId = findCabinIdBySlug(cabinTypes, selectedCabin);
 
   const availability = useRentalAvailability("rental_event", cabinTypeId);
-  const startDateBlocked = useMemo(() => {
-    if (!dateTime.startDate) return { blocked: false, reason: null as string | null };
-    const meta = availability.dayMap.get(dateKey(dateTime.startDate));
-    return { blocked: meta?.blocked ?? false, reason: meta?.reason ?? null };
-  }, [dateTime.startDate, availability.dayMap]);
 
-  const under24h = useMemo(() => {
-    if (!dateTime.startDate) return false;
-    // BUG-035: warn as soon as the picked day alone is inside the 24h
-    // window (before the user has filled startTime) — use the earliest
-    // moment of the chosen day as the reference point.
-    const dayStart = new Date(dateTime.startDate);
-    dayStart.setHours(0, 0, 0, 0);
-    const startMs = dateTime.startTime
-      ? (() => {
-          const [h, m] = dateTime.startTime.split(":").map(Number);
-          const d = new Date(dateTime.startDate);
-          d.setHours(h ?? 0, m ?? 0, 0, 0);
-          return d.getTime();
-        })()
-      : dayStart.getTime();
-    return startMs - Date.now() < 24 * 60 * 60 * 1000;
-  }, [dateTime.startDate, dateTime.startTime]);
+  const validation = useMemo(
+    () => validateInstallDismantle(installDismantle, slots, "rental_event"),
+    [installDismantle, slots],
+  );
 
-  const startIso = dateTime.startDate
-    ? toIsoDateTime(dateTime.startDate, dateTime.startTime)
-    : null;
-  // BUG-077: rental period must carry an explicit end date (ТЗ п.25).
-  // Fall back to startDate while user has not picked endDate yet so the
-  // preview stays same-day; submit is gated on both being present below.
-  const endIso = dateTime.startDate
-    ? toIsoDateTime(dateTime.endDate ?? dateTime.startDate, dateTime.endTime)
-    : null;
-  const windowExceeds90 = useMemo(() => {
-    if (!dateTime.startDate || !dateTime.endDate) return false;
-    const ms =
-      dateTime.endDate.getTime() - dateTime.startDate.getTime();
-    return ms > 90 * 24 * 60 * 60 * 1000;
-  }, [dateTime.startDate, dateTime.endDate]);
   const firstLocation = trip.locations[0] ?? null;
 
   const previewPayload: RentalOrderPayload | null =
-    cabinTypeId &&
-    dateTime.endDate &&
-    startIso &&
-    endIso &&
-    endIso > startIso &&
-    !windowExceeds90 &&
-    firstLocation
+    cabinTypeId && validation.ok && firstLocation
       ? {
           service_type: "rental_event",
-          date_start: startIso,
-          date_end: endIso,
+          install_date: validation.payload.install_date,
+          install_slot: validation.payload.install_slot,
+          dismantle_date: validation.payload.dismantle_date,
+          dismantle_slot: validation.payload.dismantle_slot,
           address_lat: firstLocation.lat,
           address_lon: firstLocation.lng,
           address_text: trip.items[0]?.text ?? "",
@@ -138,9 +95,6 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
   const fallbackSurcharge = expressMounting
     ? Math.round(BASE_DAY_PRICE * EXPRESS_SURCHARGE_RATE)
     : 0;
-  // BUG-017: only fall back to the demo constant when the user has
-  // *some* inputs (previewPayload is being built). With an empty form
-  // display 0 — PriceSubmit turns that into «—».
   const fallbackTotal = previewPayload ? BASE_DAY_PRICE + fallbackSurcharge : 0;
   const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
   const surchargeAmount = preview.data
@@ -153,12 +107,20 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
       : fallbackSurcharge
     : fallbackSurcharge;
 
-  const canProceed =
-    !under24h && !startDateBlocked.blocked && !windowExceeds90 && !!previewPayload;
+  const canProceed = !!previewPayload && installConsent;
 
   const mapServerField = useCallback((field: string): string | null => {
     if (field === "items") return "cabins";
-    if (field === "date_start" || field === "date_end") return "dateRange";
+    if (
+      field === "install_date" ||
+      field === "install_slot" ||
+      field === "dismantle_date" ||
+      field === "dismantle_slot" ||
+      field === "date_start" ||
+      field === "date_end"
+    )
+      return "installDismantle";
+    if (field === "install_consent") return "installConsent";
     if (
       field === "address_lat" ||
       field === "address_lon" ||
@@ -176,9 +138,14 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
     mapServerField,
     buildOrder: async () => {
       if (!previewPayload) throw new Error("payload not ready");
-      return createRentalOrder(previewPayload);
+      return createRentalOrder({ ...previewPayload, install_consent: true });
     },
   });
+
+  const validatorReason =
+    !validation.ok && validation.reason !== "incomplete"
+      ? validation.reason
+      : null;
 
   return (
     <>
@@ -201,38 +168,25 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
 
       <Separator />
 
-      {/* Step 2: Period */}
+      {/* Step 2: Period (install + dismantle + consent) */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
           <StepLabel step={2 + stepOffset} title={t(`${k}.step3Title`)} />
-          <DateTimeRange
-            value={dateTime}
-            onChange={setDateTime}
-            labels={{
-              startDate: t(`${k}.step3StartDate`),
-              endDate: t(`${k}.step3EndDate`),
-              startTime: t(`${k}.step3StartTime`),
-              endTime: t(`${k}.step3EndTime`),
-            }}
-            startCalendarOpen={startCalendarOpen}
-            onToggleStartCalendar={() => setStartCalendarOpen((v) => !v)}
-            endCalendarOpen={endCalendarOpen}
-            onToggleEndCalendar={() => setEndCalendarOpen((v) => !v)}
-            startTimeOpen={startTimeOpen}
-            onToggleStartTime={() => setStartTimeOpen((v) => !v)}
-            endTimeOpen={endTimeOpen}
-            onToggleEndTime={() => setEndTimeOpen((v) => !v)}
-            dayMeta={(d) => {
-              // BUG-037: disable past dates regardless of fleet availability
-              // so users cannot pick a day the backend would reject.
+          <InstallDismantleStep
+            value={installDismantle}
+            onChange={setInstallDismantle}
+            slots={slots}
+            slotsLoading={slotsLoading}
+            serviceType="rental_event"
+            installDayMeta={(d) => {
               const startOfDay = new Date(d);
               startOfDay.setHours(0, 0, 0, 0);
-              const startOfToday = new Date();
-              startOfToday.setHours(0, 0, 0, 0);
-              if (startOfDay < startOfToday) return { disabled: true };
+              const minInstall = new Date();
+              minInstall.setHours(0, 0, 0, 0);
+              minInstall.setDate(minInstall.getDate() + 1);
+              if (startOfDay < minInstall) return { disabled: true };
               const meta = availability.dayMap.get(dateKey(d));
               if (meta) {
-                // BUG-036: surface a tooltip reason for fleet-full days.
                 return {
                   blocked: meta.blocked,
                   reason:
@@ -246,56 +200,29 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
               }
               return undefined;
             }}
-            endDayMeta={(d) => {
-              // BUG-077: end date must be >= startDate and within 90-day
-              // window (backend RENTAL_MAX_WINDOW_DAYS).
+            dismantleDayMeta={(d) => {
               const startOfDay = new Date(d);
               startOfDay.setHours(0, 0, 0, 0);
-              if (dateTime.startDate) {
-                const minEnd = new Date(dateTime.startDate);
-                minEnd.setHours(0, 0, 0, 0);
-                if (startOfDay < minEnd) return { disabled: true };
-                const maxEnd = new Date(minEnd);
-                maxEnd.setDate(maxEnd.getDate() + 90);
-                if (startOfDay > maxEnd) return { disabled: true };
+              if (installDismantle.installDate) {
+                const min = new Date(installDismantle.installDate);
+                min.setHours(0, 0, 0, 0);
+                if (startOfDay < min) return { disabled: true };
+                const max = new Date(min);
+                max.setDate(max.getDate() + 90);
+                if (startOfDay > max) return { disabled: true };
               } else {
                 const startOfToday = new Date();
                 startOfToday.setHours(0, 0, 0, 0);
                 if (startOfDay < startOfToday) return { disabled: true };
               }
-              const meta = availability.dayMap.get(dateKey(d));
-              if (meta) {
-                return {
-                  blocked: meta.blocked,
-                  reason:
-                    meta.reason ??
-                    (meta.blocked
-                      ? t(`${k}.step3FleetFull`, {
-                          defaultValue: "Нет свободных кабин",
-                        })
-                      : null),
-                };
-              }
               return undefined;
             }}
+            consent={installConsent}
+            onConsentChange={setInstallConsent}
           />
-          {under24h && (
-            <div className="mt-2 rounded-[8px] bg-[#fff7de] border border-[#f2bc70] p-4 font-body text-base leading-6 text-neutral-900">
-              {t(`${ek}.under24hWarning`)}
-            </div>
-          )}
-          {windowExceeds90 && (
+          {validatorReason && (
             <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
-              {t(`${k}.step3WindowExceeds`, {
-                defaultValue: "Срок аренды не может превышать 90 дней",
-              })}
-            </div>
-          )}
-          {startDateBlocked.blocked && (
-            <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
-              {t(`${ek}.dateBlocked`, {
-                reason: startDateBlocked.reason ?? t(`${ek}.dateBlockedFallback`),
-              })}
+              {t(`${k}.installValidator.${validatorReason}`)}
             </div>
           )}
         </div>
@@ -376,14 +303,10 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
         price={totalPrice}
         disabled={submitState.buttonDisabled}
         disabledReason={
-          under24h
-            ? t(`${ek}.under24hBlock`)
-            : windowExceeds90
-              ? t(`${k}.step3WindowExceedsShort`, {
-                  defaultValue: "Период аренды > 90 дней",
-                })
-              : startDateBlocked.blocked
-              ? t(`${ek}.dateBlockedShort`)
+          validatorReason
+            ? t(`${k}.installValidator.${validatorReason}`)
+            : !installConsent
+              ? t(`${k}.installConsentRequired`)
               : submitState.submitting
                 ? t("payment.uploader.submitting")
                 : submitState.validationError ?? undefined

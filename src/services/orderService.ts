@@ -16,8 +16,16 @@ export type OrderAddressInput = {
 
 export type RentalOrderPayload = {
   service_type: RentalServiceType;
-  date_start: string;
-  date_end: string;
+  // Legacy: kept optional for emergency rollback. New wizard payloads
+  // omit these and use install/dismantle instead — backend (PR-2)
+  // mirrors them into date_start/date_end via Order.save().
+  date_start?: string;
+  date_end?: string;
+  install_date?: string;
+  install_slot?: number;
+  dismantle_date?: string;
+  dismantle_slot?: number;
+  install_consent?: boolean;
   address_lat: number;
   address_lon: number;
   address_text?: string;
