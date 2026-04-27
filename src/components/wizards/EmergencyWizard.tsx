@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useZones } from "../../hooks/useZones";
 import { useTimeSlots } from "../../hooks/useTimeSlots";
-import { useCabinTypes, findCabinIdBySlug } from "../../hooks/useCabinTypes";
+import { useCabinTypes } from "../../hooks/useCabinTypes";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
 import { useRentalAvailability, dateKey } from "../../hooks/useAvailabilityCalendar";
@@ -16,19 +16,19 @@ import {
   validateInstallDismantle,
   type InstallDismantleValue,
 } from "../../utils/installDismantleValidator";
+import { validateMultiCabin } from "../../utils/multiCabinValidator";
 import RentalFaq from "../RentalFaq";
 import {
   StepLabel,
   Separator,
-  CabinSelector,
+  MultiCabinSelector,
   ContactsSection,
   PriceSubmit,
-  QuantityStepper,
   Toggle,
   SurchargeNotice,
   BASE_DAY_PRICE,
   EMERGENCY_SURCHARGE_RATE,
-  type CabinType,
+  type CabinQuantityMap,
   type ContactsValue,
 } from "./shared";
 import InstallDismantleStep from "./shared/InstallDismantleStep";
@@ -40,8 +40,9 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
   const k = "wizard.rental" as const;
   const ek = "wizard.emergency" as const;
 
-  const [selectedCabin, setSelectedCabin] = useState<CabinType>("standard");
-  const [cabinQuantity, setCabinQuantity] = useState<number>(1);
+  const [cabinQuantities, setCabinQuantities] = useState<CabinQuantityMap>(
+    () => new Map(),
+  );
   const [installDismantle, setInstallDismantle] = useState<InstallDismantleValue>({
     installDate: null,
     installSlotId: null,
@@ -60,10 +61,16 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
     email: "",
   });
 
-  const { types: cabinTypes } = useCabinTypes("rental");
-  const cabinTypeId = findCabinIdBySlug(cabinTypes, selectedCabin);
+  const { types: cabinTypes, loading: cabinTypesLoading } = useCabinTypes("rental");
+  const cabinValidation = useMemo(
+    () => validateMultiCabin(cabinQuantities, cabinTypes),
+    [cabinQuantities, cabinTypes],
+  );
+  const firstCabinTypeId = cabinValidation.ok
+    ? cabinValidation.payload[0].cabin_type
+    : null;
 
-  const availability = useRentalAvailability("rental_emergency", cabinTypeId);
+  const availability = useRentalAvailability("rental_emergency", firstCabinTypeId);
 
   const validation = useMemo(
     () => validateInstallDismantle(installDismantle, slots, "rental_emergency"),
@@ -73,7 +80,7 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
   const firstLocation = trip.locations[0] ?? null;
 
   const previewPayload: RentalOrderPayload | null =
-    cabinTypeId && validation.ok && firstLocation
+    cabinValidation.ok && validation.ok && firstLocation
       ? {
           service_type: "rental_emergency",
           install_date: validation.payload.install_date,
@@ -85,7 +92,7 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
           address_text: trip.items[0]?.text ?? "",
           logistics_type: "standard",
           payment_channel: contacts.contactType,
-          items: [{ cabin_type: cabinTypeId, quantity: cabinQuantity }],
+          items: cabinValidation.payload,
         }
       : null;
 
@@ -153,17 +160,13 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
       {/* Step 1: Cabins */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
-          <StepLabel step={1 + stepOffset} title={t(`${k}.step2Title`)} />
-          <CabinSelector value={selectedCabin} onChange={setSelectedCabin} />
-          <div className="mt-6 flex flex-col gap-2">
-            <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
-              {t(`${k}.step2QuantityLabel`)}
-            </label>
-            <QuantityStepper value={cabinQuantity} onChange={setCabinQuantity} min={1} />
-            <p className="font-body text-sm leading-4 text-neutral-500">
-              {t(`${k}.step2QuantityHint`)}
-            </p>
-          </div>
+          <StepLabel step={1 + stepOffset} title={t(`${k}.cabinSelector.title`)} />
+          <MultiCabinSelector
+            types={cabinTypes}
+            loading={cabinTypesLoading}
+            quantities={cabinQuantities}
+            onChange={setCabinQuantities}
+          />
         </div>
       </section>
 
@@ -285,13 +288,17 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
         price={totalPrice}
         disabled={submitState.buttonDisabled}
         disabledReason={
-          validatorReason
-            ? t(`${k}.installValidator.${validatorReason}`)
-            : !installConsent
-              ? t(`${k}.installConsentRequired`)
-              : submitState.submitting
-                ? t("payment.uploader.submitting")
-                : submitState.validationError ?? undefined
+          !cabinValidation.ok && cabinValidation.reason === "noCabinTypes"
+            ? t(`${k}.cabinSelector.noCabinTypes`)
+            : !cabinValidation.ok && cabinValidation.reason === "noQuantitySelected"
+              ? t(`${k}.cabinSelector.noQuantitySelected`)
+              : validatorReason
+                ? t(`${k}.installValidator.${validatorReason}`)
+                : !installConsent
+                  ? t(`${k}.installConsentRequired`)
+                  : submitState.submitting
+                    ? t("payment.uploader.submitting")
+                    : submitState.validationError ?? undefined
         }
         onSubmit={submitState.submit}
       />
