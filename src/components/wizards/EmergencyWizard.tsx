@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
+import { useZones } from "../../hooks/useZones";
 import { useCabinTypes, findCabinIdBySlug } from "../../hooks/useCabinTypes";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
@@ -56,6 +57,7 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
   const [startTimeOpen, setStartTimeOpen] = useState(false);
   const [endTimeOpen, setEndTimeOpen] = useState(false);
   const trip = useAddressTrip("rental");
+  const { zones } = useZones("rental_emergency");
   const [cleaning, setCleaning] = useState(true);
   const [contacts, setContacts] = useState<ContactsValue>({
     contactType: "individual",
@@ -252,7 +254,7 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
           <StepLabel step={3 + stepOffset} title={t(`${k}.step4Title`)} />
-          <AddressStep trip={trip} />
+          <AddressStep trip={trip} zones={zones} />
         </div>
       </section>
 

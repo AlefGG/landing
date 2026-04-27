@@ -1,6 +1,7 @@
 import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
+import { useZones } from "../../hooks/useZones";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
 import { useCabinTypes } from "../../hooks/useCabinTypes";
@@ -35,6 +36,7 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
 
   const [months, setMonths] = useState<number>(1);
   const trip = useAddressTrip("construction");
+  const { zones } = useZones("rental_construction");
   const [contacts, setContacts] = useState<ContactsValue>({
     // BUG-055: default to individual — payment_channel must mirror an
     // explicit Физлицо/Юрлицо click, not a hard-coded default.
@@ -191,7 +193,7 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
           <p className="mt-2 font-body text-base leading-6 text-neutral-600">
             {t(`${ck}.multiAddressHint`)}
           </p>
-          <AddressStep trip={trip} />
+          <AddressStep trip={trip} zones={zones} />
         </div>
       </section>
 
