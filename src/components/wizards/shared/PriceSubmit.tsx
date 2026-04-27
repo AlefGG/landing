@@ -2,31 +2,55 @@ import { useTranslation } from "react-i18next";
 
 export default function PriceSubmit({
   price,
+  priceBefore,
+  discountPercent,
   disabled = false,
   disabledReason,
   onSubmit,
 }: {
   price: number;
+  priceBefore?: number;
+  discountPercent?: number;
   disabled?: boolean;
   disabledReason?: string;
   onSubmit?: () => void;
 }) {
   const { t } = useTranslation();
   const k = "wizard.rental" as const;
+  const showDiscount =
+    priceBefore !== undefined &&
+    discountPercent !== undefined &&
+    priceBefore > price;
 
   return (
     <section className="max-w-[1216px] mx-auto px-4 lg:px-8 pt-8 lg:pt-12 pb-16 lg:pb-[104px]">
       <div className="lg:px-[104px] flex flex-col lg:flex-row items-stretch lg:items-center gap-6">
-        <div className="flex items-center gap-2 whitespace-nowrap justify-end lg:justify-start">
+        <div className="flex flex-wrap items-center gap-2 whitespace-nowrap justify-end lg:justify-start">
           <span className="font-body text-xl leading-6 text-neutral-900">
             {t(`${k}.price`)}
           </span>
+          {showDiscount && (
+            <span
+              data-testid="price-before-discount"
+              className="font-body text-base leading-6 text-neutral-500 line-through"
+            >
+              {priceBefore.toLocaleString("ru-RU")}
+            </span>
+          )}
           <span className="font-body font-semibold text-2xl leading-8 text-cta-main">
             {price.toLocaleString("ru-RU")}
           </span>
           <span className="font-body text-xl leading-6 text-neutral-900">
             {t(`${k}.currency`)}
           </span>
+          {showDiscount && (
+            <span
+              data-testid="price-discount-badge"
+              className="inline-flex items-center px-2 py-0.5 rounded-full bg-cta-main/10 text-cta-main font-body font-semibold text-sm leading-4"
+            >
+              {t("wizard.construction.discountBadge", { percent: discountPercent })}
+            </span>
+          )}
         </div>
         <div className="flex flex-col gap-2 w-full lg:w-[272px]">
           <button
