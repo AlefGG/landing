@@ -3,7 +3,6 @@ export { default as RadioRow } from "./RadioRow";
 export { default as Toggle } from "./Toggle";
 export { default as Separator } from "./Separator";
 export { default as WizardHero } from "./WizardHero";
-export { default as CabinSelector } from "./CabinSelector";
 export { default as ContactsSection } from "./ContactsSection";
 export type { ContactType, ContactsValue } from "./ContactsSection";
 export { default as PriceSubmit } from "./PriceSubmit";
