@@ -68,7 +68,7 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
     [cabinQuantities, cabinTypes],
   );
   const firstCabinTypeId = cabinValidation.ok
-    ? cabinValidation.payload[0].cabin_type
+    ? cabinValidation.payload[0]?.cabin_type ?? null
     : null;
 
   const availability = useRentalAvailability("rental_event", firstCabinTypeId);

@@ -67,7 +67,7 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
     [cabinQuantities, cabinTypes],
   );
   const firstCabinTypeId = cabinValidation.ok
-    ? cabinValidation.payload[0].cabin_type
+    ? cabinValidation.payload[0]?.cabin_type ?? null
     : null;
 
   const availability = useRentalAvailability("rental_emergency", firstCabinTypeId);

@@ -1,4 +1,5 @@
 import { useTranslation } from "react-i18next";
+import type { TFunction } from "i18next";
 import type { CabinTypeDTO } from "../../../hooks/useCabinTypes";
 import { rentalCabins, type CabinType } from "./cabinData";
 import QuantityStepper from "./QuantityStepper";
@@ -16,11 +17,13 @@ function fallbackImageFor(slug: string): string | null {
   return found?.image ?? null;
 }
 
-function labelFor(t: (k: string) => string, dto: CabinTypeDTO): string {
+function labelFor(t: TFunction, dto: CabinTypeDTO): string {
   const uiSlug = BACKEND_TO_UI[dto.slug];
   if (uiSlug) {
-    const translated = t(`wizard.cabins.${uiSlug}`);
-    if (translated && translated !== `wizard.cabins.${uiSlug}`) return translated;
+    const key = `wizard.cabins.${uiSlug}`;
+    // @ts-expect-error dynamic key not in resource type
+    const translated = t(key);
+    if (translated && translated !== key) return translated as string;
   }
   return dto.name;
 }
