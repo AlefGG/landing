@@ -63,7 +63,7 @@ export default function SuccessScreen() {
   const serviceLabel = useMemo(() => {
     const map: Record<ServiceKey, string> = {
       rental: t("wizard.rental.title"),
-      sanitation: t("wizard.sanitation.title"),
+      sanitation: t("wizard.service.title"),
       sale: t("success.services.sale"),
     };
     return map[serviceParam] ?? map.rental;

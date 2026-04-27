@@ -339,7 +339,7 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
             routes={trip.routes}
             warehouse={trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null}
             loading={trip.loading}
-            loadingText={t("wizard.sanitation.step2RouteLoading", {
+            loadingText={t("wizard.service.step2RouteLoading", {
               defaultValue: "Считаем маршрут…",
             })}
             className="mt-0 h-[374px] lg:h-[450px]"
@@ -347,7 +347,7 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
           />
           {!trip.loading && trip.error && (
             <div className="mt-2 font-body text-base text-red-600">
-              {t("wizard.sanitation.step2RouteError", {
+              {t("wizard.service.step2RouteError", {
                 defaultValue: "Не удалось построить маршрут",
               })}
             </div>
@@ -355,14 +355,14 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
           {!trip.loading && !trip.error && trip.hasPreview && (
             <div className="mt-2 flex flex-col lg:flex-row gap-2 lg:gap-6 font-body text-base text-neutral-900">
               <span>
-                {t("wizard.sanitation.step2Distance", { defaultValue: "Дистанция" })}:{" "}
+                {t("wizard.service.step2Distance", { defaultValue: "Дистанция" })}:{" "}
                 <strong>
                   {trip.distanceKm.toFixed(1)}{" "}
-                  {t("wizard.sanitation.step2Km", { defaultValue: "км" })}
+                  {t("wizard.service.step2Km", { defaultValue: "км" })}
                 </strong>
               </span>
               <span>
-                {t("wizard.sanitation.step2DeliveryCost", { defaultValue: "Доставка" })}:{" "}
+                {t("wizard.service.step2DeliveryCost", { defaultValue: "Доставка" })}:{" "}
                 <strong className="text-cta-main">
                   {trip.deliveryCost.toLocaleString("ru-RU")} ₸
                 </strong>

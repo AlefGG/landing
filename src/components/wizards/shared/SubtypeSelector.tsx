@@ -8,7 +8,7 @@ type Props = {
 
 export default function SubtypeSelector({ value, onChange }: Props) {
   const { t } = useTranslation();
-  const k = "wizard.sanitation.subtype";
+  const k = "wizard.service.subtype";
 
   const options = [
     {

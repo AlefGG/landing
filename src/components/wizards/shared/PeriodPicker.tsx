@@ -24,7 +24,7 @@ export default function PeriodPicker({
   onEndChange,
 }: Props) {
   const { t } = useTranslation();
-  const k = "wizard.sanitation.period";
+  const k = "wizard.service.period";
 
   const [openStart, setOpenStart] = useState(false);
   const [openEnd, setOpenEnd] = useState(false);

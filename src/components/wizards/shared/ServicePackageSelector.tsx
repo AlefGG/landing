@@ -15,7 +15,7 @@ export default function ServicePackageSelector({
   onChange,
 }: Props) {
   const { t } = useTranslation();
-  const k = "wizard.sanitation.package";
+  const k = "wizard.service.package";
 
   if (loading) {
     return (
