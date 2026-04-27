@@ -20,6 +20,8 @@ import {
   previewSaleOrder,
   type SaleOrderPayload,
 } from "../../services/orderService";
+import { uploadIdDocuments } from "../../services/idDocumentService";
+import { validateIdDocument } from "../../utils/idDocument";
 import type { SaleItem } from "../../services/catalogService";
 
 function Stepper({
@@ -80,6 +82,38 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
     phone: "",
     email: "",
   });
+  const [idDocumentFront, setIdDocumentFront] = useState<File | null>(null);
+  const [idDocumentBack, setIdDocumentBack] = useState<File | null>(null);
+  const [idDocumentFrontError, setIdDocumentFrontError] = useState<string | null>(null);
+  const [idDocumentBackError, setIdDocumentBackError] = useState<string | null>(null);
+  const validateAndSetIdDoc = (
+    setter: (f: File | null) => void,
+    setErr: (e: string | null) => void,
+  ) => (f: File | null) => {
+    setter(f);
+    if (!f) {
+      setErr(null);
+      return;
+    }
+    const r = validateIdDocument(f);
+    setErr(
+      r.ok
+        ? null
+        : t(
+            r.reason === "too_large"
+              ? "wizard.contacts.idDocument.validationTooLarge"
+              : "wizard.contacts.idDocument.validationBadMime",
+          ),
+    );
+  };
+  const setFrontWithValidation = validateAndSetIdDoc(
+    setIdDocumentFront,
+    setIdDocumentFrontError,
+  );
+  const setBackWithValidation = validateAndSetIdDoc(
+    setIdDocumentBack,
+    setIdDocumentBackError,
+  );
 
   // BUG-044: reuse rental/sanitation address+map+OSRM stack so buyers see the
   // delivery destination pin and the live distance that drives delivery_fee.
@@ -126,6 +160,20 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
     buildOrder: async () => {
       if (!payload) throw new Error("payload not ready");
       return createSaleOrder(payload);
+    },
+    afterCreate: async (order) => {
+      if (
+        contacts.contactType !== "individual" ||
+        (!idDocumentFront && !idDocumentBack) ||
+        idDocumentFrontError ||
+        idDocumentBackError
+      ) {
+        return;
+      }
+      await uploadIdDocuments(order.order_number, {
+        front: idDocumentFront,
+        back: idDocumentBack,
+      });
     },
   });
 
@@ -336,7 +384,21 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
       {/* Contacts */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6 lg:py-12">
         <StepHeader step={2} title={t("catalog.sale.checkout.contactsStep")} />
-        <ContactsSection value={contacts} onChange={setContacts} errors={submitState.fieldErrors} />
+        <ContactsSection
+          value={contacts}
+          onChange={setContacts}
+          errors={submitState.fieldErrors}
+          idDocumentFront={{
+            value: idDocumentFront,
+            onChange: setFrontWithValidation,
+            error: idDocumentFrontError ?? undefined,
+          }}
+          idDocumentBack={{
+            value: idDocumentBack,
+            onChange: setBackWithValidation,
+            error: idDocumentBackError ?? undefined,
+          }}
+        />
       </section>
 
       <Separator />
