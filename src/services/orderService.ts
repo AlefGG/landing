@@ -80,6 +80,9 @@ export type OrderResponse = {
 export type PreviewResponse = {
   total: string;
   pricing_snapshot: Record<string, unknown>;
+  total_before_discount?: string;
+  discount_amount?: string;
+  discount_percent?: string;
 };
 
 export type PreviewKind = "rental" | "construction" | "sanitation" | "sale";
