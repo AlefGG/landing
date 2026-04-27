@@ -10,9 +10,17 @@ export default function SubtypeSelector({ value, onChange }: Props) {
   const { t } = useTranslation();
   const k = "wizard.sanitation.subtype";
 
-  const options: { id: ServiceSubtype; titleKey: string; descKey: string }[] = [
-    { id: "ONE_TIME", titleKey: "oneTime", descKey: "oneTimeDesc" },
-    { id: "MONTHLY", titleKey: "monthly", descKey: "monthlyDesc" },
+  const options = [
+    {
+      id: "ONE_TIME" as ServiceSubtype,
+      title: t(`${k}.oneTime`),
+      desc: t(`${k}.oneTimeDesc`),
+    },
+    {
+      id: "MONTHLY" as ServiceSubtype,
+      title: t(`${k}.monthly`),
+      desc: t(`${k}.monthlyDesc`),
+    },
   ];
 
   return (
@@ -34,11 +42,11 @@ export default function SubtypeSelector({ value, onChange }: Props) {
                   {selected && <span className="size-2 rounded-full bg-white" />}
                 </span>
                 <span className="font-body text-lg lg:text-xl leading-6 text-neutral-900">
-                  {t(`${k}.${o.titleKey}`)}
+                  {o.title}
                 </span>
               </div>
               <p className="mt-1 ml-8 font-body text-sm leading-5 text-neutral-600">
-                {t(`${k}.${o.descKey}`)}
+                {o.desc}
               </p>
             </button>
           </li>

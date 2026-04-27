@@ -3,7 +3,6 @@ import { fetchJson, ApiError } from "./apiClient";
 export type PaymentChannel = "individual" | "legal";
 export type LogisticsType = "standard" | "express";
 export type RentalServiceType = "rental_event" | "rental_emergency";
-export type Frequency = 1 | 2 | 3;
 
 export type OrderItemInput = { cabin_type: number; quantity: number };
 export type SaleItemInput = { equipment_id: number; quantity: number };
@@ -47,11 +46,17 @@ export type SanitationOrderPayload = {
   address_lon: number;
   address_text?: string;
   num_toilets: number;
-  pump_frequency?: Frequency | null;
-  cleaning_frequency?: Frequency | null;
   payment_channel: PaymentChannel;
-  date_start?: string | null;
-  weeks?: number;
+  service_type: "ONE_TIME" | "MONTHLY";
+  has_pumping: boolean;
+  has_washing: boolean;
+  // ONE_TIME-only:
+  one_time_date?: string;
+  one_time_slot?: number;
+  // MONTHLY-only:
+  service_package?: number;
+  period_start?: string;
+  period_end?: string;
 };
 
 export type SaleOrderPayload = {
