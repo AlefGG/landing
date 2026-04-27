@@ -65,8 +65,12 @@ export function fetchPublicZones(
     `?company=${encodeURIComponent(slug)}` +
     `&service_type=${encodeURIComponent(serviceType)}`;
 
+  // The cache entry is shared across consumers; we must NOT use the per-call
+  // signal for the underlying fetch (StrictMode/HMR aborts would poison the
+  // cache for everyone). Each consumer wraps the shared promise in its own
+  // signal-aware wrapper and resolves to EMPTY_FC on abort.
   const promise = (async () => {
-    const resp = await fetch(url, { signal });
+    const resp = await fetch(url);
     if (!resp.ok) {
       throw new Error(`fetchPublicZones: HTTP ${resp.status}`);
     }
@@ -78,7 +82,28 @@ export function fetchPublicZones(
   });
 
   cache.set(key, promise);
-  return promise;
+
+  if (!signal) return promise;
+  return new Promise<ZonesFeatureCollection>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const onAbort = () => {
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (v) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(v);
+      },
+      (e) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(e);
+      },
+    );
+  });
 }
 
 // Test-only — do not import from app code.
