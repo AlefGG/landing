@@ -11,9 +11,11 @@ import {
   previewConstructionOrder,
   type ConstructionOrderPayload,
 } from "../../services/orderService";
+import { uploadIdDocuments } from "../../services/idDocumentService";
 import RentalFaq from "../RentalFaq";
 import { Select, InlineError, FieldErrors } from "../ui";
 import { computeDiscountDisplay } from "../../utils/discountDisplay";
+import { validateIdDocument } from "../../utils/idDocument";
 import {
   StepLabel,
   Separator,
@@ -46,6 +48,38 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
     phone: "",
     email: "",
   });
+  const [idDocumentFront, setIdDocumentFront] = useState<File | null>(null);
+  const [idDocumentBack, setIdDocumentBack] = useState<File | null>(null);
+  const [idDocumentFrontError, setIdDocumentFrontError] = useState<string | null>(null);
+  const [idDocumentBackError, setIdDocumentBackError] = useState<string | null>(null);
+  const validateAndSetIdDoc = (
+    setter: (f: File | null) => void,
+    setErr: (e: string | null) => void,
+  ) => (f: File | null) => {
+    setter(f);
+    if (!f) {
+      setErr(null);
+      return;
+    }
+    const r = validateIdDocument(f);
+    setErr(
+      r.ok
+        ? null
+        : t(
+            r.reason === "too_large"
+              ? "wizard.contacts.idDocument.validationTooLarge"
+              : "wizard.contacts.idDocument.validationBadMime",
+          ),
+    );
+  };
+  const setFrontWithValidation = validateAndSetIdDoc(
+    setIdDocumentFront,
+    setIdDocumentFrontError,
+  );
+  const setBackWithValidation = validateAndSetIdDoc(
+    setIdDocumentBack,
+    setIdDocumentBackError,
+  );
 
   const cabin = constructionCabins[0]!;
 
@@ -126,6 +160,20 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
     buildOrder: async () => {
       if (!previewPayload) throw new Error("payload not ready");
       return createConstructionOrder(previewPayload);
+    },
+    afterCreate: async (order) => {
+      if (
+        contacts.contactType !== "individual" ||
+        (!idDocumentFront && !idDocumentBack) ||
+        idDocumentFrontError ||
+        idDocumentBackError
+      ) {
+        return;
+      }
+      await uploadIdDocuments(order.order_number, {
+        front: idDocumentFront,
+        back: idDocumentBack,
+      });
     },
   });
 
@@ -222,6 +270,16 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
             value={contacts}
             onChange={setContacts}
             errors={submitState.fieldErrors}
+            idDocumentFront={{
+              value: idDocumentFront,
+              onChange: setFrontWithValidation,
+              error: idDocumentFrontError ?? undefined,
+            }}
+            idDocumentBack={{
+              value: idDocumentBack,
+              onChange: setBackWithValidation,
+              error: idDocumentBackError ?? undefined,
+            }}
           />
         </div>
       </section>
