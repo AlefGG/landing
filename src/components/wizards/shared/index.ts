@@ -22,3 +22,6 @@ export { default as SurchargeNotice } from "./SurchargeNotice";
 export { default as QuantityStepper } from "./QuantityStepper";
 export { default as MultiCabinSelector } from "./MultiCabinSelector";
 export type { CabinQuantityMap } from "./MultiCabinSelector";
+export { default as SubtypeSelector } from "./SubtypeSelector";
+export { default as ServicePackageSelector } from "./ServicePackageSelector";
+export { default as PeriodPicker } from "./PeriodPicker";
