@@ -11,10 +11,10 @@ import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
 import { useSanitationAvailability, dateKey } from "../../hooks/useAvailabilityCalendar";
 import {
-  validateSanitationSubtype,
+  validateServiceSubtype,
   type ServiceSubtype,
   type SanitationSubtypeReason,
-} from "../../utils/sanitationSubtypeValidator";
+} from "../../utils/serviceSubtypeValidator";
 import {
   createSanitationOrder,
   previewSanitationOrder,
@@ -119,7 +119,7 @@ export default function SanitationWizard() {
 
   const subtypeValidation = useMemo(
     () =>
-      validateSanitationSubtype({
+      validateServiceSubtype({
         subtype,
         hasPumping,
         hasWashing,

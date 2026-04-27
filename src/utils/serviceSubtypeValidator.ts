@@ -58,7 +58,7 @@ function diffDays(a: Date, b: Date): number {
   return Math.round(ms / (1000 * 60 * 60 * 24));
 }
 
-export function validateSanitationSubtype(
+export function validateServiceSubtype(
   input: SanitationSubtypeInput,
 ): SanitationSubtypeResult {
   if (!input.hasPumping && !input.hasWashing) {
@@ -102,3 +102,6 @@ export function validateSanitationSubtype(
     },
   };
 }
+
+/** @deprecated PR-12: use validateServiceSubtype */
+export const validateSanitationSubtype = validateServiceSubtype;

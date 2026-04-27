@@ -1,8 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
-  validateSanitationSubtype,
+  validateServiceSubtype,
   type SanitationSubtypeInput,
-} from "./sanitationSubtypeValidator";
+} from "./serviceSubtypeValidator";
 
 const base: SanitationSubtypeInput = {
   subtype: "ONE_TIME",
@@ -15,15 +15,15 @@ const base: SanitationSubtypeInput = {
   periodEnd: null,
 };
 
-describe("validateSanitationSubtype", () => {
+describe("validateServiceSubtype", () => {
   it("returns noOptionSelected when neither pumping nor washing", () => {
-    const r = validateSanitationSubtype({ ...base, hasPumping: false, hasWashing: false });
+    const r = validateServiceSubtype({ ...base, hasPumping: false, hasWashing: false });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.reason).toBe("noOptionSelected");
   });
 
   it("ONE_TIME ok with date + slot + pumping", () => {
-    const r = validateSanitationSubtype(base);
+    const r = validateServiceSubtype(base);
     expect(r.ok).toBe(true);
     if (r.ok) {
       expect(r.payload).toMatchObject({
@@ -39,19 +39,19 @@ describe("validateSanitationSubtype", () => {
   });
 
   it("ONE_TIME requires one_time_date", () => {
-    const r = validateSanitationSubtype({ ...base, oneTimeDate: null });
+    const r = validateServiceSubtype({ ...base, oneTimeDate: null });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.reason).toBe("noDateSelected");
   });
 
   it("ONE_TIME requires one_time_slot", () => {
-    const r = validateSanitationSubtype({ ...base, oneTimeSlotId: null });
+    const r = validateServiceSubtype({ ...base, oneTimeSlotId: null });
     expect(r.ok).toBe(false);
     if (!r.ok) expect(r.reason).toBe("noSlotSelected");
   });
 
   it("MONTHLY requires servicePackageId", () => {
-    const r = validateSanitationSubtype({
+    const r = validateServiceSubtype({
       ...base,
       subtype: "MONTHLY",
       oneTimeDate: null,
@@ -65,7 +65,7 @@ describe("validateSanitationSubtype", () => {
   });
 
   it("MONTHLY ok with package + period in [7..365]", () => {
-    const r = validateSanitationSubtype({
+    const r = validateServiceSubtype({
       ...base,
       subtype: "MONTHLY",
       oneTimeDate: null,
@@ -90,7 +90,7 @@ describe("validateSanitationSubtype", () => {
   });
 
   it("MONTHLY rejects period < 7 days", () => {
-    const r = validateSanitationSubtype({
+    const r = validateServiceSubtype({
       ...base,
       subtype: "MONTHLY",
       oneTimeDate: null,
@@ -104,7 +104,7 @@ describe("validateSanitationSubtype", () => {
   });
 
   it("MONTHLY rejects period > 365 days", () => {
-    const r = validateSanitationSubtype({
+    const r = validateServiceSubtype({
       ...base,
       subtype: "MONTHLY",
       oneTimeDate: null,
@@ -118,7 +118,7 @@ describe("validateSanitationSubtype", () => {
   });
 
   it("MONTHLY rejects end before start", () => {
-    const r = validateSanitationSubtype({
+    const r = validateServiceSubtype({
       ...base,
       subtype: "MONTHLY",
       oneTimeDate: null,
@@ -132,7 +132,7 @@ describe("validateSanitationSubtype", () => {
   });
 
   it("MONTHLY noStart / noEnd reasons", () => {
-    const noStart = validateSanitationSubtype({
+    const noStart = validateServiceSubtype({
       ...base,
       subtype: "MONTHLY",
       servicePackageId: 1,
@@ -142,7 +142,7 @@ describe("validateSanitationSubtype", () => {
     expect(noStart.ok).toBe(false);
     if (!noStart.ok) expect(noStart.reason).toBe("noStart");
 
-    const noEnd = validateSanitationSubtype({
+    const noEnd = validateServiceSubtype({
       ...base,
       subtype: "MONTHLY",
       servicePackageId: 1,

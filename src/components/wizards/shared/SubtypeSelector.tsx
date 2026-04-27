@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { ServiceSubtype } from "../../../utils/sanitationSubtypeValidator";
+import type { ServiceSubtype } from "../../../utils/serviceSubtypeValidator";
 
 type Props = {
   value: ServiceSubtype;
