@@ -21,3 +21,5 @@ export type { ConstructionDiscountRow } from "./pricingConstants";
 export { default as ConstructionDiscountTable } from "./ConstructionDiscountTable";
 export { default as SurchargeNotice } from "./SurchargeNotice";
 export { default as QuantityStepper } from "./QuantityStepper";
+export { default as MultiCabinSelector } from "./MultiCabinSelector";
+export type { CabinQuantityMap } from "./MultiCabinSelector";
