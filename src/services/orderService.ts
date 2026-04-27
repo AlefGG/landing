@@ -157,15 +157,6 @@ export function previewServiceOrder(
   return post("/orders/service/preview/", payload);
 }
 
-// PR-12 deprecated aliases. Drop in the follow-up commit once consumers
-// are migrated. Keeping POST URL as the new /orders/service/ path; the
-// legacy /orders/sanitation/ alias still resolves via the backend.
-/** @deprecated PR-12: use ServiceOrderPayload */
-export type SanitationOrderPayload = ServiceOrderPayload;
-/** @deprecated PR-12: use createServiceOrder */
-export const createSanitationOrder = createServiceOrder;
-/** @deprecated PR-12: use previewServiceOrder */
-export const previewSanitationOrder = previewServiceOrder;
 
 export function previewSaleOrder(
   payload: SaleOrderPayload,

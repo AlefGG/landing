@@ -103,5 +103,3 @@ export function validateServiceSubtype(
   };
 }
 
-/** @deprecated PR-12: use validateServiceSubtype */
-export const validateSanitationSubtype = validateServiceSubtype;
