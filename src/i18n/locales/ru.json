@@ -510,6 +510,17 @@
         "windowExceeds90": "Срок аренды не может превышать 90 дней",
         "sameDaySlotOverlap": "В тот же день слот демонтажа должен идти после слота установки"
       },
+      "cabinSelector": {
+        "title": "Выбор кабин",
+        "hint": "Укажите количество для каждого типа",
+        "totalLabel": "Всего",
+        "totalUnit_one": "{{count}} кабина",
+        "totalUnit_few": "{{count}} кабины",
+        "totalUnit_many": "{{count}} кабин",
+        "noCabinTypes": "Нет доступных типов кабин",
+        "loading": "Загрузка типов кабин…",
+        "noQuantitySelected": "Выберите хотя бы одну кабину"
+      },
       "step4Title": "Адрес доставки",
       "step4Placeholder": "Введите адрес",
       "step4MapPlaceholder": "Карта загружается…",

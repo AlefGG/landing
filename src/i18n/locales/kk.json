@@ -507,6 +507,16 @@
         "windowExceeds90": "Жалдау мерзімі 90 күннен аспауы керек",
         "sameDaySlotOverlap": "Сол күні бөлшектеу слоты орнату слотынан кейін болуы керек"
       },
+      "cabinSelector": {
+        "title": "Кабиналарды таңдау",
+        "hint": "Әр түр үшін санды көрсетіңіз",
+        "totalLabel": "Барлығы",
+        "totalUnit_one": "{{count}} кабина",
+        "totalUnit_other": "{{count}} кабина",
+        "noCabinTypes": "Қолжетімді кабина түрлері жоқ",
+        "loading": "Кабина түрлері жүктелуде…",
+        "noQuantitySelected": "Кем дегенде бір кабинаны таңдаңыз"
+      },
       "step4Title": "Жеткізу мекенжайы",
       "step4Placeholder": "Мекенжайды енгізіңіз",
       "step4MapPlaceholder": "Карта жүктелуде…",
