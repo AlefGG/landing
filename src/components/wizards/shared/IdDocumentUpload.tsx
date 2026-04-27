@@ -91,7 +91,6 @@ export default function IdDocumentUpload({
           role="button"
           tabIndex={0}
           aria-labelledby={labelId}
-          aria-invalid={error ? true : undefined}
           onClick={handlePick}
           onKeyDown={(e) => {
             if (e.key === "Enter" || e.key === " ") {
