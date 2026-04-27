@@ -13,6 +13,7 @@ export type UseOrderSubmitOptions = {
   buildOrder: () => Promise<OrderResponse>;
   canProceed?: boolean;
   mapServerField?: (field: string) => string | null;
+  afterCreate?: (order: OrderResponse) => Promise<void>;
 };
 
 export type UseOrderSubmitResult = {
@@ -33,6 +34,7 @@ export function useOrderSubmit({
   buildOrder,
   canProceed = true,
   mapServerField,
+  afterCreate,
 }: UseOrderSubmitOptions): UseOrderSubmitResult {
   const { t } = useTranslation();
   const navigate = useNavigate();
@@ -86,6 +88,9 @@ export function useOrderSubmit({
     setSubmitting(true);
     try {
       const order = await buildOrder();
+      if (afterCreate) {
+        await afterCreate(order);
+      }
       navigate(`/orders/${order.order_number}/pay`);
     } catch (err) {
       const normalized = normalizeError(err);
@@ -117,6 +122,7 @@ export function useOrderSubmit({
     submitting,
     authStatus,
     buildOrder,
+    afterCreate,
     navigate,
     location.pathname,
     location.search,
