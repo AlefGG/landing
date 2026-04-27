@@ -9,7 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import RequireAuth from "./components/auth/RequireAuth";
 import { AuthProvider } from "./contexts/AuthContext";
 
-const SanitationPage = lazy(() => import("./pages/SanitationPage"));
+const ServicePage = lazy(() => import("./pages/ServicePage"));
 const RentalPage = lazy(() => import("./pages/RentalPage"));
 const SalePage = lazy(() => import("./pages/SalePage"));
 const SaleItemPage = lazy(() => import("./pages/SaleItemPage"));
@@ -56,8 +56,8 @@ export default function App() {
                       kept as a duplicate-route alias for backwards-compat
                       with deep links until at least one release after
                       drop-out. Both render the same page component. */}
-                  <Route path="/service" element={<SanitationPage />} />
-                  <Route path="/sanitation" element={<SanitationPage />} />
+                  <Route path="/service" element={<ServicePage />} />
+                  <Route path="/sanitation" element={<ServicePage />} />
                   <Route path="/rental" element={<RentalPage />} />
                   <Route path="/sale" element={<SalePage />} />
                   <Route path="/sale/:id" element={<SaleItemPage />} />

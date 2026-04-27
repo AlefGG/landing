@@ -16,9 +16,9 @@ import {
   type SanitationSubtypeReason,
 } from "../../utils/serviceSubtypeValidator";
 import {
-  createSanitationOrder,
-  previewSanitationOrder,
-  type SanitationOrderPayload,
+  createServiceOrder,
+  previewServiceOrder,
+  type ServiceOrderPayload,
 } from "../../services/orderService";
 import { uploadIdDocuments } from "../../services/idDocumentService";
 import { validateIdDocument } from "../../utils/idDocument";
@@ -38,12 +38,12 @@ import Seo from "../Seo";
 const MACHINE_CAPACITY = 30;
 const CREW_CAPACITY = 30;
 
-export default function SanitationWizard() {
+export default function ServiceWizard() {
   const { t } = useTranslation();
-  const k = "wizard.sanitation";
-  const breadcrumbLabel = t("buttons.sanitation");
-  const heroTitle = t("wizard.sanitation.title");
-  const warning = t("wizard.sanitation.warning");
+  const k = "wizard.service";
+  const breadcrumbLabel = t("buttons.service");
+  const heroTitle = t("wizard.service.title");
+  const warning = t("wizard.service.warning");
 
   // --- Step 1: cabin count ---
   const [cabinCount, setCabinCount] = useState(0);
@@ -141,7 +141,7 @@ export default function SanitationWizard() {
     ],
   );
 
-  const previewPayload: SanitationOrderPayload | null =
+  const previewPayload: ServiceOrderPayload | null =
     firstLocation && cabinCount > 0 && subtypeValidation.ok
       ? {
           address_lat: firstLocation.lat,
@@ -153,7 +153,7 @@ export default function SanitationWizard() {
         }
       : null;
 
-  const preview = useOrderPreview(previewPayload, previewSanitationOrder);
+  const preview = useOrderPreview(previewPayload, previewServiceOrder);
   const totalPrice = preview.data ? Number(preview.data.total) : 0;
 
   // Availability tied to whichever date is "the start" — period_start for MONTHLY,
@@ -172,7 +172,7 @@ export default function SanitationWizard() {
     canProceed: !!previewPayload,
     buildOrder: async () => {
       if (!previewPayload) throw new Error("payload not ready");
-      return createSanitationOrder(previewPayload);
+      return createServiceOrder(previewPayload);
     },
     afterCreate: async (order) => {
       if (
@@ -230,7 +230,7 @@ export default function SanitationWizard() {
 
   return (
     <div className="bg-white overflow-x-clip">
-      <Seo pageKey="sanitation" />
+      <Seo pageKey="service" />
       <section className="relative h-[104px] lg:h-[176px]">
         <div
           className="hidden lg:block absolute left-1/2 -translate-x-1/2 w-[1216px] h-[712px] pointer-events-none"
