@@ -466,7 +466,51 @@
       "step5Phone": "Телефон",
       "step5Email": "e-mail",
       "price": "құны",
-      "submit": "Өтінім жіберу"
+      "submit": "Өтінім жіберу",
+      "subtype": {
+        "title": "Қызмет түрі",
+        "oneTime": "Бір реттік",
+        "oneTimeDesc": "Сорып алу/жуу үшін бір келу",
+        "monthly": "Айлық",
+        "monthlyDesc": "Жазылым бойынша тұрақты келулер"
+      },
+      "options": {
+        "title": "Не істеу керек",
+        "hasPumping": "Сорып алу",
+        "hasWashing": "Жуу",
+        "atLeastOne": "Кем дегенде бір қызметті таңдаңыз"
+      },
+      "package": {
+        "title": "Қызмет көрсету пакеті",
+        "loading": "Пакеттер жүктелуде…",
+        "empty": "Қолжетімді пакеттер жоқ",
+        "frequencyLabel_one": "Аптасына {{count}} келу",
+        "frequencyLabel_other": "Аптасына {{count}} келу",
+        "noneSelected": "Пакетті таңдаңыз"
+      },
+      "oneTimeStep": {
+        "title": "Келу күні мен уақыты",
+        "dateLabel": "Күні",
+        "datePlaceholder": "Күнді таңдаңыз",
+        "slotLabel": "Уақыты",
+        "slotPlaceholder": "Аралықты таңдаңыз",
+        "slotsLoading": "Аралықтар жүктелуде…",
+        "slotsEmpty": "Қолжетімді аралықтар жоқ",
+        "noDateSelected": "Келу күнін таңдаңыз",
+        "noSlotSelected": "Келу уақытын таңдаңыз"
+      },
+      "period": {
+        "title": "Қызмет көрсету кезеңі",
+        "startLabel": "Бастау",
+        "endLabel": "Аяқтау",
+        "startPlaceholder": "Бастау күні",
+        "endPlaceholder": "Аяқтау күні",
+        "tooShort": "Кезең 7 күннен кем болмауы керек",
+        "tooLong": "Кезең 365 күннен аспауы керек",
+        "endBeforeStart": "Аяқтау күні бастау күнінен бұрын",
+        "noStart": "Бастау күнін көрсетіңіз",
+        "noEnd": "Аяқтау күнін көрсетіңіз"
+      }
     },
     "rental": {
       "title": "Жалға алу",

@@ -469,7 +469,52 @@
       "step5Phone": "Телефон",
       "step5Email": "e-mail",
       "price": "стоимость",
-      "submit": "Отправить заявку"
+      "submit": "Отправить заявку",
+      "subtype": {
+        "title": "Тип услуги",
+        "oneTime": "Разовое",
+        "oneTimeDesc": "Один визит для откачки/мойки",
+        "monthly": "Помесячное",
+        "monthlyDesc": "Регулярные визиты по подписке"
+      },
+      "options": {
+        "title": "Что нужно сделать",
+        "hasPumping": "Откачка",
+        "hasWashing": "Мойка",
+        "atLeastOne": "Выберите хотя бы одну услугу"
+      },
+      "package": {
+        "title": "Пакет обслуживания",
+        "loading": "Загрузка пакетов…",
+        "empty": "Нет доступных пакетов",
+        "frequencyLabel_one": "{{count}} визит в неделю",
+        "frequencyLabel_few": "{{count}} визита в неделю",
+        "frequencyLabel_many": "{{count}} визитов в неделю",
+        "noneSelected": "Выберите пакет"
+      },
+      "oneTimeStep": {
+        "title": "Дата и время визита",
+        "dateLabel": "Дата",
+        "datePlaceholder": "Выберите дату",
+        "slotLabel": "Время",
+        "slotPlaceholder": "Выберите интервал",
+        "slotsLoading": "Загрузка интервалов…",
+        "slotsEmpty": "Нет доступных интервалов",
+        "noDateSelected": "Выберите дату визита",
+        "noSlotSelected": "Выберите время визита"
+      },
+      "period": {
+        "title": "Период обслуживания",
+        "startLabel": "Начало",
+        "endLabel": "Окончание",
+        "startPlaceholder": "Дата начала",
+        "endPlaceholder": "Дата окончания",
+        "tooShort": "Период должен быть не меньше 7 дней",
+        "tooLong": "Период не может превышать 365 дней",
+        "endBeforeStart": "Дата окончания раньше даты начала",
+        "noStart": "Укажите дату начала",
+        "noEnd": "Укажите дату окончания"
+      }
     },
     "rental": {
       "title": "Аренда",
