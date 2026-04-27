@@ -26,7 +26,6 @@ export function fetchPublicTimeSlots(): Promise<TimeSlotDTO[]> {
   const slug = resolveSlug();
   if (!slug) {
     if (!warnedAboutMissingSlug) {
-      // eslint-disable-next-line no-console
       console.warn(
         "VITE_LANDING_COMPANY_SLUG is not set — time-slots disabled.",
       );

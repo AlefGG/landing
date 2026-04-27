@@ -17,7 +17,6 @@ export function useTimeSlots(): UseTimeSlotsReturn {
 
   useEffect(() => {
     let cancelled = false;
-    setState({ slots: [], loading: true, error: null });
     fetchPublicTimeSlots()
       .then((slots) => {
         if (cancelled) return;
@@ -25,7 +24,6 @@ export function useTimeSlots(): UseTimeSlotsReturn {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
-        // eslint-disable-next-line no-console
         console.warn("useTimeSlots: fetch failed", err);
         setState({ slots: [], loading: false, error: err as Error });
       });
