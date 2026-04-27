@@ -10,6 +10,8 @@ import ContactsSection, {
 import PriceSubmit from "../wizards/shared/PriceSubmit";
 import Separator from "../wizards/shared/Separator";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
+import { useZones } from "../../hooks/useZones";
+import { deliveryLabel } from "../../utils/deliveryLabel";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
 import { reverseGeocode } from "../../services/geocoderService";
@@ -82,6 +84,7 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
   // BUG-044: reuse rental/sanitation address+map+OSRM stack so buyers see the
   // delivery destination pin and the live distance that drives delivery_fee.
   const trip = useAddressTrip("sale");
+  const { zones } = useZones("sale");
   const entry = trip.items[0];
   const addressText = entry?.text ?? "";
   const firstLocation = trip.locations[0] ?? null;
@@ -230,12 +233,19 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
               {total.toLocaleString("ru-RU")} {t("wizard.rental.currency")}
             </span>
             {deliveryFee > 0 && (
-              <span className="font-body text-sm leading-4 text-neutral-500 whitespace-nowrap">
-                {t("catalog.sale.checkout.summaryDelivery", {
-                  defaultValue: "в т.ч. доставка {{amount}} ₸",
-                  amount: deliveryFee.toLocaleString("ru-RU"),
-                })}
-              </span>
+              <div className="flex flex-col items-end gap-0.5">
+                {trip.legs[0]?.preview && (
+                  <span className="font-body text-sm leading-4 text-neutral-700">
+                    {deliveryLabel(trip.legs[0].preview, t)}
+                  </span>
+                )}
+                <span className="font-body text-sm leading-4 text-neutral-500 whitespace-nowrap">
+                  {t("catalog.sale.checkout.summaryDelivery", {
+                    defaultValue: "в т.ч. доставка {{amount}} ₸",
+                    amount: deliveryFee.toLocaleString("ru-RU"),
+                  })}
+                </span>
+              </div>
             )}
           </div>
         </div>
@@ -285,6 +295,7 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
               defaultValue: "Считаем маршрут…",
             })}
             className="mt-0 h-[374px] lg:h-[450px]"
+            zones={zones}
           />
           {!trip.loading && trip.error && (
             <div className="mt-2 font-body text-base text-red-600">
