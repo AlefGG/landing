@@ -13,6 +13,7 @@ import {
 } from "../../services/orderService";
 import RentalFaq from "../RentalFaq";
 import { Select, InlineError, FieldErrors } from "../ui";
+import { computeDiscountDisplay } from "../../utils/discountDisplay";
 import {
   StepLabel,
   Separator,
@@ -94,6 +95,20 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
     ? Math.round(monthlyPriceApprox * months * (1 - discount))
     : 0;
   const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
+
+  // Discount display: prefer server-computed fields (PR-4) when available;
+  // fall back to local heuristic for the public/anonymous landing flow
+  // where construction preview is auth-gated and `preview.data` stays null.
+  // Heuristic mirrors fallbackTotal — same approximation, same trade-off.
+  const serverDiscount = computeDiscountDisplay(preview.data ?? null);
+  const localPriceBefore = previewPayload && discount > 0
+    ? Math.round(monthlyPriceApprox * months)
+    : undefined;
+  const localPercent = previewPayload && discount > 0
+    ? Math.round(discount * 100)
+    : undefined;
+  const priceBefore = serverDiscount?.priceBefore ?? localPriceBefore;
+  const discountPercent = serverDiscount?.percent ?? localPercent;
 
   const mapServerField = useCallback((field: string): string | null => {
     if (field === "months") return "duration";
@@ -230,6 +245,8 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
 
       <PriceSubmit
         price={totalPrice}
+        priceBefore={priceBefore}
+        discountPercent={discountPercent}
         disabled={submitState.buttonDisabled}
         disabledReason={
           startDateMeta?.blocked
