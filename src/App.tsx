@@ -52,6 +52,11 @@ export default function App() {
               <Suspense fallback={<RouteFallback />}>
                 <Routes>
                   <Route path="/" element={<LandingPage />} />
+                  {/* PR-12: /service is the new canonical path; /sanitation
+                      kept as a duplicate-route alias for backwards-compat
+                      with deep links until at least one release after
+                      drop-out. Both render the same page component. */}
+                  <Route path="/service" element={<SanitationPage />} />
                   <Route path="/sanitation" element={<SanitationPage />} />
                   <Route path="/rental" element={<RentalPage />} />
                   <Route path="/sale" element={<SalePage />} />
