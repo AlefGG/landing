@@ -143,8 +143,6 @@ type RawDetailAddress = {
 
 type RawDetailSanitation = {
   num_toilets: number;
-  pump_frequency: number | null;
-  cleaning_frequency: number | null;
   trucks_required: number | null;
   cleaners_required: number | null;
 };

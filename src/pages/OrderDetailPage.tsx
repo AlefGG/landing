@@ -189,9 +189,7 @@ export default function OrderDetailPage() {
         )}
         {order.sanitation && (
           <Row label={t("auth.orders.detail.sanitation")}>
-            {order.sanitation.num_toilets} шт ·{" "}
-            {order.sanitation.pump_frequency ?? 1}/нед откачка ·{" "}
-            {order.sanitation.cleaning_frequency ?? 1}/нед уборка
+            {order.sanitation.num_toilets} шт
           </Row>
         )}
         <Row label={t("auth.orders.detail.amount")}>
