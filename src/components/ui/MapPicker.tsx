@@ -1,7 +1,22 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from "react-leaflet";
+import { GeoJSON, MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
+import type { ZonesFeatureCollection } from "../../services/zonesService";
+import { priceTierStyle } from "../../utils/priceTierStyle";
+
+type ZoneFeatureForStyle = Parameters<typeof priceTierStyle>[1];
+
+function sortedByPriorityAsc(fc: ZonesFeatureCollection): ZonesFeatureCollection {
+  // Backend returns -priority, -id (highest first). Reverse so highest priority
+  // is drawn LAST → ends up on top.
+  return {
+    type: "FeatureCollection",
+    features: [...fc.features].sort(
+      (a, b) => a.properties.priority - b.properties.priority,
+    ),
+  };
+}
 
 const startIcon = L.divIcon({
   className: "",
@@ -114,6 +129,7 @@ type Props = {
   loading?: boolean;
   loadingText?: string;
   className?: string;
+  zones?: ZonesFeatureCollection | null;
 };
 
 export default function MapPicker({
@@ -125,6 +141,7 @@ export default function MapPicker({
   loading = false,
   loadingText = "Прокладываем маршрут…",
   className = "",
+  zones = null,
 }: Props) {
   const center = warehouse ?? ALMATY_CENTER;
   const showWarehouseMarker = showStartMarker && warehouse !== null;
@@ -145,6 +162,22 @@ export default function MapPicker({
           attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
           url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
         />
+        {zones && zones.features.length > 0 && (
+          <GeoJSON
+            key={`zones-${zones.features.length}-${zones.features[0]?.properties.id ?? "x"}`}
+            data={sortedByPriorityAsc(zones) as GeoJSON.GeoJsonObject}
+            style={(feature) =>
+              feature
+                ? priceTierStyle(zones, feature as unknown as ZoneFeatureForStyle)
+                : { color: "#59b002", fillColor: "#59b002", fillOpacity: 0.18, weight: 1 }
+            }
+            onEachFeature={(feature, layer) => {
+              const p = (feature as { properties: { name: string; price: string } }).properties;
+              const priceFmt = Number(p.price).toLocaleString("ru-RU");
+              layer.bindTooltip(`${p.name} — ${priceFmt} ₸`, { sticky: true });
+            }}
+          />
+        )}
         {onMapClick && <ClickHandler onPick={onMapClick} />}
         {showWarehouseMarker && (
           <Marker position={[center.lat, center.lng]} icon={startIcon} />

@@ -18,6 +18,7 @@ export function useZones(serviceType: ZoneServiceType | null): UseZonesReturn {
 
   useEffect(() => {
     if (!serviceType) {
+      // eslint-disable-next-line react-hooks/set-state-in-effect
       setState(EMPTY);
       return;
     }
@@ -31,7 +32,6 @@ export function useZones(serviceType: ZoneServiceType | null): UseZonesReturn {
       .catch((err: unknown) => {
         if (ctrl.signal.aborted) return;
         if ((err as Error).name === "AbortError") return;
-        // eslint-disable-next-line no-console
         console.warn("useZones: fetch failed, overlay disabled", err);
         setState({ zones: null, loading: false, error: err as Error });
       });
