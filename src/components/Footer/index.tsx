@@ -57,10 +57,10 @@ export default function Footer() {
                 {t("buttons.sale")}
               </Link>
               <Link
-                to="/sanitation"
+                to="/service"
                 className="font-body text-sm leading-4 text-neutral-600 hover:text-neutral-800 transition-colors"
               >
-                {t("buttons.sanitation")}
+                {t("buttons.service")}
               </Link>
               <Link
                 to="/rental"

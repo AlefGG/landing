@@ -4,7 +4,9 @@ import { Link } from "react-router-dom";
 
 const services = [
   { key: "sale", icon: "/assets/icons/icon-sale.svg", to: "/sale" },
-  { key: "sanitation", icon: "/assets/icons/icon-sanitation.svg", to: "/sanitation" },
+  // PR-12: i18n key flipped to "service"; static asset path
+  // /assets/icons/icon-sanitation.svg kept (asset rename out of scope).
+  { key: "service", icon: "/assets/icons/icon-sanitation.svg", to: "/service" },
   { key: "rental", icon: "/assets/icons/icon-rental.svg", to: "/rental" },
 ] as const;
 

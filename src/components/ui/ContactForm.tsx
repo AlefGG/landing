@@ -162,7 +162,7 @@ export default function ContactForm({ onSuccess, titleId }: ContactFormProps) {
         >
           <option value="">{t("contact.servicePlaceholder")}</option>
           <option value="rental">{t("buttons.rental")}</option>
-          <option value="sanitation">{t("buttons.sanitation")}</option>
+          <option value="sanitation">{t("buttons.service")}</option>
           <option value="sale">{t("buttons.sale")}</option>
         </select>
         {errors.service && (

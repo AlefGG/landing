@@ -41,8 +41,9 @@ export default function Header() {
 
   const activePath = location.pathname.startsWith("/sale")
     ? "/sale"
-    : location.pathname.startsWith("/sanitation")
-    ? "/sanitation"
+    : location.pathname.startsWith("/service") ||
+      location.pathname.startsWith("/sanitation")
+    ? "/service"
     : location.pathname.startsWith("/rental")
     ? "/rental"
     : null;
@@ -182,8 +183,8 @@ export default function Header() {
               </Button>
             </div>
             <div className="flex-1">
-              <Button variant={variantFor("/sanitation")} size="md" href="/sanitation" className="w-full">
-                {t("buttons.sanitation")}
+              <Button variant={variantFor("/service")} size="md" href="/service" className="w-full">
+                {t("buttons.service")}
               </Button>
             </div>
             <div className="flex-1">
@@ -229,8 +230,8 @@ export default function Header() {
           <Button variant={variantFor("/rental")} size="sm" href="/rental" className="rounded-[40px] w-[94px]">
             {t("buttons.rental")}
           </Button>
-          <Button variant={variantFor("/sanitation")} size="sm" href="/sanitation" className="w-[128px]">
-            {t("buttons.sanitation")}
+          <Button variant={variantFor("/service")} size="sm" href="/service" className="w-[128px]">
+            {t("buttons.service")}
           </Button>
           <Button variant={variantFor("/sale")} size="sm" href="/sale" className="w-[100px]">
             {t("buttons.sale")}
@@ -295,8 +296,8 @@ export default function Header() {
               <Button variant={variantFor("/rental")} size="md" href="/rental" className="w-full">
                 {t("buttons.rental")}
               </Button>
-              <Button variant={variantFor("/sanitation")} size="md" href="/sanitation" className="w-full">
-                {t("buttons.sanitation")}
+              <Button variant={variantFor("/service")} size="md" href="/service" className="w-full">
+                {t("buttons.service")}
               </Button>
               <Button variant={variantFor("/sale")} size="md" href="/sale" className="w-full">
                 {t("buttons.sale")}
