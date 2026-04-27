@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import { StepHeader, Calendar, MapPicker, AddressList } from "./ui";
 import { useAddressTrip } from "../hooks/useAddressTrip";
+import { useZones } from "../hooks/useZones";
+import { deliveryLabel } from "../utils/deliveryLabel";
 import { useOrderSubmit } from "../hooks/useOrderSubmit";
 import { useOrderPreview } from "../hooks/useOrderPreview";
 import { useSanitationAvailability, dateKey } from "../hooks/useAvailabilityCalendar";
@@ -133,6 +135,7 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
 
   const [cabinCount, setCabinCount] = useState(0);
   const trip = useAddressTrip("sanitation");
+  const { zones } = useZones("sanitation");
 
   const [serviceEnabled, setServiceEnabled] = useState(true);
   const [serviceFrequency, setServiceFrequency] = useState<Frequency>(1);
@@ -362,18 +365,38 @@ export default function WizardPage({ pageKey, breadcrumbLabel, heroTitle, warnin
               loading={trip.loading}
               loadingText={t(`${k}.step2RouteLoading`)}
               className="mt-0 h-[374px] lg:h-[550px]"
+              zones={zones}
             />
             {!trip.loading && trip.error && (
               <div className="mt-2 font-body text-base text-red-600">{t(`${k}.step2RouteError`)}</div>
             )}
             {!trip.loading && !trip.error && trip.hasPreview && (
-              <div className="mt-2 flex flex-col lg:flex-row gap-2 lg:gap-6 font-body text-base text-neutral-900">
-                <span>
-                  {t(`${k}.step2Distance`)}: <strong>{trip.distanceKm.toFixed(1)} {t(`${k}.step2Km`)}</strong>
-                </span>
-                <span>
-                  {t(`${k}.step2DeliveryCost`)}: <strong className="text-cta-main">{trip.deliveryCost.toLocaleString("ru-RU")} ₸</strong>
-                </span>
+              <div className="mt-2 flex flex-col gap-2 font-body text-base text-neutral-900">
+                {trip.legs.map((leg, i) =>
+                  leg.preview ? (
+                    <div
+                      key={`${leg.location.lat}-${leg.location.lng}-${i}`}
+                      className="flex flex-col lg:flex-row lg:gap-6"
+                    >
+                      <span>
+                        {t(`${k}.step2Address`, { defaultValue: "Адрес" })} {i + 1}:{" "}
+                        <strong>{deliveryLabel(leg.preview, t)}</strong>
+                      </span>
+                      <span className="text-cta-main">
+                        {Math.round(leg.preview.deliveryFee).toLocaleString("ru-RU")} ₸
+                      </span>
+                    </div>
+                  ) : null,
+                )}
+                <div className="flex flex-col lg:flex-row gap-2 lg:gap-6 border-t border-neutral-200 pt-2">
+                  <span>
+                    {t(`${k}.step2Distance`)}: <strong>{trip.distanceKm.toFixed(1)} {t(`${k}.step2Km`)}</strong>
+                  </span>
+                  <span>
+                    {t(`${k}.step2DeliveryCost`)}:{" "}
+                    <strong className="text-cta-main">{trip.deliveryCost.toLocaleString("ru-RU")} ₸</strong>
+                  </span>
+                </div>
               </div>
             )}
           </div>
