@@ -421,7 +421,17 @@
       "vip": "VIP"
     },
     "contacts": {
-      "useProfile": "Профиль деректерін қолдану"
+      "useProfile": "Профиль деректерін қолдану",
+      "idDocument": {
+        "title": "Жеке куәлік",
+        "front": "Алдыңғы жағы",
+        "back": "Артқы жағы",
+        "dropzone": "Файлды әкеліп тастаңыз немесе таңдау үшін басыңыз",
+        "replace": "Ауыстыру",
+        "remove": "Өшіру",
+        "validationTooLarge": "Файл 5 МБ-тан үлкен",
+        "validationBadMime": "Тек JPG, PNG, PDF рұқсат етіледі"
+      }
     },
     "sanitation": {
       "title": "Ассенизация",
