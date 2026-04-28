@@ -474,14 +474,9 @@
     "contacts": {
       "useProfile": "Использовать данные профиля",
       "idDocument": {
-        "title": "Удостоверение личности",
-        "front": "Лицевая сторона",
-        "back": "Обратная сторона",
         "dropzone": "Перетащите файл или нажмите для выбора",
         "replace": "Заменить",
-        "remove": "Удалить",
-        "validationTooLarge": "Файл больше 5 МБ",
-        "validationBadMime": "Допустимы JPG, PNG, PDF"
+        "remove": "Удалить"
       }
     },
     "rental": {
