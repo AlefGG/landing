@@ -37,13 +37,14 @@ export default function OtpCodeForm({ phone, onSuccess, onChangePhone }: OtpCode
   const inputsRef = useRef<Array<HTMLInputElement | null>>([]);
   const submittingRef = useRef(false);
 
+  const countdownActive = resendIn > 0;
   useEffect(() => {
-    if (resendIn <= 0) return;
+    if (!countdownActive) return;
     const timer = window.setInterval(() => {
-      setResendIn((value) => (value > 0 ? value - 1 : 0));
+      setResendIn((v) => (v > 0 ? v - 1 : 0));
     }, 1000);
     return () => window.clearInterval(timer);
-  }, [resendIn]);
+  }, [countdownActive]);
 
   useEffect(() => {
     inputsRef.current[0]?.focus();
@@ -87,7 +88,7 @@ export default function OtpCodeForm({ phone, onSuccess, onChangePhone }: OtpCode
     if (cleaned.length === 1) {
       const newDigits = [...digits];
       newDigits[index] = cleaned;
-      setDigits(newDigits);
+      setDigits(() => newDigits);
       setSubmitErrorState(null);
       const nextInput = inputsRef.current[index + 1];
       if (nextInput) {
@@ -102,7 +103,7 @@ export default function OtpCodeForm({ phone, onSuccess, onChangePhone }: OtpCode
     for (let i = 0; i < trimmed.length; i += 1) {
       newDigits[index + i] = trimmed[i] ?? "";
     }
-    setDigits(newDigits);
+    setDigits(() => newDigits);
     setSubmitErrorState(null);
     const target = Math.min(index + trimmed.length, CODE_LENGTH - 1);
     inputsRef.current[target]?.focus();
