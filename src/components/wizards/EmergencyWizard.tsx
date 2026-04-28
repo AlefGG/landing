@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useZones } from "../../hooks/useZones";
@@ -36,36 +36,79 @@ import {
 import InstallDismantleStep from "./shared/InstallDismantleStep";
 import AddressStep from "./shared/AddressStep";
 import { InlineError, FieldErrors } from "../ui";
+import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
+import InlineOtpGate from "./shared/InlineOtpGate";
+
+const DRAFT_SLUG = "emergency" as const;
+
+type EmergencyDraft = {
+  cabinQuantities: Array<[number, number]>;
+  installDismantle: InstallDismantleValue;
+  installConsent: boolean;
+  cleaning: boolean;
+  contacts: ContactsValue;
+};
 
 export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: number } = {}) {
   const { t } = useTranslation();
   const k = "wizard.rental" as const;
   const ek = "wizard.emergency" as const;
 
-  const [cabinQuantities, setCabinQuantities] = useState<CabinQuantityMap>(
-    () => new Map(),
-  );
-  const [installDismantle, setInstallDismantle] = useState<InstallDismantleValue>({
-    installDate: null,
-    installSlotId: null,
-    dismantleDate: null,
-    dismantleSlotId: null,
+  // Draft hydration via useState initializers (runs once, no effects needed).
+  // Trip items are NOT restored — useAddressTrip exposes no hydrate/replace API;
+  // only internal setItems mutations are available.
+  const [cabinQuantities, setCabinQuantities] = useState<CabinQuantityMap>(() => {
+    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
+    return draft ? new Map(draft.cabinQuantities) : new Map();
   });
-  const [installConsent, setInstallConsent] = useState(false);
+  const [installDismantle, setInstallDismantle] = useState<InstallDismantleValue>(() => {
+    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
+    return draft?.installDismantle ?? {
+      installDate: null,
+      installSlotId: null,
+      dismantleDate: null,
+      dismantleSlotId: null,
+    };
+  });
+  const [installConsent, setInstallConsent] = useState(() => {
+    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
+    return draft?.installConsent ?? false;
+  });
   const { slots, loading: slotsLoading } = useTimeSlots();
   const trip = useAddressTrip("rental");
   const { zones } = useZones("rental_emergency");
-  const [cleaning, setCleaning] = useState(true);
-  const [contacts, setContacts] = useState<ContactsValue>({
-    contactType: "individual",
-    name: "",
-    phone: "",
-    email: "",
+  const [cleaning, setCleaning] = useState(() => {
+    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
+    return draft?.cleaning ?? true;
+  });
+  const [contacts, setContacts] = useState<ContactsValue>(() => {
+    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
+    return draft?.contacts ?? {
+      contactType: "individual",
+      name: "",
+      phone: "",
+      email: "",
+    };
   });
   const [idDocumentFront, setIdDocumentFront] = useState<File | null>(null);
   const [idDocumentBack, setIdDocumentBack] = useState<File | null>(null);
   const [idDocumentFrontError, setIdDocumentFrontError] = useState<string | null>(null);
   const [idDocumentBackError, setIdDocumentBackError] = useState<string | null>(null);
+
+  // Debounced save on every relevant state change.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      saveDraft<EmergencyDraft>(DRAFT_SLUG, {
+        cabinQuantities: Array.from(cabinQuantities.entries()),
+        installDismantle,
+        installConsent,
+        cleaning,
+        contacts,
+      });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [cabinQuantities, installDismantle, installConsent, cleaning, contacts]);
+
   const validateAndSetIdDoc = (
     setter: (f: File | null) => void,
     setErr: (e: string | null) => void,
@@ -174,17 +217,28 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
     },
     afterCreate: async (order) => {
       if (
-        contacts.contactType !== "individual" ||
-        (!idDocumentFront && !idDocumentBack) ||
-        idDocumentFrontError ||
-        idDocumentBackError
+        contacts.contactType === "individual" &&
+        (idDocumentFront || idDocumentBack) &&
+        !idDocumentFrontError &&
+        !idDocumentBackError
       ) {
-        return;
+        await uploadIdDocuments(order.order_number, {
+          front: idDocumentFront,
+          back: idDocumentBack,
+        });
       }
-      await uploadIdDocuments(order.order_number, {
-        front: idDocumentFront,
-        back: idDocumentBack,
-      });
+      clearDraft(DRAFT_SLUG);
+    },
+    onPendingAuthChange: (pending) => {
+      if (pending) {
+        saveDraft<EmergencyDraft>(DRAFT_SLUG, {
+          cabinQuantities: Array.from(cabinQuantities.entries()),
+          installDismantle,
+          installConsent,
+          cleaning,
+          contacts,
+        });
+      }
     },
   });
 
@@ -362,6 +416,16 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
       />
 
       <RentalFaq />
+
+      {submitState.pendingAuth && (
+        <InlineOtpGate
+          phone={contacts.phone}
+          onSuccess={() => {
+            // useOrderSubmit auto-runs buildOrder via authStatus useEffect
+          }}
+          onChangePhone={submitState.cancelPendingAuth}
+        />
+      )}
     </>
   );
 }
