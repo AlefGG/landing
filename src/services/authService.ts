@@ -54,9 +54,9 @@ const DEFAULT_RESEND_SECONDS = 60;
 /** Convert a UI phone (digits-only or "8..." / "+7...") to E.164 "+7..." */
 export function toE164(value: string): string {
   const raw = value.trim();
-  if (raw.startsWith("+")) return raw;
+  const hasPlus = raw.startsWith("+");
   const digits = raw.replace(/\D/g, "");
-  const normalized = digits.startsWith("8") ? "7" + digits.slice(1) : digits;
+  const normalized = !hasPlus && digits.startsWith("8") ? "7" + digits.slice(1) : digits;
   return `+${normalized}`;
 }
 
