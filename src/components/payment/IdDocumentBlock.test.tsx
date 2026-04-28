@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
-import { render, screen, fireEvent, waitFor } from "@testing-library/react";
 import { describe, it, expect, vi, beforeEach } from "vitest";
+import { render, screen, fireEvent, waitFor, cleanup } from "@testing-library/react";
 import IdDocumentBlock from "./IdDocumentBlock";
 import * as svc from "../../services/idDocumentService";
 
@@ -17,12 +17,12 @@ vi.mock("react-i18next", () => ({
 const ORDER = "ORD-1";
 
 function makeFile(name: string, type: string, size = 1024): File {
-  const f = new File([new Uint8Array(size)], name, { type });
-  return f;
+  return new File([new Uint8Array(size)], name, { type });
 }
 
 describe("IdDocumentBlock", () => {
   beforeEach(() => {
+    cleanup();
     vi.clearAllMocks();
   });
 
@@ -36,8 +36,9 @@ describe("IdDocumentBlock", () => {
         onFrontUploadedChange={onChange}
       />,
     );
-    expect(screen.getByText("payment.kaspi.idDocument.frontLabel")).toBeInTheDocument();
-    expect(screen.getByText("payment.kaspi.idDocument.backLabel")).toBeInTheDocument();
+    expect(screen.getByTestId("payment-id-document-block")).toBeTruthy();
+    expect(screen.queryByTestId("payment-id-doc-front-uploaded")).toBeNull();
+    expect(screen.queryByTestId("payment-id-doc-back-uploaded")).toBeNull();
     expect(onChange).toHaveBeenCalledWith(false);
   });
 
@@ -51,7 +52,8 @@ describe("IdDocumentBlock", () => {
         onFrontUploadedChange={onChange}
       />,
     );
-    expect(screen.getAllByText("payment.kaspi.idDocument.uploadedLabel")[0]).toBeInTheDocument();
+    expect(screen.getByTestId("payment-id-doc-front-uploaded")).toBeTruthy();
+    expect(screen.getByTestId("payment-id-doc-front-replace")).toBeTruthy();
     expect(onChange).toHaveBeenCalledWith(true);
   });
 
@@ -76,6 +78,7 @@ describe("IdDocumentBlock", () => {
       expect(svc.uploadIdDocuments).toHaveBeenCalledWith(ORDER, { front: file }),
     );
     await waitFor(() => expect(onChange).toHaveBeenLastCalledWith(true));
+    expect(screen.getByTestId("payment-id-doc-front-uploaded")).toBeTruthy();
   });
 
   it("rejects invalid mime, does not call upload, callback stays false", async () => {
@@ -92,7 +95,9 @@ describe("IdDocumentBlock", () => {
     const bad = makeFile("doc.docx", "application/msword");
     fireEvent.change(inputs[0], { target: { files: [bad] } });
     await waitFor(() =>
-      expect(screen.getByText("payment.kaspi.idDocument.validationBadMime")).toBeInTheDocument(),
+      expect(
+        screen.getByText("payment.kaspi.idDocument.validationBadMime"),
+      ).toBeTruthy(),
     );
     expect(svc.uploadIdDocuments).not.toHaveBeenCalled();
     expect(onChange).not.toHaveBeenCalledWith(true);
@@ -112,7 +117,9 @@ describe("IdDocumentBlock", () => {
     const big = makeFile("big.jpg", "image/jpeg", 6 * 1024 * 1024);
     fireEvent.change(inputs[0], { target: { files: [big] } });
     await waitFor(() =>
-      expect(screen.getByText("payment.kaspi.idDocument.validationTooLarge")).toBeInTheDocument(),
+      expect(
+        screen.getByText("payment.kaspi.idDocument.validationTooLarge"),
+      ).toBeTruthy(),
     );
     expect(svc.uploadIdDocuments).not.toHaveBeenCalled();
   });
@@ -131,7 +138,9 @@ describe("IdDocumentBlock", () => {
     const inputs = document.querySelectorAll<HTMLInputElement>('input[type="file"]');
     fireEvent.change(inputs[0], { target: { files: [makeFile("id.jpg", "image/jpeg")] } });
     await waitFor(() =>
-      expect(screen.getByText("payment.kaspi.idDocument.uploadFailed")).toBeInTheDocument(),
+      expect(
+        screen.getByText("payment.kaspi.idDocument.uploadFailed"),
+      ).toBeTruthy(),
     );
     expect(onChange).not.toHaveBeenCalledWith(true);
   });
@@ -156,10 +165,13 @@ describe("IdDocumentBlock", () => {
     await waitFor(() =>
       expect(svc.uploadIdDocuments).toHaveBeenCalledWith(ORDER, { back: file }),
     );
+    await waitFor(() =>
+      expect(screen.getByTestId("payment-id-doc-back-uploaded")).toBeTruthy(),
+    );
     expect(onChange).not.toHaveBeenCalledWith(true);
   });
 
-  it("replace flow: clicking 'Заменить' returns to drop zone", () => {
+  it("replace flow: clicking replace returns to drop zone", () => {
     const onChange = vi.fn();
     render(
       <IdDocumentBlock
@@ -169,8 +181,10 @@ describe("IdDocumentBlock", () => {
         onFrontUploadedChange={onChange}
       />,
     );
-    fireEvent.click(screen.getAllByText("payment.kaspi.idDocument.replace")[0]);
+    expect(screen.getByTestId("payment-id-doc-front-uploaded")).toBeTruthy();
+    fireEvent.click(screen.getByTestId("payment-id-doc-front-replace"));
+    expect(screen.queryByTestId("payment-id-doc-front-uploaded")).toBeNull();
     const inputs = document.querySelectorAll<HTMLInputElement>('input[type="file"]');
-    expect(inputs[0]).toBeInTheDocument();
+    expect(inputs.length).toBeGreaterThan(0);
   });
 });
