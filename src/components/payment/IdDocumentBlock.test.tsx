@@ -73,7 +73,7 @@ describe("IdDocumentBlock", () => {
     );
     const inputs = document.querySelectorAll<HTMLInputElement>('input[type="file"]');
     const file = makeFile("id.jpg", "image/jpeg");
-    fireEvent.change(inputs[0], { target: { files: [file] } });
+    fireEvent.change(inputs[0]!, { target: { files: [file] } });
     await waitFor(() =>
       expect(svc.uploadIdDocuments).toHaveBeenCalledWith(ORDER, { front: file }),
     );
@@ -93,7 +93,7 @@ describe("IdDocumentBlock", () => {
     );
     const inputs = document.querySelectorAll<HTMLInputElement>('input[type="file"]');
     const bad = makeFile("doc.docx", "application/msword");
-    fireEvent.change(inputs[0], { target: { files: [bad] } });
+    fireEvent.change(inputs[0]!, { target: { files: [bad] } });
     await waitFor(() =>
       expect(
         screen.getByText("payment.kaspi.idDocument.validationBadMime"),
@@ -115,7 +115,7 @@ describe("IdDocumentBlock", () => {
     );
     const inputs = document.querySelectorAll<HTMLInputElement>('input[type="file"]');
     const big = makeFile("big.jpg", "image/jpeg", 6 * 1024 * 1024);
-    fireEvent.change(inputs[0], { target: { files: [big] } });
+    fireEvent.change(inputs[0]!, { target: { files: [big] } });
     await waitFor(() =>
       expect(
         screen.getByText("payment.kaspi.idDocument.validationTooLarge"),
@@ -136,7 +136,7 @@ describe("IdDocumentBlock", () => {
       />,
     );
     const inputs = document.querySelectorAll<HTMLInputElement>('input[type="file"]');
-    fireEvent.change(inputs[0], { target: { files: [makeFile("id.jpg", "image/jpeg")] } });
+    fireEvent.change(inputs[0]!, { target: { files: [makeFile("id.jpg", "image/jpeg")] } });
     await waitFor(() =>
       expect(
         screen.getByText("payment.kaspi.idDocument.uploadFailed"),
@@ -161,7 +161,7 @@ describe("IdDocumentBlock", () => {
     );
     const inputs = document.querySelectorAll<HTMLInputElement>('input[type="file"]');
     const file = makeFile("id-back.jpg", "image/jpeg");
-    fireEvent.change(inputs[1], { target: { files: [file] } });
+    fireEvent.change(inputs[1]!, { target: { files: [file] } });
     await waitFor(() =>
       expect(svc.uploadIdDocuments).toHaveBeenCalledWith(ORDER, { back: file }),
     );

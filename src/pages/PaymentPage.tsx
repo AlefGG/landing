@@ -155,6 +155,9 @@ export default function PaymentPage() {
             orderId={order.order_number}
             amount={amount}
             serviceType={order.service_type}
+            hasIdDocumentFront={order.has_id_document_front}
+            hasIdDocumentBack={order.has_id_document_back}
+            requireIdDocument={true}
           />
         )}
       </section>
