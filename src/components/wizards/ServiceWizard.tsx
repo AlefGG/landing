@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
+import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
+import InlineOtpGate from "./shared/InlineOtpGate";
 import { Link } from "react-router-dom";
 import { StepHeader, Calendar, MapPicker, AddressList } from "../ui";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
@@ -38,6 +40,21 @@ import Seo from "../Seo";
 const MACHINE_CAPACITY = 30;
 const CREW_CAPACITY = 30;
 
+const DRAFT_SLUG = "service" as const;
+
+type ServiceDraft = {
+  cabinCount: number;
+  subtype: ServiceSubtype;
+  hasPumping: boolean;
+  hasWashing: boolean;
+  oneTimeDate: string | null;
+  oneTimeSlotId: number | null;
+  packageId: number | null;
+  periodStart: string | null;
+  periodEnd: string | null;
+  contacts: ContactsValue;
+};
+
 export default function ServiceWizard() {
   const { t } = useTranslation();
   const k = "wizard.service";
@@ -45,9 +62,19 @@ export default function ServiceWizard() {
   const heroTitle = t("wizard.service.title");
   const warning = t("wizard.service.warning");
 
+  // Draft hydration via useState initializers (runs once, no effects needed).
+  // Trip items are NOT restored — useAddressTrip exposes no hydrate/replace API;
+  // only internal setItems mutations are available.
+
   // --- Step 1: cabin count ---
-  const [cabinCount, setCabinCount] = useState(0);
-  const [cabinCountInput, setCabinCountInput] = useState<string>("0");
+  const [cabinCount, setCabinCount] = useState(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.cabinCount ?? 0;
+  });
+  const [cabinCountInput, setCabinCountInput] = useState<string>(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return String(draft?.cabinCount ?? 0);
+  });
 
   // --- Step 2: address ---
   const trip = useAddressTrip("sanitation");
@@ -55,30 +82,57 @@ export default function ServiceWizard() {
   const firstLocation = trip.locations[0] ?? null;
 
   // --- Step 3: subtype + options + package/one-time ---
-  const [subtype, setSubtype] = useState<ServiceSubtype>("MONTHLY");
-  const [hasPumping, setHasPumping] = useState(true);
-  const [hasWashing, setHasWashing] = useState(false);
+  const [subtype, setSubtype] = useState<ServiceSubtype>(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.subtype ?? "MONTHLY";
+  });
+  const [hasPumping, setHasPumping] = useState(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.hasPumping ?? true;
+  });
+  const [hasWashing, setHasWashing] = useState(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.hasWashing ?? false;
+  });
 
   const { slots, loading: slotsLoading } = useTimeSlots();
   const { packages, loading: packagesLoading } = useServicePackages();
 
-  const [oneTimeDate, setOneTimeDate] = useState<Date | null>(null);
-  const [oneTimeSlotId, setOneTimeSlotId] = useState<number | null>(null);
+  const [oneTimeDate, setOneTimeDate] = useState<Date | null>(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.oneTimeDate ? new Date(draft.oneTimeDate) : null;
+  });
+  const [oneTimeSlotId, setOneTimeSlotId] = useState<number | null>(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.oneTimeSlotId ?? null;
+  });
   const [oneTimeCalendarOpen, setOneTimeCalendarOpen] = useState(false);
   const oneTimeCalendarRef = useRef<HTMLDivElement>(null);
 
-  const [packageId, setPackageId] = useState<number | null>(null);
+  const [packageId, setPackageId] = useState<number | null>(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.packageId ?? null;
+  });
 
   // --- Step 4: period (MONTHLY only) ---
-  const [periodStart, setPeriodStart] = useState<Date | null>(null);
-  const [periodEnd, setPeriodEnd] = useState<Date | null>(null);
+  const [periodStart, setPeriodStart] = useState<Date | null>(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.periodStart ? new Date(draft.periodStart) : null;
+  });
+  const [periodEnd, setPeriodEnd] = useState<Date | null>(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.periodEnd ? new Date(draft.periodEnd) : null;
+  });
 
   // --- Step N: contacts ---
-  const [contacts, setContacts] = useState<ContactsValue>({
-    contactType: "individual",
-    name: "",
-    phone: "",
-    email: "",
+  const [contacts, setContacts] = useState<ContactsValue>(() => {
+    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
+    return draft?.contacts ?? {
+      contactType: "individual",
+      name: "",
+      phone: "",
+      email: "",
+    };
   });
   const [idDocumentFront, setIdDocumentFront] = useState<File | null>(null);
   const [idDocumentBack, setIdDocumentBack] = useState<File | null>(null);
@@ -112,6 +166,36 @@ export default function ServiceWizard() {
     setIdDocumentBack,
     setIdDocumentBackError,
   );
+
+  // Debounced save on every relevant state change.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      saveDraft<ServiceDraft>(DRAFT_SLUG, {
+        cabinCount,
+        subtype,
+        hasPumping,
+        hasWashing,
+        oneTimeDate: oneTimeDate ? oneTimeDate.toISOString() : null,
+        oneTimeSlotId,
+        packageId,
+        periodStart: periodStart ? periodStart.toISOString() : null,
+        periodEnd: periodEnd ? periodEnd.toISOString() : null,
+        contacts,
+      });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [
+    cabinCount,
+    subtype,
+    hasPumping,
+    hasWashing,
+    oneTimeDate,
+    oneTimeSlotId,
+    packageId,
+    periodStart,
+    periodEnd,
+    contacts,
+  ]);
 
   // --- derived ---
   const machineCount = cabinCount > 0 ? Math.ceil(cabinCount / MACHINE_CAPACITY) : 0;
@@ -176,17 +260,33 @@ export default function ServiceWizard() {
     },
     afterCreate: async (order) => {
       if (
-        contacts.contactType !== "individual" ||
-        (!idDocumentFront && !idDocumentBack) ||
-        idDocumentFrontError ||
-        idDocumentBackError
+        contacts.contactType === "individual" &&
+        (idDocumentFront || idDocumentBack) &&
+        !idDocumentFrontError &&
+        !idDocumentBackError
       ) {
-        return;
+        await uploadIdDocuments(order.order_number, {
+          front: idDocumentFront,
+          back: idDocumentBack,
+        });
       }
-      await uploadIdDocuments(order.order_number, {
-        front: idDocumentFront,
-        back: idDocumentBack,
-      });
+      clearDraft(DRAFT_SLUG);
+    },
+    onPendingAuthChange: (pending) => {
+      if (pending) {
+        saveDraft<ServiceDraft>(DRAFT_SLUG, {
+          cabinCount,
+          subtype,
+          hasPumping,
+          hasWashing,
+          oneTimeDate: oneTimeDate ? oneTimeDate.toISOString() : null,
+          oneTimeSlotId,
+          packageId,
+          periodStart: periodStart ? periodStart.toISOString() : null,
+          periodEnd: periodEnd ? periodEnd.toISOString() : null,
+          contacts,
+        });
+      }
     },
   });
 
@@ -696,6 +796,16 @@ export default function ServiceWizard() {
       </section>
 
       <Faq />
+
+      {wizardSubmit.pendingAuth && (
+        <InlineOtpGate
+          phone={contacts.phone}
+          onSuccess={() => {
+            // useOrderSubmit auto-runs buildOrder via authStatus useEffect
+          }}
+          onChangePhone={wizardSubmit.cancelPendingAuth}
+        />
+      )}
     </div>
   );
 }
