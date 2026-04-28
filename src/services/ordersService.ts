@@ -28,6 +28,8 @@ export type OrderDTO = {
   payment_channel: PaymentChannel;
   created_at: string;
   pricing_snapshot: Record<string, unknown> | null;
+  has_id_document_front: boolean;
+  has_id_document_back: boolean;
 };
 
 export async function getOrder(orderNumber: string): Promise<OrderDTO | null> {
