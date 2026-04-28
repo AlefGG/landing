@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import { BasicInput } from "../../ui";
 import { useAuth } from "../../../contexts/AuthContext";
 import { formatPhone } from "./phoneFormat";
-import IdDocumentUpload from "./IdDocumentUpload";
 import Toggle from "./Toggle";
 
 export type ContactType = "individual" | "legal";
@@ -22,24 +21,14 @@ export type ContactsFieldErrors = {
   email?: string;
 };
 
-export type IdDocumentSlot = {
-  value: File | null;
-  onChange: (file: File | null) => void;
-  error?: string;
-};
-
 export default function ContactsSection({
   value,
   onChange,
   errors,
-  idDocumentFront,
-  idDocumentBack,
 }: {
   value: ContactsValue;
   onChange: (v: ContactsValue) => void;
   errors?: ContactsFieldErrors;
-  idDocumentFront?: IdDocumentSlot;
-  idDocumentBack?: IdDocumentSlot;
 }) {
   const { t } = useTranslation();
   const { user, status } = useAuth();
@@ -195,37 +184,6 @@ export default function ContactsSection({
         </div>
       </div>
 
-      {value.contactType === "individual" && (idDocumentFront || idDocumentBack) && (
-        <div className="flex flex-col gap-4">
-          <h3 className="font-body text-xl leading-6 text-neutral-900">
-            {t("wizard.contacts.idDocument.title", {
-              defaultValue: "Удостоверение личности",
-            })}
-          </h3>
-          <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
-            {idDocumentFront && (
-              <IdDocumentUpload
-                value={idDocumentFront.value}
-                onChange={idDocumentFront.onChange}
-                label={t("wizard.contacts.idDocument.front", {
-                  defaultValue: "Лицевая сторона",
-                })}
-                error={idDocumentFront.error}
-              />
-            )}
-            {idDocumentBack && (
-              <IdDocumentUpload
-                value={idDocumentBack.value}
-                onChange={idDocumentBack.onChange}
-                label={t("wizard.contacts.idDocument.back", {
-                  defaultValue: "Обратная сторона",
-                })}
-                error={idDocumentBack.error}
-              />
-            )}
-          </div>
-        </div>
-      )}
     </div>
   );
 }
