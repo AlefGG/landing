@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { useCallback, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Seo from "../Seo";
@@ -23,6 +23,15 @@ import {
 import { uploadIdDocuments } from "../../services/idDocumentService";
 import { validateIdDocument } from "../../utils/idDocument";
 import type { SaleItem } from "../../services/catalogService";
+import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
+import InlineOtpGate from "../wizards/shared/InlineOtpGate";
+
+const DRAFT_SLUG = "sale-checkout" as const;
+
+type SaleCheckoutDraft = {
+  count: number;
+  contacts: ContactsValue;
+};
 
 function Stepper({
   value,
@@ -75,12 +84,21 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
   const name = item.name;
   const description = item.description;
 
-  const [count, setCount] = useState(1);
-  const [contacts, setContacts] = useState<ContactsValue>({
-    contactType: "individual",
-    name: "",
-    phone: "",
-    email: "",
+  // Draft hydration via useState initializers (runs once, no effects needed).
+  // Trip items (delivery address) are NOT restored — useAddressTrip exposes no
+  // hydrate/replace API; only internal setItems mutations are available.
+  const [count, setCount] = useState(() => {
+    const draft = loadDraft<SaleCheckoutDraft>(DRAFT_SLUG);
+    return draft?.count ?? 1;
+  });
+  const [contacts, setContacts] = useState<ContactsValue>(() => {
+    const draft = loadDraft<SaleCheckoutDraft>(DRAFT_SLUG);
+    return draft?.contacts ?? {
+      contactType: "individual",
+      name: "",
+      phone: "",
+      email: "",
+    };
   });
   const [idDocumentFront, setIdDocumentFront] = useState<File | null>(null);
   const [idDocumentBack, setIdDocumentBack] = useState<File | null>(null);
@@ -114,6 +132,14 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
     setIdDocumentBack,
     setIdDocumentBackError,
   );
+
+  // Debounced save on every relevant state change.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      saveDraft<SaleCheckoutDraft>(DRAFT_SLUG, { count, contacts });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [count, contacts]);
 
   // BUG-044: reuse rental/sanitation address+map+OSRM stack so buyers see the
   // delivery destination pin and the live distance that drives delivery_fee.
@@ -163,17 +189,22 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
     },
     afterCreate: async (order) => {
       if (
-        contacts.contactType !== "individual" ||
-        (!idDocumentFront && !idDocumentBack) ||
-        idDocumentFrontError ||
-        idDocumentBackError
+        contacts.contactType === "individual" &&
+        (idDocumentFront || idDocumentBack) &&
+        !idDocumentFrontError &&
+        !idDocumentBackError
       ) {
-        return;
+        await uploadIdDocuments(order.order_number, {
+          front: idDocumentFront,
+          back: idDocumentBack,
+        });
       }
-      await uploadIdDocuments(order.order_number, {
-        front: idDocumentFront,
-        back: idDocumentBack,
-      });
+      clearDraft(DRAFT_SLUG);
+    },
+    onPendingAuthChange: (pending) => {
+      if (pending) {
+        saveDraft<SaleCheckoutDraft>(DRAFT_SLUG, { count, contacts });
+      }
     },
   });
 
@@ -424,6 +455,16 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
         disabledReason={disabledReason}
         onSubmit={submitState.submit}
       />
+
+      {submitState.pendingAuth && (
+        <InlineOtpGate
+          phone={contacts.phone}
+          onSuccess={() => {
+            // useOrderSubmit auto-runs buildOrder via authStatus useEffect
+          }}
+          onChangePhone={submitState.cancelPendingAuth}
+        />
+      )}
     </div>
   );
 }
