@@ -46,7 +46,6 @@ export function fetchPublicZones(
   const slug = resolveSlug();
   if (!slug) {
     if (!warnedAboutMissingSlug) {
-      // eslint-disable-next-line no-console
       console.warn(
         "VITE_LANDING_COMPANY_SLUG is not set — zones overlay disabled.",
       );
