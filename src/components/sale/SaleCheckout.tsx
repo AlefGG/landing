@@ -20,8 +20,6 @@ import {
   previewSaleOrder,
   type SaleOrderPayload,
 } from "../../services/orderService";
-import { uploadIdDocuments } from "../../services/idDocumentService";
-import { validateIdDocument } from "../../utils/idDocument";
 import type { SaleItem } from "../../services/catalogService";
 import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
 import InlineOtpGate from "../wizards/shared/InlineOtpGate";
@@ -100,39 +98,6 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
       email: "",
     };
   });
-  const [idDocumentFront, setIdDocumentFront] = useState<File | null>(null);
-  const [idDocumentBack, setIdDocumentBack] = useState<File | null>(null);
-  const [idDocumentFrontError, setIdDocumentFrontError] = useState<string | null>(null);
-  const [idDocumentBackError, setIdDocumentBackError] = useState<string | null>(null);
-  const validateAndSetIdDoc = (
-    setter: (f: File | null) => void,
-    setErr: (e: string | null) => void,
-  ) => (f: File | null) => {
-    setter(f);
-    if (!f) {
-      setErr(null);
-      return;
-    }
-    const r = validateIdDocument(f);
-    setErr(
-      r.ok
-        ? null
-        : t(
-            r.reason === "too_large"
-              ? "wizard.contacts.idDocument.validationTooLarge"
-              : "wizard.contacts.idDocument.validationBadMime",
-          ),
-    );
-  };
-  const setFrontWithValidation = validateAndSetIdDoc(
-    setIdDocumentFront,
-    setIdDocumentFrontError,
-  );
-  const setBackWithValidation = validateAndSetIdDoc(
-    setIdDocumentBack,
-    setIdDocumentBackError,
-  );
-
   // Debounced save on every relevant state change.
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -187,18 +152,7 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
       if (!payload) throw new Error("payload not ready");
       return createSaleOrder(payload);
     },
-    afterCreate: async (order) => {
-      if (
-        contacts.contactType === "individual" &&
-        (idDocumentFront || idDocumentBack) &&
-        !idDocumentFrontError &&
-        !idDocumentBackError
-      ) {
-        await uploadIdDocuments(order.order_number, {
-          front: idDocumentFront,
-          back: idDocumentBack,
-        });
-      }
+    afterCreate: async () => {
       clearDraft(DRAFT_SLUG);
     },
     onPendingAuthChange: (pending) => {
@@ -419,16 +373,6 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
           value={contacts}
           onChange={setContacts}
           errors={submitState.fieldErrors}
-          idDocumentFront={{
-            value: idDocumentFront,
-            onChange: setFrontWithValidation,
-            error: idDocumentFrontError ?? undefined,
-          }}
-          idDocumentBack={{
-            value: idDocumentBack,
-            onChange: setBackWithValidation,
-            error: idDocumentBackError ?? undefined,
-          }}
         />
       </section>
 
