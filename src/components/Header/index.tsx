@@ -227,13 +227,13 @@ export default function Header() {
 
         {/* Mobile sub-nav buttons */}
         <div className="lg:hidden flex items-center justify-between px-3 pt-6 pb-0 gap-2">
-          <Button variant={variantFor("/rental")} size="sm" href="/rental" className="rounded-[40px] w-[94px]">
+          <Button variant={variantFor("/rental")} size="sm" href="/rental" className="rounded-[40px] flex-1 whitespace-nowrap">
             {t("buttons.rental")}
           </Button>
-          <Button variant={variantFor("/service")} size="sm" href="/service" className="w-[128px]">
+          <Button variant={variantFor("/service")} size="sm" href="/service" className="flex-1 whitespace-nowrap">
             {t("buttons.service")}
           </Button>
-          <Button variant={variantFor("/sale")} size="sm" href="/sale" className="w-[100px]">
+          <Button variant={variantFor("/sale")} size="sm" href="/sale" className="flex-1 whitespace-nowrap">
             {t("buttons.sale")}
           </Button>
         </div>
