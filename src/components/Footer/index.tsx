@@ -64,7 +64,7 @@ export default function Footer() {
               </Link>
               <Link
                 to="/rental"
-                className="inline-flex items-center justify-between w-[120px] bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-sm leading-4 rounded-[40px] px-4 py-1"
+                className="inline-flex items-center justify-between w-[140px] bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-sm leading-4 rounded-[40px] px-4 py-1 whitespace-nowrap"
               >
                 {t("buttons.rental")}
                 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="-rotate-90" aria-hidden="true">

@@ -460,6 +460,7 @@
     }
   },
   "wizard": {
+    "step": "ШАГ",
     "auth": {
       "title": "Подтверждение номера",
       "subtitle": "Мы отправили код на {{phone}}",
@@ -481,7 +482,7 @@
     },
     "rental": {
       "title": "Аренда",
-      "breadcrumbHome": "Home",
+      "breadcrumbHome": "Главная",
       "step1Title": "Тип объекта",
       "step1Event": "Мероприятие",
       "step1EventDesc": "Концерты, праздники, фестивали",
@@ -730,7 +731,7 @@
     }
   },
   "success": {
-    "breadcrumbHome": "Home",
+    "breadcrumbHome": "Главная",
     "breadcrumb": "Заявка отправлена",
     "title": "Заявка отправлена!",
     "subtitle": "Мы свяжемся с вами в ближайшее время",
