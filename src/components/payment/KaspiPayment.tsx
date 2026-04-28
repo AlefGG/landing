@@ -12,6 +12,7 @@ import {
   type NormalizedError,
 } from "../../services/errors";
 import FileUploader from "./FileUploader";
+import IdDocumentBlock from "./IdDocumentBlock";
 
 type QrState =
   | { status: "loading" }
@@ -23,24 +24,32 @@ function deriveServiceSlug(serviceType?: string): string {
   if (!serviceType) return "rental";
   if (serviceType === "sale") return "sale";
   if (serviceType === "sanitation") return "sanitation";
-  return "rental"; // rental_event / rental_emergency / rental_construction
+  return "rental";
 }
 
 export default function KaspiPayment({
   orderId,
   amount,
   serviceType,
+  hasIdDocumentFront,
+  hasIdDocumentBack,
+  requireIdDocument,
 }: {
   orderId: string;
   amount: number;
   serviceType?: string;
+  hasIdDocumentFront: boolean;
+  hasIdDocumentBack: boolean;
+  requireIdDocument: boolean;
 }) {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [receiptOpen, setReceiptOpen] = useState(false);
   const [qr, setQr] = useState<QrState>({ status: "loading" });
+  const [frontUploaded, setFrontUploaded] = useState(hasIdDocumentFront);
 
   const formattedAmount = amount.toLocaleString("ru-RU");
+  const idGateBlocked = requireIdDocument && !frontUploaded;
 
   const loadQr = useCallback(() => {
     let cancelled = false;
@@ -129,11 +138,21 @@ export default function KaspiPayment({
         </div>
 
         <div className="flex-1 flex flex-col gap-4 w-full">
+          {requireIdDocument && (
+            <IdDocumentBlock
+              orderId={orderId}
+              hasFront={hasIdDocumentFront}
+              hasBack={hasIdDocumentBack}
+              onFrontUploadedChange={setFrontUploaded}
+            />
+          )}
+
           {!receiptOpen ? (
             <button
               type="button"
               onClick={() => setReceiptOpen(true)}
-              className="self-start bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-base leading-6 rounded-[40px] px-10 py-3"
+              disabled={idGateBlocked}
+              className="self-start bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to text-white font-body font-semibold text-base leading-6 rounded-[40px] px-10 py-3 disabled:opacity-50 disabled:cursor-not-allowed"
               data-testid="kaspi-paid-button"
             >
               {t("payment.kaspi.paidButton")}
@@ -145,6 +164,15 @@ export default function KaspiPayment({
               onUpload={handleUpload}
               testId="kaspi-receipt-uploader"
             />
+          )}
+
+          {idGateBlocked && (
+            <p
+              className="font-body text-sm leading-5 text-neutral-600"
+              data-testid="kaspi-id-required-hint"
+            >
+              {t("payment.kaspi.idDocument.required")}
+            </p>
           )}
         </div>
       </div>
