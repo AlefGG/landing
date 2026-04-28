@@ -1,4 +1,4 @@
-import { useState, useMemo, useCallback } from "react";
+import { useState, useMemo, useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useZones } from "../../hooks/useZones";
@@ -29,6 +29,15 @@ import {
   type ContactsValue,
 } from "./shared";
 import AddressStep from "./shared/AddressStep";
+import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
+import InlineOtpGate from "./shared/InlineOtpGate";
+
+const DRAFT_SLUG = "construction" as const;
+
+type ConstructionDraft = {
+  months: number;
+  contacts: ContactsValue;
+};
 
 const MONTH_OPTIONS = CONSTRUCTION_DISCOUNTS.map((r) => r.months);
 
@@ -37,16 +46,25 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
   const k = "wizard.rental" as const;
   const ck = "wizard.construction" as const;
 
-  const [months, setMonths] = useState<number>(1);
+  // Draft hydration via useState initializers (runs once, no effects needed).
+  // Trip items are NOT restored — useAddressTrip exposes no hydrate/replace API;
+  // only internal setItems mutations are available.
+  const [months, setMonths] = useState<number>(() => {
+    const draft = loadDraft<ConstructionDraft>(DRAFT_SLUG);
+    return draft?.months ?? 1;
+  });
   const trip = useAddressTrip("construction");
   const { zones } = useZones("rental_construction");
-  const [contacts, setContacts] = useState<ContactsValue>({
-    // BUG-055: default to individual — payment_channel must mirror an
-    // explicit Физлицо/Юрлицо click, not a hard-coded default.
-    contactType: "individual",
-    name: "",
-    phone: "",
-    email: "",
+  const [contacts, setContacts] = useState<ContactsValue>(() => {
+    const draft = loadDraft<ConstructionDraft>(DRAFT_SLUG);
+    return draft?.contacts ?? {
+      // BUG-055: default to individual — payment_channel must mirror an
+      // explicit Физлицо/Юрлицо click, not a hard-coded default.
+      contactType: "individual",
+      name: "",
+      phone: "",
+      email: "",
+    };
   });
   const [idDocumentFront, setIdDocumentFront] = useState<File | null>(null);
   const [idDocumentBack, setIdDocumentBack] = useState<File | null>(null);
@@ -80,6 +98,14 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
     setIdDocumentBack,
     setIdDocumentBackError,
   );
+
+  // Debounced save on every relevant state change.
+  useEffect(() => {
+    const timer = window.setTimeout(() => {
+      saveDraft<ConstructionDraft>(DRAFT_SLUG, { months, contacts });
+    }, 300);
+    return () => window.clearTimeout(timer);
+  }, [months, contacts]);
 
   const cabin = constructionCabins[0]!;
 
@@ -163,17 +189,22 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
     },
     afterCreate: async (order) => {
       if (
-        contacts.contactType !== "individual" ||
-        (!idDocumentFront && !idDocumentBack) ||
-        idDocumentFrontError ||
-        idDocumentBackError
+        contacts.contactType === "individual" &&
+        (idDocumentFront || idDocumentBack) &&
+        !idDocumentFrontError &&
+        !idDocumentBackError
       ) {
-        return;
+        await uploadIdDocuments(order.order_number, {
+          front: idDocumentFront,
+          back: idDocumentBack,
+        });
       }
-      await uploadIdDocuments(order.order_number, {
-        front: idDocumentFront,
-        back: idDocumentBack,
-      });
+      clearDraft(DRAFT_SLUG);
+    },
+    onPendingAuthChange: (pending) => {
+      if (pending) {
+        saveDraft<ConstructionDraft>(DRAFT_SLUG, { months, contacts });
+      }
     },
   });
 
@@ -317,6 +348,16 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
       />
 
       <RentalFaq />
+
+      {submitState.pendingAuth && (
+        <InlineOtpGate
+          phone={contacts.phone}
+          onSuccess={() => {
+            // useOrderSubmit auto-runs buildOrder via authStatus useEffect
+          }}
+          onChangePhone={submitState.cancelPendingAuth}
+        />
+      )}
     </>
   );
 }
