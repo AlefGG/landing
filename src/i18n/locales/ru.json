@@ -776,7 +776,20 @@
       "qrError": "Не удалось загрузить QR-код. Обновите страницу.",
       "paidButton": "Я оплатил",
       "receiptTitle": "Загрузите чек об оплате",
-      "receiptHint": "PDF, JPG, PNG или WEBP, до 10 МБ"
+      "receiptHint": "PDF, JPG, PNG или WEBP, до 10 МБ",
+      "idDocument": {
+        "title": "Удостоверение личности",
+        "subtitle": "Лицевая сторона обязательна, оборотная — по желанию",
+        "frontLabel": "Лицевая сторона",
+        "backLabel": "Оборотная сторона (опц.)",
+        "uploadedLabel": "Загружено",
+        "replace": "Заменить",
+        "uploading": "Загрузка…",
+        "required": "Загрузите лицевую сторону удостоверения, чтобы подтвердить оплату",
+        "validationTooLarge": "Файл больше 5 МБ",
+        "validationBadMime": "Допустимы JPG, PNG, PDF",
+        "uploadFailed": "Не удалось загрузить файл"
+      }
     },
     "legal": {
       "title": "Оплата по реквизитам",

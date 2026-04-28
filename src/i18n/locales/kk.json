@@ -769,7 +769,20 @@
       "qrError": "QR-кодты жүктеу мүмкін болмады. Бетті жаңартыңыз.",
       "paidButton": "Төледім",
       "receiptTitle": "Төлем түбіртегін жүктеңіз",
-      "receiptHint": "PDF, JPG, PNG немесе WEBP, 10 МБ дейін"
+      "receiptHint": "PDF, JPG, PNG немесе WEBP, 10 МБ дейін",
+      "idDocument": {
+        "title": "Жеке басын куәландыратын құжат",
+        "subtitle": "Алдыңғы жағы міндетті, артқы жағы — қалау бойынша",
+        "frontLabel": "Алдыңғы жағы",
+        "backLabel": "Артқы жағы (қосымша)",
+        "uploadedLabel": "Жүктелген",
+        "replace": "Ауыстыру",
+        "uploading": "Жүктелуде…",
+        "required": "Төлемді растау үшін куәліктің алдыңғы жағын жүктеңіз",
+        "validationTooLarge": "Файл 5 МБ-тан үлкен",
+        "validationBadMime": "JPG, PNG, PDF қолдау табады",
+        "uploadFailed": "Файлды жүктеу мүмкін болмады"
+      }
     },
     "legal": {
       "title": "Деректемелер бойынша төлем",
