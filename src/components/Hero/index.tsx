@@ -91,8 +91,15 @@ function MobileStat({
 }
 
 export default function Hero() {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const prefersReducedMotion = useReducedMotion() ?? false;
+  const isKk = i18n.language === "kk";
+  const desktopTitleSize = isKk
+    ? "text-[40px] leading-[44px]"
+    : "text-[56px] leading-[56px]";
+  const mobileTitleSize = isKk
+    ? "text-[26px] leading-[28px]"
+    : "text-[32px] leading-[32px]";
 
   return (
     <section
@@ -129,7 +136,7 @@ export default function Hero() {
         <div className="absolute right-[104px] top-[120px] w-[592px] text-right">
           <motion.h1
             id="hero-heading"
-            className="font-heading font-extrabold text-[56px] leading-[56px] text-cta-main"
+            className={`font-heading font-extrabold ${desktopTitleSize} text-cta-main whitespace-pre-line`}
             {...fadeUp(0.4, prefersReducedMotion)}
           >
             {t("hero.title1")}
@@ -211,7 +218,7 @@ export default function Hero() {
         <div className="relative z-10 w-full px-3 pt-6 flex flex-col gap-4 items-start">
           <motion.h1
             id="hero-heading-mobile"
-            className="font-heading font-extrabold text-[32px] leading-[32px] text-cta-main text-left w-full"
+            className={`font-heading font-extrabold ${mobileTitleSize} text-cta-main text-left w-full whitespace-pre-line`}
             {...fadeUp(0.4, prefersReducedMotion)}
           >
             {t("hero.title1")}
