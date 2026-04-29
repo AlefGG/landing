@@ -7,7 +7,7 @@ export default defineConfig(({ mode }) => {
 
   if (mode === "production") {
     const apiUrl = env.VITE_API_URL ?? "";
-    if (/^https?:\/\/(?:localhost|127\.0\.0\.1)/i.test(apiUrl)) {
+    if (/^https?:\/\/(?:localhost|127\.0\.0\.1|\[::1\]|0\.0\.0\.0)(?:[:/?#]|$)/i.test(apiUrl)) {
       throw new Error(
         `vite.config.ts: VITE_API_URL points to localhost ("${apiUrl}") ` +
           `during a production build. This usually means .env.local is ` +
