@@ -1,19 +1,13 @@
 #!/usr/bin/env node
-// Soft-warn bundle-size budget for the LCP route ("/").
-// In Wave-fix-1 this is informational. Wave-fix-2 flips this to hard-fail
-// in the same PR as FE-PF-001 (Leaflet split out of shared chunk).
-//
-// Behaviour:
-//   - Builds dist/ via `npm run build` (caller is expected to have done so).
-//   - Sums the gzip size of every JS chunk loaded by index.html plus its
-//     async deps (entry chunk + its imports per the manifest).
-//   - Compares against BUDGET_GZ_KB. If exceeded, logs WARN and exits 0.
-//   - When SOFT_WARN=0 (set by Wave-fix-2's flip), exits 1 instead.
+// Soft-warn bundle-size budget for the LCP route.
+// Sums gzip size of every JS chunk loaded by index.html. Compares against
+// BUDGET_GZ_KB (default 250). Over-budget logs WARN and exits 0 unless
+// SOFT_WARN=0, in which case exits 1.
 //
 // Usage: node scripts/check-bundle-size.mjs
 
 import { readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
+import { resolve, dirname, relative } from "node:path";
 import { fileURLToPath } from "node:url";
 import { gzipSync } from "node:zlib";
 
@@ -54,7 +48,7 @@ function main() {
   for (const chunk of chunks) {
     const sizeKb = gzKb(chunk);
     totalKb += sizeKb;
-    console.log(`  ${chunk.replace(DIST + "/", "")}: ${sizeKb.toFixed(1)} KB gz`);
+    console.log(`  ${relative(DIST, chunk)}: ${sizeKb.toFixed(1)} KB gz`);
   }
   console.log(`Total LCP-route gz size: ${totalKb.toFixed(1)} KB (budget: ${BUDGET_GZ_KB} KB)`);
 
