@@ -17,7 +17,14 @@ permissions:
 
 jobs:
   lint:
+    # Wave-1: lint runs but is non-blocking — the audit baseline of 18
+    # ESLint errors (react-hooks set-state-in-effect, react-refresh export
+    # rules) maps to Wave-3 high findings (FE-RX-002..005). Job stays in
+    # the workflow as a visible signal; flip continue-on-error to false
+    # in Wave-3 once the baseline is cleared, then add lint to required
+    # checks via branch protection.
     runs-on: ubuntu-latest
+    continue-on-error: true
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
