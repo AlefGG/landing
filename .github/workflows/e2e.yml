@@ -1,0 +1,107 @@
+name: E2E
+
+on:
+  pull_request:
+    branches:
+      - master
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    steps:
+      - name: Checkout landing
+        uses: actions/checkout@v4
+        with:
+          path: landing
+
+      - name: Checkout backend repo (for docker-compose + tests/e2e)
+        uses: actions/checkout@v4
+        with:
+          repository: AlefGG/biotoilets
+          ref: main
+          path: backend-repo
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+          cache-dependency-path: |
+            landing/package-lock.json
+            backend-repo/tests/e2e/package-lock.json
+
+      - name: Install landing deps
+        working-directory: landing
+        run: npm ci
+
+      - name: Build landing for preview
+        working-directory: landing
+        run: npm run build
+
+      - name: Start backend_e2e via docker compose
+        working-directory: backend-repo
+        run: docker compose --profile e2e up -d --wait backend_e2e
+        env:
+          DOCKER_BUILDKIT: "1"
+
+      - name: Wait for backend healthz
+        working-directory: backend-repo
+        run: |
+          for i in {1..30}; do
+            if curl -fsS http://localhost:8001/healthz/ > /dev/null; then
+              echo "backend_e2e healthy"; exit 0
+            fi
+            sleep 2
+          done
+          echo "backend_e2e failed to become healthy"
+          docker compose --profile e2e logs backend_e2e | tail -100
+          exit 1
+
+      - name: Start vite preview
+        working-directory: landing
+        run: nohup npm run preview -- --port 5173 --host 127.0.0.1 > /tmp/vite-preview.log 2>&1 &
+
+      - name: Wait for vite preview
+        run: |
+          for i in {1..15}; do
+            if curl -fsS http://127.0.0.1:5173/ > /dev/null; then
+              echo "vite preview ready"; exit 0
+            fi
+            sleep 2
+          done
+          echo "vite preview failed to come up"
+          tail -100 /tmp/vite-preview.log
+          exit 1
+
+      - name: Install e2e deps
+        working-directory: backend-repo/tests/e2e
+        run: npm ci
+
+      - name: Install Playwright browsers
+        working-directory: backend-repo/tests/e2e
+        run: npx playwright install --with-deps chromium
+
+      - name: Run E2E
+        working-directory: backend-repo/tests/e2e
+        env:
+          E2E_BASE_URL: http://127.0.0.1:5173
+          E2E_API_BASE_URL: http://localhost:8001
+        run: npm test
+
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: backend-repo/tests/e2e/playwright-report
+          retention-days: 7
+
+      - name: Tear down compose
+        if: always()
+        working-directory: backend-repo
+        run: docker compose --profile e2e down -v
