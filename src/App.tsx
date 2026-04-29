@@ -7,6 +7,7 @@ import Header from "./components/Header";
 import Footer from "./components/Footer";
 import LandingPage from "./pages/LandingPage";
 import RequireAuth from "./components/auth/RequireAuth";
+import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 
 const ServicePage = lazy(() => import("./pages/ServicePage"));
@@ -49,8 +50,9 @@ export default function App() {
             </a>
             <Header />
             <main id="main">
-              <Suspense fallback={<RouteFallback />}>
-                <Routes>
+              <ErrorBoundary>
+                <Suspense fallback={<RouteFallback />}>
+                  <Routes>
                   <Route path="/" element={<LandingPage />} />
                   {/* PR-12: /service is the new canonical path; /sanitation
                       kept as a duplicate-route alias for backwards-compat
@@ -81,7 +83,8 @@ export default function App() {
                   </Route>
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
-              </Suspense>
+                </Suspense>
+              </ErrorBoundary>
             </main>
             <Footer />
           </AuthProvider>
