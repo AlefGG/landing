@@ -32,7 +32,7 @@ export default function FileUploader({
   const { t } = useTranslation();
   const inputRef = useRef<HTMLInputElement>(null);
   const [file, setFile] = useState<File | null>(null);
-  const [error, setError] = useState<PaymentValidationError | "uploadFailed" | null>(null);
+  const [error, setError] = useState<PaymentValidationError | "uploadFailed" | "notConfigured" | null>(null);
   const [errorDetail, setErrorDetail] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [isDragging, setIsDragging] = useState(false);

@@ -82,12 +82,14 @@ export default function Select({
         e.preventDefault();
         setFocusedIndex((prev) => (prev > 0 ? prev - 1 : options.length - 1));
         break;
-      case "Enter":
+      case "Enter": {
         e.preventDefault();
-        if (focusedIndex >= 0 && focusedIndex < options.length) {
-          select(options[focusedIndex].value);
+        const candidate = options[focusedIndex];
+        if (candidate) {
+          select(candidate.value);
         }
         break;
+      }
     }
   };
 
