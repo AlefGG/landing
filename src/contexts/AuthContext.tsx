@@ -95,6 +95,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (!current) return null;
     try {
       const { access, refresh: nextRefresh } = await refreshToken(current);
+      // Logout-during-refresh guard: if refs were cleared while the network
+      // request was in flight, do not resurrect them.
+      if (refreshTokenRef.current !== current) return null;
       accessTokenRef.current = access;
       if (nextRefresh) {
         refreshTokenRef.current = nextRefresh;
