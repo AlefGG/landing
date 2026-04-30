@@ -256,9 +256,7 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
                   reason:
                     meta.reason ??
                     (meta.blocked
-                      ? t(`${k}.step3FleetFull`, {
-                          defaultValue: "Нет свободных кабин",
-                        })
+                      ? t(`${k}.step3FleetFull`)
                       : null),
                 };
               }

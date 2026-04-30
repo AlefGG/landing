@@ -59,7 +59,7 @@ export default function AddressStep({ trip, zones = null }: Props) {
                 className="flex flex-col lg:flex-row lg:gap-6"
               >
                 <span>
-                  {t(`${k}.step4Address`, { defaultValue: "Адрес" })} {i + 1}:{" "}
+                  {t(`${k}.step4Address`)} {i + 1}:{" "}
                   <strong>{deliveryLabel(leg.preview, t)}</strong>
                 </span>
                 <span className="text-cta-main">

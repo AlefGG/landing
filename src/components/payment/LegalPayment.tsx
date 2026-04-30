@@ -61,9 +61,7 @@ export default function LegalPayment({
           wire the money before uploading their own requisites. */}
       <div className="rounded-2xl border border-neutral-200 bg-neutral-50 px-6 py-5">
         <h3 className="font-heading font-semibold text-base leading-6 text-neutral-900 mb-3">
-          {t("payment.legal.operatorRequisitesTitle", {
-            defaultValue: "Реквизиты для перевода",
-          })}
+          {t("payment.legal.operatorRequisitesTitle")}
         </h3>
         <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 font-body text-sm leading-4 text-neutral-800">
           {OPERATOR_REQUISITES.map((row) => (
@@ -78,9 +76,7 @@ export default function LegalPayment({
       </div>
 
       <FileUploader
-        title={t("payment.legal.uploaderTitle", {
-          defaultValue: "Реквизиты компании",
-        })}
+        title={t("payment.legal.uploaderTitle")}
         hint={t("payment.legal.hint")}
         onUpload={handleUpload}
         testId="legal-uploader"

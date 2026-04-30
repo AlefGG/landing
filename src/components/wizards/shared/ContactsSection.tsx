@@ -1,4 +1,4 @@
-import { useEffect, useRef, type ChangeEvent } from "react";
+import { type ChangeEvent } from "react";
 import { useTranslation } from "react-i18next";
 import { BasicInput } from "../../ui";
 import { useAuth } from "../../../contexts/AuthContext";
@@ -35,39 +35,10 @@ export default function ContactsSection({
   const k = "wizard.rental" as const;
   const isAuthed = status === "authenticated" && !!user;
   const useProfile = value.useProfile === true;
-  const prevUseProfileRef = useRef(useProfile);
-
-  useEffect(() => {
-    if (!isAuthed) {
-      if (value.useProfile) {
-        onChange({ ...value, useProfile: false });
-      }
-      prevUseProfileRef.current = false;
-      return;
-    }
-    if (!useProfile) {
-      prevUseProfileRef.current = false;
-      return;
-    }
-    const profileName = user?.first_name ?? "";
-    const profilePhone = user?.phone ? formatPhone(user.phone) : "";
-    const profileEmail = user?.email ?? "";
-    const justTurnedOn = !prevUseProfileRef.current;
-    const needsSync =
-      justTurnedOn ||
-      value.name !== profileName ||
-      value.phone !== profilePhone ||
-      value.email !== profileEmail;
-    if (needsSync) {
-      onChange({
-        ...value,
-        name: profileName,
-        phone: profilePhone,
-        email: profileEmail,
-      });
-    }
-    prevUseProfileRef.current = true;
-  }, [isAuthed, user, useProfile, value, onChange]);
+  // Defensive: if user de-auths while wizard form has useProfile=true, the
+  // toggle vanishes but the value persists. Treat as false at render so the
+  // de-auth case doesn't keep `setField` stuck on the wrong branch either.
+  const effectiveUseProfile = isAuthed && useProfile;
 
   const set = <K extends keyof ContactsValue>(key: K, v: ContactsValue[K]) =>
     onChange({ ...value, [key]: v });
@@ -76,10 +47,24 @@ export default function ContactsSection({
     key: K,
     v: string,
   ) => {
-    if (useProfile) {
+    if (effectiveUseProfile) {
       onChange({ ...value, [key]: v, useProfile: false });
     } else {
       set(key, v);
+    }
+  };
+
+  const handleToggleUseProfile = (next: boolean) => {
+    if (next && isAuthed && user) {
+      onChange({
+        ...value,
+        useProfile: true,
+        name: user.first_name ?? "",
+        phone: user.phone ? formatPhone(user.phone) : "",
+        email: user.email ?? "",
+      });
+    } else {
+      onChange({ ...value, useProfile: next });
     }
   };
 
@@ -119,8 +104,8 @@ export default function ContactsSection({
 
       {isAuthed && (
         <Toggle
-          checked={useProfile}
-          onChange={(v) => set("useProfile", v)}
+          checked={effectiveUseProfile}
+          onChange={handleToggleUseProfile}
           label={t("wizard.contacts.useProfile")}
         />
       )}
@@ -133,9 +118,7 @@ export default function ContactsSection({
           <BasicInput
             value={value.name}
             onChange={(e) => setField("name", e.target.value)}
-            placeholder={t(`${k}.step6NamePlaceholder`, {
-              defaultValue: "Иванов Иван",
-            })}
+            placeholder={t(`${k}.step6NamePlaceholder`)}
             aria-invalid={errors?.name ? true : undefined}
             className={`!h-10 ${errors?.name ? "!border-red-500" : ""}`}
           />
@@ -170,9 +153,7 @@ export default function ContactsSection({
           <BasicInput
             value={value.email}
             onChange={(e) => setField("email", e.target.value)}
-            placeholder={t(`${k}.step6EmailPlaceholder`, {
-              defaultValue: "name@mail.kz",
-            })}
+            placeholder={t(`${k}.step6EmailPlaceholder`)}
             aria-invalid={errors?.email ? true : undefined}
             className={`!h-10 ${errors?.email ? "!border-red-500" : ""}`}
           />

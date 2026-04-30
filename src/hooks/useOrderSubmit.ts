@@ -83,9 +83,7 @@ export function useOrderSubmit({
 
   const validationError =
     attempted && !contactsValid
-      ? t("wizard.rental.step6Required", {
-          defaultValue: "Заполните имя и телефон",
-        })
+      ? t("wizard.rental.step6Required")
       : null;
 
   const runBuildOrder = useCallback(async () => {

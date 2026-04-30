@@ -278,7 +278,6 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
                 )}
                 <span className="font-body text-sm leading-4 text-neutral-500 whitespace-nowrap">
                   {t("catalog.sale.checkout.summaryDelivery", {
-                    defaultValue: "в т.ч. доставка {{amount}} ₸",
                     amount: deliveryFee.toLocaleString("ru-RU"),
                   })}
                 </span>
@@ -294,9 +293,7 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6 lg:py-12">
         <StepHeader
           step={1}
-          title={t("catalog.sale.checkout.addressStep", {
-            defaultValue: "Адрес доставки",
-          })}
+          title={t("catalog.sale.checkout.addressStep")}
         />
         <div className="mt-4 flex flex-col gap-2">
           <AddressAutocomplete
@@ -309,55 +306,43 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
               trip.setText(entry.id, r.displayName);
               trip.setLocation(entry.id, { lat: r.lat, lng: r.lng });
             }}
-            placeholder={t("catalog.sale.checkout.addressPlaceholder", {
-              defaultValue: "г. Алматы, ул. ...",
-            })}
+            placeholder={t("catalog.sale.checkout.addressPlaceholder")}
             className="max-w-full lg:max-w-[488px]"
           />
-          <Suspense
-            fallback={
-              <div className="mt-0 h-[374px] lg:h-[450px] bg-neutral-100 animate-pulse rounded-[12px]" />
-            }
-          >
-            <MapPicker
-              points={trip.locations}
-              onMapClick={async (p) => {
-                const name = await reverseGeocode(p.lat, p.lng);
-                if (!entry) return;
-                trip.setText(
-                  entry.id,
-                  name ?? `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
-                );
-                trip.setLocation(entry.id, p);
-              }}
-              routes={trip.routes}
-              warehouse={trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null}
-              loading={trip.loading}
-              loadingText={t("wizard.service.step2RouteLoading", {
-                defaultValue: "Считаем маршрут…",
-              })}
-              className="mt-0 h-[374px] lg:h-[450px]"
-              zones={zones}
-            />
-          </Suspense>
+          <MapPicker
+            points={trip.locations}
+            onMapClick={async (p) => {
+              const name = await reverseGeocode(p.lat, p.lng);
+              if (!entry) return;
+              trip.setText(
+                entry.id,
+                name ?? `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
+              );
+              trip.setLocation(entry.id, p);
+            }}
+            routes={trip.routes}
+            warehouse={trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null}
+            loading={trip.loading}
+            loadingText={t("wizard.service.step2RouteLoading")}
+            className="mt-0 h-[374px] lg:h-[450px]"
+            zones={zones}
+          />
           {!trip.loading && trip.error && (
             <div className="mt-2 font-body text-base text-red-600">
-              {t("wizard.service.step2RouteError", {
-                defaultValue: "Не удалось построить маршрут",
-              })}
+              {t("wizard.service.step2RouteError")}
             </div>
           )}
           {!trip.loading && !trip.error && trip.hasPreview && (
             <div className="mt-2 flex flex-col lg:flex-row gap-2 lg:gap-6 font-body text-base text-neutral-900">
               <span>
-                {t("wizard.service.step2Distance", { defaultValue: "Дистанция" })}:{" "}
+                {t("wizard.service.step2Distance")}:{" "}
                 <strong>
                   {trip.distanceKm.toFixed(1)}{" "}
-                  {t("wizard.service.step2Km", { defaultValue: "км" })}
+                  {t("wizard.service.step2Km")}
                 </strong>
               </span>
               <span>
-                {t("wizard.service.step2DeliveryCost", { defaultValue: "Доставка" })}:{" "}
+                {t("wizard.service.step2DeliveryCost")}:{" "}
                 <strong className="text-cta-main">
                   {trip.deliveryCost.toLocaleString("ru-RU")} ₸
                 </strong>
@@ -366,9 +351,7 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
           )}
           {submitState.attempted && !addressValid && (
             <p className="mt-2 font-body text-sm text-red-600">
-              {t("catalog.sale.checkout.addressRequired", {
-                defaultValue: "Укажите адрес доставки",
-              })}
+              {t("catalog.sale.checkout.addressRequired")}
             </p>
           )}
         </div>

@@ -1,6 +1,7 @@
 import { useMemo } from "react";
 import { useTranslation } from "react-i18next";
-import { Link, useSearchParams } from "react-router-dom";
+import { Link, Navigate, useSearchParams } from "react-router-dom";
+import { useAuth } from "../contexts/AuthContext";
 
 type ServiceKey = "rental" | "sanitation" | "sale";
 
@@ -47,8 +48,9 @@ function Row({ label, children }: { label: string; children: React.ReactNode }) 
 export default function SuccessScreen() {
   const { t, i18n } = useTranslation();
   const [params] = useSearchParams();
+  const { status } = useAuth();
 
-  const orderNumber = params.get("order") ?? "XXXXXX";
+  const orderNumber = params.get("order");
   const serviceParam = (params.get("service") ?? "rental") as ServiceKey;
   const amountParam = params.get("amount");
   const dateParam = params.get("date");
@@ -80,6 +82,18 @@ export default function SuccessScreen() {
   }, [dateParam, i18n.language]);
 
   const amount = amountParam ?? "125 000";
+
+  if (!orderNumber) {
+    // Direct hit (back button, refresh, stale share link). Redirect — never
+    // render a placeholder confirmation that erodes trust right after the
+    // conversion event.
+    return (
+      <Navigate
+        to={status === "authenticated" ? "/account/orders" : "/"}
+        replace
+      />
+    );
+  }
 
   return (
     <div className="bg-white overflow-x-clip">

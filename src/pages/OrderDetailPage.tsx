@@ -73,9 +73,7 @@ export default function OrderDetailPage() {
 
   const onCancel = async () => {
     const confirmed = window.confirm(
-      t("auth.orders.detail.cancelConfirm", {
-        defaultValue: "Отменить заявку? Действие нельзя отменить.",
-      }),
+      t("auth.orders.detail.cancelConfirm"),
     );
     if (!confirmed) return;
     const result = await cancelMutation.runSafe(() => cancelOrder(id));
@@ -229,15 +227,11 @@ export default function OrderDetailPage() {
       )}
 
       {order.assignedExecutor && (
-        <Section
-          title={t("auth.orders.detail.section.executor", {
-            defaultValue: "Исполнитель",
-          })}
-        >
-          <Row label={t("auth.orders.detail.executorName", { defaultValue: "ФИО" })}>
+        <Section title={t("auth.orders.detail.section.executor")}>
+          <Row label={t("auth.orders.detail.executorName")}>
             {order.assignedExecutor.full_name}
           </Row>
-          <Row label={t("auth.orders.detail.executorPhone", { defaultValue: "Телефон" })}>
+          <Row label={t("auth.orders.detail.executorPhone")}>
             <a
               href={`tel:${order.assignedExecutor.phone}`}
               className="text-cta-main hover:underline"
@@ -249,11 +243,7 @@ export default function OrderDetailPage() {
       )}
 
       {order.attachments.length > 0 && (
-        <Section
-          title={t("auth.orders.detail.section.attachments", {
-            defaultValue: "Файлы",
-          })}
-        >
+        <Section title={t("auth.orders.detail.section.attachments")}>
           <ul className="flex flex-col gap-2">
             {order.attachments.map((a, idx) => (
               <li key={idx} className="font-body text-sm text-neutral-900">
@@ -270,11 +260,7 @@ export default function OrderDetailPage() {
         </Section>
       )}
 
-      <Section
-        title={t("auth.orders.detail.section.timeline", {
-          defaultValue: "История статусов",
-        })}
-      >
+      <Section title={t("auth.orders.detail.section.timeline")}>
         <ul className="flex flex-col gap-2" data-testid="order-timeline">
           {order.statusHistory.map((ev, idx) => (
             <li key={idx} className="flex flex-col lg:flex-row lg:gap-4 lg:items-baseline">
@@ -282,7 +268,7 @@ export default function OrderDetailPage() {
                 {ev.at ? formatAbsoluteDate(ev.at, i18n.language) : "—"}
               </span>
               <span className="font-body text-sm text-neutral-900">
-                {t(`auth.orders.status.${ev.status}`, { defaultValue: ev.status })}
+                {t(`auth.orders.status.${ev.status}`)}
               </span>
             </li>
           ))}
@@ -290,9 +276,7 @@ export default function OrderDetailPage() {
       </Section>
 
       {order.canCancel && (
-        <Section
-          title={t("auth.orders.detail.section.cancel", { defaultValue: "Отмена" })}
-        >
+        <Section title={t("auth.orders.detail.section.cancel")}>
           <div className="flex flex-col gap-2">
             <Button
               variant="ghost"
@@ -302,8 +286,8 @@ export default function OrderDetailPage() {
               data-testid="order-cancel-action"
             >
               {cancelMutation.pending
-                ? t("auth.orders.detail.cancelLoading", { defaultValue: "Отменяем…" })
-                : t("auth.orders.detail.cancelAction", { defaultValue: "Отменить заявку" })}
+                ? t("auth.orders.detail.cancelLoading")
+                : t("auth.orders.detail.cancelAction")}
             </Button>
             {cancelMutation.error && (
               <InlineError
