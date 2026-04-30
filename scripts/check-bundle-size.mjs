@@ -1,8 +1,12 @@
 #!/usr/bin/env node
-// Soft-warn bundle-size budget for the LCP route.
+// Hard-fail bundle-size budget for the LCP route.
 // Sums gzip size of every JS chunk loaded by index.html. Compares against
-// BUDGET_GZ_KB (default 250). Over-budget logs WARN and exits 0 unless
-// SOFT_WARN=0, in which case exits 1.
+// BUDGET_GZ_KB (default 200, calibrated to post-FE-PF-001 split + 10%
+// headroom). Over-budget exits 1 (CI fails). SOFT_WARN=1 reverts to the
+// pre-Wave-2 warn-only mode for emergency overrides.
+//
+// Wave-2 hard-fail flip per strategy spec §4.4(3). FE-PF-001 Leaflet split
+// landed in this PR; from now on, exceeding the budget breaks CI.
 //
 // Usage: node scripts/check-bundle-size.mjs
 
@@ -15,8 +19,8 @@ const __dirname = dirname(fileURLToPath(import.meta.url));
 const ROOT = resolve(__dirname, "..");
 const DIST = resolve(ROOT, "dist");
 
-const BUDGET_GZ_KB = Number(process.env.BUDGET_GZ_KB ?? 250);
-const SOFT_WARN = process.env.SOFT_WARN !== "0";
+const BUDGET_GZ_KB = Number(process.env.BUDGET_GZ_KB ?? 200);
+const SOFT_WARN = process.env.SOFT_WARN === "1";
 
 function gzKb(filePath) {
   const buf = readFileSync(filePath);
