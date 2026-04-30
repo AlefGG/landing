@@ -71,6 +71,29 @@ async function parseBody(response: Response): Promise<unknown> {
 }
 
 export function createApiClient(config: ApiClientConfig): ApiClient {
+  // Closure-scoped mutex — collapses concurrent 401s into a single onRefresh()
+  // call. Cleared on a macrotask boundary (setTimeout 0) so all microtask
+  // awaiters of THIS refresh observe the resolved value before the slot wipes.
+  let inflightRefresh: Promise<string | null> | null = null;
+
+  async function refreshOnce(): Promise<string | null> {
+    if (inflightRefresh) return inflightRefresh;
+    inflightRefresh = (async () => {
+      try {
+        return await config.onRefresh();
+      } catch {
+        // Defence-in-depth: normalise reject → null so all awaiters see the
+        // same "auth expired" outcome, regardless of how onRefresh fails.
+        return null;
+      } finally {
+        setTimeout(() => {
+          inflightRefresh = null;
+        }, 0);
+      }
+    })();
+    return inflightRefresh;
+  }
+
   async function rawFetch(path: string, init?: RequestInit): Promise<Response> {
     const baseUrl = path.startsWith("/media/")
       ? (config.baseUrl ?? "").replace(/\/api\/?$/, "")
@@ -81,7 +104,7 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
 
     if (firstResponse.status !== 401) return firstResponse;
 
-    const refreshedToken = await config.onRefresh();
+    const refreshedToken = await refreshOnce();
     if (!refreshedToken) {
       config.onAuthError();
       throw new AuthExpiredError();
@@ -156,6 +179,17 @@ export function fetchJson<T = unknown>(
 
 export function fetchBlob(path: string, init?: RequestInit): Promise<Blob> {
   return activeClient.requestBlob(path, init);
+}
+
+// Test-only: reset the slot back to the unauth default. Used by Vitest
+// teardown to keep tests isolated from each other.
+export function __resetApiClient(): void {
+  activeClient = createApiClient({
+    baseUrl: resolveBaseUrl(),
+    getAccessToken: () => null,
+    onRefresh: async () => null,
+    onAuthError: () => {},
+  });
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {
