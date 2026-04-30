@@ -161,8 +161,8 @@ export default function OrdersListPage() {
             disabled={loadingMore}
           >
             {loadingMore
-              ? t("auth.orders.loadMoreLoading", { defaultValue: "Загружаем…" })
-              : t("auth.orders.loadMore", { defaultValue: "Показать ещё" })}
+              ? t("auth.orders.loadMoreLoading")
+              : t("auth.orders.loadMore")}
           </Button>
           {loadMoreError && <InlineError error={loadMoreError} />}
         </div>

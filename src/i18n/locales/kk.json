@@ -55,7 +55,11 @@
         "errors": {
           "fillAll": "Аты мен телефонды толтырыңыз",
           "outOfStock": "Қоймада жоқ"
-        }
+        },
+        "summaryDelivery": "оның ішінде жеткізу {{amount}} ₸",
+        "addressStep": "Жеткізу мекенжайы",
+        "addressPlaceholder": "Алматы қ., ... көш.",
+        "addressRequired": "Жеткізу мекенжайын көрсетіңіз"
       },
       "items": {
         "standard": {
@@ -231,7 +235,11 @@
         "section": {
           "details": "Мәліметтер",
           "contacts": "Байланыстар",
-          "payment": "Төлем"
+          "payment": "Төлем",
+          "executor": "Орындаушы",
+          "cancel": "Тоқтату",
+          "attachments": "Файлдар",
+          "timeline": "Мәртебелер тарихы"
         },
         "service": "Қызмет",
         "date": "Өтінім күні",
@@ -252,8 +260,15 @@
         "payAction": "Төлемге өту",
         "payPending": "Төлемді күтуде",
         "notFound": "Өтінім табылмады",
-        "notFoundBack": "Тізімге оралу"
-      }
+        "notFoundBack": "Тізімге оралу",
+        "cancelConfirm": "Өтінімді тоқтатасыз ба? Әрекетті кері қайтару мүмкін емес.",
+        "executorName": "Т.А.Ә.",
+        "executorPhone": "Телефон",
+        "cancelLoading": "Тоқтатылуда…",
+        "cancelAction": "Өтінімді тоқтату"
+      },
+      "loadMoreLoading": "Жүктелуде…",
+      "loadMore": "Тағы көрсету"
     },
     "profile": {
       "title": "Профиль",
@@ -553,7 +568,11 @@
       "step6Required": "Есімі мен телефонды толтырыңыз",
       "price": "құны",
       "currency": "₸",
-      "submit": "Өтінім жіберу"
+      "submit": "Өтінім жіберу",
+      "step4Address": "Мекенжай",
+      "step3FleetFull": "Бос кабиналар жоқ",
+      "step6NamePlaceholder": "Иванов Иван",
+      "step6EmailPlaceholder": "name@mail.kz"
     },
     "rentalFaq": {
       "title": "Жиі қойылатын ",
@@ -721,7 +740,9 @@
         "endBeforeStart": "Аяқтау күні бастау күнінен бұрын",
         "noStart": "Бастау күнін көрсетіңіз",
         "noEnd": "Аяқтау күнін көрсетіңіз"
-      }
+      },
+      "step2Address": "Мекенжай",
+      "step3RequireAtLeastOneToilet": "Кемінде бір биодәретхананы көрсетіңіз"
     }
   },
   "success": {
@@ -784,7 +805,9 @@
     "legal": {
       "title": "Деректемелер бойынша төлем",
       "instruction": "Компанияның деректемелерінің фотосы немесе сканерін жүктеңіз.",
-      "hint": "PDF, JPG, PNG немесе WEBP, 10 МБ дейін"
+      "hint": "PDF, JPG, PNG немесе WEBP, 10 МБ дейін",
+      "operatorRequisitesTitle": "Аударымға арналған деректемелер",
+      "uploaderTitle": "Компания деректемелері"
     },
     "uploader": {
       "choose": "Файл таңдау",

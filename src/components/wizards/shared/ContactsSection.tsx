@@ -133,9 +133,7 @@ export default function ContactsSection({
           <BasicInput
             value={value.name}
             onChange={(e) => setField("name", e.target.value)}
-            placeholder={t(`${k}.step6NamePlaceholder`, {
-              defaultValue: "Иванов Иван",
-            })}
+            placeholder={t(`${k}.step6NamePlaceholder`)}
             aria-invalid={errors?.name ? true : undefined}
             className={`!h-10 ${errors?.name ? "!border-red-500" : ""}`}
           />
@@ -170,9 +168,7 @@ export default function ContactsSection({
           <BasicInput
             value={value.email}
             onChange={(e) => setField("email", e.target.value)}
-            placeholder={t(`${k}.step6EmailPlaceholder`, {
-              defaultValue: "name@mail.kz",
-            })}
+            placeholder={t(`${k}.step6EmailPlaceholder`)}
             aria-invalid={errors?.email ? true : undefined}
             className={`!h-10 ${errors?.email ? "!border-red-500" : ""}`}
           />

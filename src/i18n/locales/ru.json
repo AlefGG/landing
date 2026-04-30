@@ -55,7 +55,11 @@
         "errors": {
           "fillAll": "Заполните имя и телефон",
           "outOfStock": "Нет в наличии"
-        }
+        },
+        "summaryDelivery": "в т.ч. доставка {{amount}} ₸",
+        "addressStep": "Адрес доставки",
+        "addressPlaceholder": "г. Алматы, ул. ...",
+        "addressRequired": "Укажите адрес доставки"
       },
       "items": {
         "standard": {
@@ -231,7 +235,11 @@
         "section": {
           "details": "Детали",
           "contacts": "Контакты",
-          "payment": "Оплата"
+          "payment": "Оплата",
+          "executor": "Исполнитель",
+          "cancel": "Отмена",
+          "attachments": "Файлы",
+          "timeline": "История статусов"
         },
         "service": "Услуга",
         "date": "Дата заявки",
@@ -252,8 +260,15 @@
         "payAction": "Перейти к оплате",
         "payPending": "Ожидает оплаты",
         "notFound": "Заявка не найдена",
-        "notFoundBack": "Вернуться к списку"
-      }
+        "notFoundBack": "Вернуться к списку",
+        "cancelConfirm": "Отменить заявку? Действие нельзя отменить.",
+        "executorName": "ФИО",
+        "executorPhone": "Телефон",
+        "cancelLoading": "Отменяем…",
+        "cancelAction": "Отменить заявку"
+      },
+      "loadMoreLoading": "Загружаем…",
+      "loadMore": "Показать ещё"
     },
     "profile": {
       "title": "Профиль",
@@ -554,7 +569,11 @@
       "step6Required": "Заполните имя и телефон",
       "price": "стоимость",
       "currency": "₸",
-      "submit": "Отправить заявку"
+      "submit": "Отправить заявку",
+      "step4Address": "Адрес",
+      "step3FleetFull": "Нет свободных кабин",
+      "step6NamePlaceholder": "Иванов Иван",
+      "step6EmailPlaceholder": "name@mail.kz"
     },
     "rentalFaq": {
       "title": "Часто задаваемые ",
@@ -728,7 +747,9 @@
         "endBeforeStart": "Дата окончания раньше даты начала",
         "noStart": "Укажите дату начала",
         "noEnd": "Укажите дату окончания"
-      }
+      },
+      "step2Address": "Адрес",
+      "step3RequireAtLeastOneToilet": "Укажите хотя бы один биотуалет"
     }
   },
   "success": {
@@ -791,7 +812,9 @@
     "legal": {
       "title": "Оплата по реквизитам",
       "instruction": "Загрузите фото или скан реквизитов компании.",
-      "hint": "PDF, JPG, PNG или WEBP, до 10 МБ"
+      "hint": "PDF, JPG, PNG или WEBP, до 10 МБ",
+      "operatorRequisitesTitle": "Реквизиты для перевода",
+      "uploaderTitle": "Реквизиты компании"
     },
     "uploader": {
       "choose": "Выбрать файл",

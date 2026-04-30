@@ -72,15 +72,13 @@ export default function IdDocumentUpload({
               onClick={handlePick}
               className="font-body text-sm leading-4 text-cta-main hover:underline"
             >
-              {t("wizard.contacts.idDocument.replace", { defaultValue: "Заменить" })}
+              {t("wizard.contacts.idDocument.replace")}
             </button>
             <button
               type="button"
               onClick={() => onChange(null)}
               className="font-body text-sm leading-4 text-red-600 hover:underline"
-              aria-label={t("wizard.contacts.idDocument.remove", {
-                defaultValue: "Удалить",
-              })}
+              aria-label={t("wizard.contacts.idDocument.remove")}
             >
               ✕
             </button>
@@ -110,9 +108,7 @@ export default function IdDocumentUpload({
           }`}
         >
           <span className="font-body text-sm leading-5 text-neutral-700 text-center">
-            {t("wizard.contacts.idDocument.dropzone", {
-              defaultValue: "Перетащите файл или нажмите для выбора",
-            })}
+            {t("wizard.contacts.idDocument.dropzone")}
           </span>
           <span className="font-body text-xs leading-4 text-neutral-500">
             JPG, PNG, PDF · ≤5 MB

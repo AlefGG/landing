@@ -472,7 +472,7 @@ export default function ServiceWizard() {
                       className="flex flex-col lg:flex-row lg:gap-6"
                     >
                       <span>
-                        {t(`${k}.step2Address`, { defaultValue: "Адрес" })} {i + 1}:{" "}
+                        {t(`${k}.step2Address`)} {i + 1}:{" "}
                         <strong>{deliveryLabel(leg.preview, t)}</strong>
                       </span>
                       <span className="text-cta-main">
@@ -717,9 +717,7 @@ export default function ServiceWizard() {
             </button>
             {cabinCount === 0 && (
               <p className="font-body text-sm leading-4 text-red-600">
-                {t(`${k}.step3RequireAtLeastOneToilet`, {
-                  defaultValue: "Укажите хотя бы один биотуалет",
-                })}
+                {t(`${k}.step3RequireAtLeastOneToilet`)}
               </p>
             )}
             {subtypeReasonText && (
