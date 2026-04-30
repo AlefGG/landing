@@ -151,7 +151,7 @@ export default function Header() {
           {/* Logo */}
           <Link
             to="/"
-            className="shrink-0 flex items-center gap-2 lg:gap-3"
+            className="shrink-0 flex items-center gap-2"
             aria-label={t("meta.brandName")}
           >
             <img
@@ -160,8 +160,12 @@ export default function Header() {
               aria-hidden="true"
               className="h-8 w-auto lg:h-11"
             />
-            <span className="font-heading font-extrabold text-neutral-900 text-[15px] lg:text-[22px] leading-none tracking-tight whitespace-nowrap">
-              Эко-Ресурс
+            <span
+              className="flex flex-col text-neutral-900 text-[15px] lg:text-[18px] leading-[1.05] tracking-[-0.01em]"
+              style={{ fontFamily: '"Geologica", "Nunito Sans", sans-serif', fontWeight: 400 }}
+            >
+              <span>Эко</span>
+              <span>Ресурс</span>
             </span>
           </Link>
 
