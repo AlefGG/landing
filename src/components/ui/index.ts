@@ -11,8 +11,6 @@ export { default as StepHeader } from "./StepHeader";
 export { Calendar } from "./Calendar";
 export { default as TimeDropdown } from "./TimeDropdown";
 export { default as Select } from "./Select";
-export { default as MapPicker, ALMATY_CENTER } from "./MapPicker";
-export type { LatLng } from "./MapPicker";
 export { default as AddressAutocomplete } from "./AddressAutocomplete";
 export { default as AddressList } from "./AddressList";
 export type { AddressEntry } from "./AddressList";

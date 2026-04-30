@@ -2,6 +2,7 @@ import { useTranslation } from "react-i18next";
 import { motion, useInView, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import { useCountUp } from "../../hooks/useCountUp";
+import ResponsiveImage from "../ResponsiveImage";
 
 const fadeUp = (delay: number, reduced: boolean) =>
   reduced
@@ -122,9 +123,10 @@ export default function Hero() {
       {/* Hero image — floating island, positioned per Figma */}
       <div className="hidden lg:block absolute inset-0 pointer-events-none">
         <div className="max-w-[1216px] mx-auto relative h-full">
-          <img
+          <ResponsiveImage
             src="/assets/images/hero-bg.png"
             alt={t("a11y.heroCity")}
+            sizes="100vw"
             className="absolute left-[-132px] top-[2px] w-[995px] h-[743px] object-contain"
           />
         </div>
@@ -168,9 +170,11 @@ export default function Hero() {
           <p className="absolute top-5 right-6 font-body font-normal text-base leading-6 text-neutral-700 text-right whitespace-pre-line">
             {t("hero.emergencyTime")}
           </p>
-          <img
+          <ResponsiveImage
             src="/assets/images/cabin-hero.png"
             alt={t("a11y.heroCabin")}
+            sizes="(max-width:768px) 100vw, 50vw"
+            priority
             width={150}
             height={252}
             className="absolute left-1/2 -translate-x-1/2 bottom-3 h-[252px] w-[150px] object-contain"
@@ -246,9 +250,10 @@ export default function Hero() {
               <p className="absolute top-2 right-4 font-heading font-light text-[22px] leading-[32px] text-cta-main">
                 {t("hero.emergencyBadge")}
               </p>
-              <img
+              <ResponsiveImage
                 src="/assets/images/cabin-hero.png"
                 alt={t("a11y.heroCabin")}
+                sizes="100vw"
                 className="absolute left-1/2 -translate-x-1/2 top-[38px] w-[116px] h-[176px] object-contain"
               />
               <p className="absolute bottom-3 left-2 right-2 font-body text-[11px] leading-3 text-neutral-700 text-center whitespace-pre-line">
@@ -260,9 +265,10 @@ export default function Hero() {
 
         {/* Hero image — floating island (mobile). Enlarged to match design. */}
         <div className="relative z-10 w-full flex items-center justify-center">
-          <img
+          <ResponsiveImage
             src="/assets/images/hero-bg.png"
             alt={t("a11y.heroCity")}
+            sizes="100vw"
             className="w-full max-w-[480px] h-auto object-contain shrink-0"
           />
         </div>

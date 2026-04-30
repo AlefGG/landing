@@ -1,8 +1,11 @@
-import { useCallback, useState, useEffect } from "react";
+import { lazy, Suspense, useCallback, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Seo from "../Seo";
-import { StepHeader, MapPicker, InlineError, FieldErrors } from "../ui";
+import ResponsiveImage from "../ResponsiveImage";
+import { StepHeader, InlineError, FieldErrors } from "../ui";
+
+const MapPicker = lazy(() => import("../ui/MapPicker"));
 import AddressAutocomplete from "../ui/AddressAutocomplete";
 import ContactsSection, {
   type ContactsValue,
@@ -238,9 +241,10 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6 lg:py-12">
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-8">
           <div className="size-[120px] shrink-0 flex items-center justify-center bg-white rounded-2xl">
-            <img
+            <ResponsiveImage
               src={item.image}
               alt={name}
+              sizes="120px"
               className="h-[120px] w-[120px] object-contain"
             />
           </div>

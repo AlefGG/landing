@@ -3,6 +3,7 @@ import type { TFunction } from "i18next";
 import type { CabinTypeDTO } from "../../../hooks/useCabinTypes";
 import { rentalCabins, type CabinType } from "./cabinData";
 import QuantityStepper from "./QuantityStepper";
+import ResponsiveImage from "../../ResponsiveImage";
 
 const BACKEND_TO_UI: Record<string, CabinType> = {
   standard: "standard",
@@ -96,9 +97,10 @@ export default function MultiCabinSelector({
               className="flex items-center gap-4 lg:gap-6 rounded-3xl bg-white px-4 py-3 lg:px-6 lg:py-4 shadow-sm"
             >
               {photo ? (
-                <img
+                <ResponsiveImage
                   src={photo}
                   alt={label}
+                  sizes="(max-width:768px) 72px, 100px"
                   className="h-[72px] w-[72px] lg:h-[100px] lg:w-[100px] object-contain shrink-0"
                 />
               ) : (

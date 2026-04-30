@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
+import ResponsiveImage from "../ResponsiveImage";
 
 const facts = [
   { value: "about.years" as const, unit: "about.yearsUnit" as const, desc: "about.yearsDesc" as const, label: "about.yearsLabel" as const },
@@ -47,11 +48,11 @@ export default function About() {
         </div>
 
         <div className="w-screen h-[227px] relative overflow-hidden">
-          <img
+          <ResponsiveImage
             src="/assets/images/about-bg.jpg"
             alt=""
+            sizes="100vw"
             className="absolute inset-0 w-full h-full object-cover object-top"
-            loading="lazy"
           />
           <div className="absolute inset-0 bg-gradient-to-t from-transparent from-[88%] to-[#ecece8]" />
         </div>
@@ -59,11 +60,11 @@ export default function About() {
 
       {/* Desktop layout — unchanged */}
       <div className="hidden lg:block absolute inset-0 pointer-events-none">
-        <img
+        <ResponsiveImage
           src="/assets/images/about-bg.jpg"
           alt=""
+          sizes="100vw"
           className="absolute inset-0 w-full h-full object-cover object-top"
-          loading="lazy"
         />
         <div className="absolute inset-0 bg-gradient-to-r from-white from-[10%] via-white/95 via-[50%] to-transparent to-[80%] xl:via-[40%] xl:to-[70%] 2xl:via-[35%] 2xl:to-[65%]" />
       </div>

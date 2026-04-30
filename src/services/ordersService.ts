@@ -105,11 +105,14 @@ export type MyOrdersPage = {
   results: OrderListItem[];
 };
 
-export async function listMyOrders(params?: {
-  status?: OrderStatus;
-  page?: number;
-  pageSize?: number;
-}): Promise<MyOrdersPage> {
+export async function listMyOrders(
+  params?: {
+    status?: OrderStatus;
+    page?: number;
+    pageSize?: number;
+  },
+  opts?: { signal?: AbortSignal },
+): Promise<MyOrdersPage> {
   const search = new URLSearchParams();
   if (params?.status) search.set("status", params.status);
   if (params?.page) search.set("page", String(params.page));
@@ -117,6 +120,7 @@ export async function listMyOrders(params?: {
   const qs = search.toString();
   const raw = await fetchJson<Paginated<RawListItem>>(
     `/orders/my/${qs ? `?${qs}` : ""}`,
+    opts?.signal ? { signal: opts.signal } : undefined,
   );
   return {
     count: raw.count,

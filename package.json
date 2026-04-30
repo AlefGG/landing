@@ -5,12 +5,14 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "tsc -b && vite build",
+    "images:optimize": "node scripts/optimize-images.mjs",
+    "build": "npm run images:optimize && tsc -b && vite build",
     "lint": "eslint .",
     "preview": "vite preview",
     "test": "vitest run",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
+    "test:scripts": "node --test scripts/__tests__/*.test.mjs",
     "typecheck": "tsc -b --pretty false",
     "size:check": "node scripts/check-bundle-size.mjs"
   },
@@ -44,6 +46,7 @@
     "eslint-plugin-react-refresh": "^0.5.2",
     "globals": "^17.4.0",
     "jsdom": "^27.0.1",
+    "sharp": "0.34.5",
     "tailwindcss": "^4.2.2",
     "typescript": "~6.0.2",
     "typescript-eslint": "^8.58.0",

@@ -1,9 +1,11 @@
-import { useState, useRef, useEffect, useMemo } from "react";
+import { lazy, Suspense, useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
 import InlineOtpGate from "./shared/InlineOtpGate";
 import { Link } from "react-router-dom";
-import { StepHeader, Calendar, MapPicker, AddressList } from "../ui";
+import { StepHeader, Calendar, AddressList } from "../ui";
+
+const MapPicker = lazy(() => import("../ui/MapPicker"));
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useZones } from "../../hooks/useZones";
 import { useTimeSlots } from "../../hooks/useTimeSlots";
@@ -446,18 +448,24 @@ export default function ServiceWizard() {
               placeholder={t(`${k}.step2Placeholder`)}
               addLabel={t(`${k}.step2AddAddress`)}
             />
-            <MapPicker
-              points={trip.locations}
-              onMapClick={trip.appendFromMap}
-              routes={trip.routes}
-              warehouse={
-                trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null
+            <Suspense
+              fallback={
+                <div className="mt-0 h-[374px] lg:h-[550px] bg-neutral-100 animate-pulse rounded-[12px]" />
               }
-              loading={trip.loading}
-              loadingText={t(`${k}.step2RouteLoading`)}
-              className="mt-0 h-[374px] lg:h-[550px]"
-              zones={zones}
-            />
+            >
+              <MapPicker
+                points={trip.locations}
+                onMapClick={trip.appendFromMap}
+                routes={trip.routes}
+                warehouse={
+                  trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null
+                }
+                loading={trip.loading}
+                loadingText={t(`${k}.step2RouteLoading`)}
+                className="mt-0 h-[374px] lg:h-[550px]"
+                zones={zones}
+              />
+            </Suspense>
             {!trip.loading && trip.error && (
               <div className="mt-2 font-body text-base text-red-600">
                 {t(`${k}.step2RouteError`)}

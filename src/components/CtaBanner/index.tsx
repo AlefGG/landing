@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Button, Modal, ContactForm } from "../ui";
+import ResponsiveImage from "../ResponsiveImage";
 
 export default function CtaBanner() {
   const { t } = useTranslation();
@@ -13,11 +14,11 @@ export default function CtaBanner() {
         {/* Dark gradient bg + city overlay image */}
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
           <div className="absolute inset-0 bg-gradient-to-b from-[#3c4449] to-[#21272b]" />
-          <img
+          <ResponsiveImage
             alt=""
             className="absolute inset-0 size-full object-cover mix-blend-overlay opacity-50"
             src="/assets/images/cta-bg.png"
-            loading="lazy"
+            sizes="100vw"
           />
         </div>
 
