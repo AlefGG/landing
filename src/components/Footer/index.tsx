@@ -40,6 +40,9 @@ export default function Footer() {
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-4 items-start">
             {/* Description */}
             <div className="w-full lg:w-[280px] shrink-0">
+              <p className="font-heading font-extrabold text-neutral-900 text-lg lg:text-xl mb-2">
+                Эко-Ресурс
+              </p>
               <p className="font-body text-sm leading-4 text-neutral-600">
                 {t("footer.description")}
               </p>

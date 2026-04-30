@@ -149,12 +149,20 @@ export default function Header() {
       <nav className="sticky top-0 z-40">
         <div className="max-w-[1216px] mx-auto px-3 lg:px-8 flex items-center h-10 lg:h-16">
           {/* Logo */}
-          <Link to="/" className="shrink-0" aria-label={t("meta.brandName")}>
+          <Link
+            to="/"
+            className="shrink-0 flex items-center gap-2 lg:gap-3"
+            aria-label={t("meta.brandName")}
+          >
             <img
-              src="/assets/logos/logo.svg"
-              alt={t("a11y.brandLogo")}
-              className="h-10 w-auto lg:h-12"
+              src="/assets/logos/logo-icon.svg"
+              alt=""
+              aria-hidden="true"
+              className="h-8 w-auto lg:h-11"
             />
+            <span className="font-heading font-extrabold text-neutral-900 text-[15px] lg:text-[22px] leading-none tracking-tight whitespace-nowrap">
+              Эко-Ресурс
+            </span>
           </Link>
 
           {/* Desktop nav — space-between in left zone */}
