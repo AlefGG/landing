@@ -1,0 +1,122 @@
+import { useEffect, useState } from "react";
+import { Helmet } from "react-helmet-async";
+
+type Props = {
+  src: string;
+  alt: string;
+  sizes: string;
+  priority?: boolean;
+  className?: string;
+  width?: number;
+  height?: number;
+};
+
+const WIDTHS = [480, 800, 1280] as const;
+const FORMATS = ["avif", "webp"] as const;
+
+type Variants = {
+  srcSets: Record<(typeof FORMATS)[number], string>;
+  fallback: string;
+  originalSrc: string;
+};
+
+function deriveVariants(src: string): Variants | null {
+  // /assets/images/cabin-hero.png -> dir "/assets/images", basename "cabin-hero", ext "png"
+  // Match png/jpg/jpeg only; svg/webp/data-uri etc fall through to plain <img>.
+  const match = src.match(/^(.*)\/([^/]+)\.(png|jpe?g)$/i);
+  if (!match) return null;
+  const basename = match[2]!;
+  const ext = match[3]!;
+  const optimizedBase = `/assets/images-optimized/${basename}`;
+  const srcSets = {
+    avif: WIDTHS.map((w) => `${optimizedBase}@${w}w.avif ${w}w`).join(", "),
+    webp: WIDTHS.map((w) => `${optimizedBase}@${w}w.webp ${w}w`).join(", "),
+  };
+  const fallback = `${optimizedBase}@1280w.${ext.toLowerCase()}`;
+  return { srcSets, fallback, originalSrc: src };
+}
+
+export default function ResponsiveImage({
+  src,
+  alt,
+  sizes,
+  priority,
+  className,
+  width,
+  height,
+}: Props) {
+  const variants = deriveVariants(src);
+  const [imgSrc, setImgSrc] = useState(variants?.fallback ?? src);
+
+  useEffect(() => {
+    if (!priority) return;
+    if (typeof window === "undefined") return;
+    const w = window as unknown as { __responsiveImagePriorityCount?: number };
+    w.__responsiveImagePriorityCount = (w.__responsiveImagePriorityCount ?? 0) + 1;
+    if (import.meta.env.DEV && w.__responsiveImagePriorityCount > 1) {
+      console.warn(
+        "[ResponsiveImage] more than one priority={true} mounted — only one LCP per route",
+      );
+    }
+    return () => {
+      w.__responsiveImagePriorityCount =
+        (w.__responsiveImagePriorityCount ?? 1) - 1;
+    };
+  }, [priority]);
+
+  if (!variants) {
+    // src didn't match expected pattern → render plain img.
+    return (
+      <img
+        src={src}
+        alt={alt}
+        className={className}
+        width={width}
+        height={height}
+        loading={priority ? "eager" : "lazy"}
+        decoding="async"
+        fetchPriority={priority ? "high" : undefined}
+      />
+    );
+  }
+
+  return (
+    <>
+      {priority && (
+        <Helmet>
+          <link
+            rel="preload"
+            as="image"
+            imageSrcSet={variants.srcSets.avif}
+            imageSizes={sizes}
+            type="image/avif"
+          />
+          <link
+            rel="preload"
+            as="image"
+            imageSrcSet={variants.srcSets.webp}
+            imageSizes={sizes}
+            type="image/webp"
+          />
+        </Helmet>
+      )}
+      <picture>
+        <source type="image/avif" srcSet={variants.srcSets.avif} sizes={sizes} />
+        <source type="image/webp" srcSet={variants.srcSets.webp} sizes={sizes} />
+        <img
+          src={imgSrc}
+          alt={alt}
+          className={className}
+          width={width}
+          height={height}
+          loading={priority ? "eager" : "lazy"}
+          decoding="async"
+          fetchPriority={priority ? "high" : undefined}
+          onError={() => {
+            if (imgSrc !== variants.originalSrc) setImgSrc(variants.originalSrc);
+          }}
+        />
+      </picture>
+    </>
+  );
+}
