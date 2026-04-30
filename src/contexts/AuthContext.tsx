@@ -13,7 +13,7 @@ import { configureApiClient } from "../services/apiClient";
 import {
   fetchMe,
   logout as logoutRequest,
-  refresh as refreshToken,
+  refresh,
   sendOtp as sendOtpRequest,
   updateProfile as updateProfileRequest,
   verifyOtp,
@@ -32,57 +32,21 @@ type AuthContextValue = {
   updateProfile: (patch: ProfilePatch) => Promise<void>;
 };
 
-const STORAGE_KEYS = {
-  refresh: "auth.refresh",
-  // BUG-059: historical builds persisted the access JWT in localStorage.
-  // Current build only keeps it in memory, but logout must still purge
-  // the legacy key so a post-rewrite browser cannot leak a stale token
-  // for the remainder of ACCESS_TOKEN_LIFETIME.
-  legacyAccess: "auth.access",
-} as const;
-
 const AuthContext = createContext<AuthContextValue | null>(null);
-
-function readRefresh(): string | null {
-  if (typeof window === "undefined") return null;
-  try {
-    return window.localStorage.getItem(STORAGE_KEYS.refresh);
-  } catch {
-    return null;
-  }
-}
-
-function writeRefresh(token: string): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.setItem(STORAGE_KEYS.refresh, token);
-  } catch {
-    // quota / private mode — ignore
-  }
-}
-
-function clearRefresh(): void {
-  if (typeof window === "undefined") return;
-  try {
-    window.localStorage.removeItem(STORAGE_KEYS.refresh);
-    window.localStorage.removeItem(STORAGE_KEYS.legacyAccess);
-  } catch {
-    // ignore
-  }
-}
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const accessTokenRef = useRef<string | null>(null);
-  const refreshTokenRef = useRef<string | null>(null);
+  // Incremented on every logout(); handleRefresh captures it before the
+  // network await and drops the resolved access token if the epoch advanced
+  // mid-flight (logout-during-refresh resurrection guard, cookie variant).
+  const sessionEpochRef = useRef(0);
   const [user, setUser] = useState<AuthUser | null>(null);
   const [status, setStatus] = useState<AuthStatus>("loading");
   const navigate = useNavigate();
 
   const handleAuthError = useCallback(() => {
-    const hadSession = accessTokenRef.current !== null || refreshTokenRef.current !== null;
+    const hadSession = accessTokenRef.current !== null;
     accessTokenRef.current = null;
-    refreshTokenRef.current = null;
-    clearRefresh();
     setUser(null);
     setStatus("anonymous");
     if (hadSession) {
@@ -91,23 +55,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [navigate]);
 
   const handleRefresh = useCallback(async (): Promise<string | null> => {
-    const current = refreshTokenRef.current;
-    if (!current) return null;
+    const epoch = sessionEpochRef.current;
     try {
-      const { access, refresh: nextRefresh } = await refreshToken(current);
-      // Logout-during-refresh guard: if refs were cleared while the network
-      // request was in flight, do not resurrect them.
-      if (refreshTokenRef.current !== current) return null;
+      const { access } = await refresh();
+      // Logout-during-refresh guard: if logout() bumped the epoch while the
+      // network request was in flight, do not write the resolved access token.
+      if (sessionEpochRef.current !== epoch) return null;
       accessTokenRef.current = access;
-      if (nextRefresh) {
-        refreshTokenRef.current = nextRefresh;
-        writeRefresh(nextRefresh);
-      }
       return access;
     } catch {
       accessTokenRef.current = null;
-      refreshTokenRef.current = null;
-      clearRefresh();
       setUser(null);
       setStatus("anonymous");
       return null;
@@ -124,23 +81,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     let cancelled = false;
-    const storedRefresh = readRefresh();
-
-    if (!storedRefresh) {
-      setStatus("anonymous");
-      return;
+    // One-time legacy purge for users who had pre-step-2 localStorage refresh.
+    try {
+      window.localStorage.removeItem("auth.refresh");
+      window.localStorage.removeItem("auth.access");
+    } catch {
+      // ignore
     }
-
-    refreshTokenRef.current = storedRefresh;
     (async () => {
       try {
-        const { access, refresh: nextRefresh } = await refreshToken(storedRefresh);
+        const { access } = await refresh();
         if (cancelled) return;
         accessTokenRef.current = access;
-        if (nextRefresh) {
-          refreshTokenRef.current = nextRefresh;
-          writeRefresh(nextRefresh);
-        }
         const me = await fetchMe();
         if (cancelled) return;
         setUser(me);
@@ -148,12 +100,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       } catch {
         if (cancelled) return;
         accessTokenRef.current = null;
-        refreshTokenRef.current = null;
-        clearRefresh();
         setStatus("anonymous");
       }
     })();
-
     return () => {
       cancelled = true;
     };
@@ -164,22 +113,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const login = useCallback(async (phone: string, code: string) => {
-    const result = await verifyOtp(phone, code);
-    accessTokenRef.current = result.access;
-    refreshTokenRef.current = result.refresh;
-    writeRefresh(result.refresh);
-    setUser(result.user);
+    const { access, user: nextUser } = await verifyOtp(phone, code);
+    accessTokenRef.current = access;
+    setUser(nextUser);
     setStatus("authenticated");
   }, []);
 
   const logout = useCallback(() => {
-    const current = refreshTokenRef.current;
-    if (current) {
-      void logoutRequest(current);
-    }
+    sessionEpochRef.current += 1;
+    void logoutRequest();
     accessTokenRef.current = null;
-    refreshTokenRef.current = null;
-    clearRefresh();
     setUser(null);
     setStatus("anonymous");
   }, []);

@@ -3,14 +3,19 @@
  *
  * Endpoints:
  *   POST /api/auth/send-otp/     { phone } → 200 | 400 | 429
- *   POST /api/auth/verify-otp/   { phone, code } → 200 {access, refresh, user} | 400
- *   POST /api/auth/refresh/      { refresh } → 200 {access}
+ *   POST /api/auth/verify-otp/   { phone, code } → 200 {access, user} (Set-Cookie: refresh_token)
+ *   POST /api/auth/refresh/      {} (cookie auth + X-CSRFToken) → 200 {access}
  *   GET  /api/auth/me/           → 200 user
  *   PATCH /api/auth/me/          { first_name?, email?, language? } → 200 user
- *   POST /api/auth/logout/       { refresh } → 204
+ *   POST /api/auth/logout/       {} (cookie auth + X-CSRFToken) → 204
+ *
+ * FE-SEC-001 step 2: refresh token lives in HttpOnly cookie; access stays
+ * in-memory only. No localStorage refresh writes. CSRF header required for
+ * /refresh/ and /logout/ (Django middleware enforces).
  */
 
 import { ApiError, fetchJson } from "./apiClient";
+import { getCsrfToken } from "./csrf";
 
 export type AuthUser = {
   id: number;
@@ -27,13 +32,6 @@ export type ProfilePatch = {
   email?: string;
   language?: string;
 };
-
-export type AuthTokens = {
-  access: string;
-  refresh: string;
-};
-
-export type VerifyResult = AuthTokens & { user: AuthUser };
 
 export class InvalidOtpError extends Error {
   constructor() {
@@ -60,6 +58,11 @@ export function toE164(value: string): string {
   return `+${normalized}`;
 }
 
+function authBaseUrl(): string {
+  const env = (import.meta.env.VITE_API_URL as string | undefined) ?? "/api";
+  return env.replace(/\/$/, "");
+}
+
 export async function sendOtp(phone: string): Promise<{ expiresIn: number }> {
   try {
     await fetchJson("/auth/send-otp/", {
@@ -75,13 +78,33 @@ export async function sendOtp(phone: string): Promise<{ expiresIn: number }> {
   }
 }
 
-export async function verifyOtp(phone: string, code: string): Promise<VerifyResult> {
+export async function verifyOtp(
+  phone: string,
+  code: string,
+): Promise<{ access: string; user: AuthUser }> {
   try {
-    const res = await fetchJson<VerifyResult>("/auth/verify-otp/", {
+    const url = `${authBaseUrl()}/auth/verify-otp/`;
+    // credentials: 'include' so the Set-Cookie (refresh_token) is honoured
+    // by the browser. Bypass apiClient because verify-otp is the bootstrap
+    // call that issues the access token — there's no Bearer to attach yet.
+    const response = await fetch(url, {
       method: "POST",
+      credentials: "include",
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ phone: toE164(phone), code }),
     });
-    return res;
+    if (!response.ok) {
+      if (response.status === 400) throw new InvalidOtpError();
+      throw new ApiError(response.status, "verify failed");
+    }
+    const body = (await response.json()) as {
+      access: string;
+      user: AuthUser;
+      refresh?: string;
+    };
+    // Step 1+2: backend may still echo `refresh` in body; ignore it — the
+    // cookie is the source of truth. Step 3 will drop the field entirely.
+    return { access: body.access, user: body.user };
   } catch (err) {
     if (err instanceof ApiError && err.status === 400) {
       throw new InvalidOtpError();
@@ -91,23 +114,25 @@ export async function verifyOtp(phone: string, code: string): Promise<VerifyResu
 }
 
 /**
- * POST /api/auth/refresh/ — SimpleJWT returns {access, refresh?}.
- * Called outside authenticated context (no Bearer on the request itself,
- * so we hit fetch directly — apiClient's 401-refresh loop is not relevant here).
+ * POST /api/auth/refresh/ — refresh_token cookie sent automatically;
+ * X-CSRFToken header validated by Django CSRF middleware.
  */
-export async function refresh(refreshToken: string): Promise<{ access: string; refresh?: string }> {
-  const baseUrl = (import.meta.env.VITE_API_URL as string | undefined) ?? "/api";
-  const url = `${baseUrl.replace(/\/$/, "")}/auth/refresh/`;
+export async function refresh(): Promise<{ access: string }> {
+  const url = `${authBaseUrl()}/auth/refresh/`;
   const response = await fetch(url, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ refresh: refreshToken }),
+    credentials: "include",
+    headers: {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCsrfToken(),
+    },
+    body: "{}",
   });
   if (!response.ok) {
     throw new ApiError(response.status, "refresh failed");
   }
-  const body = (await response.json()) as { access: string; refresh?: string };
-  return { access: body.access, refresh: body.refresh };
+  const body = (await response.json()) as { access: string };
+  return { access: body.access };
 }
 
 export async function fetchMe(): Promise<AuthUser> {
@@ -121,11 +146,17 @@ export async function updateProfile(patch: ProfilePatch): Promise<AuthUser> {
   });
 }
 
-export async function logout(refreshToken: string): Promise<void> {
+export async function logout(): Promise<void> {
   try {
-    await fetchJson("/auth/logout/", {
+    const url = `${authBaseUrl()}/auth/logout/`;
+    await fetch(url, {
       method: "POST",
-      body: JSON.stringify({ refresh: refreshToken }),
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        "X-CSRFToken": getCsrfToken(),
+      },
+      body: "{}",
     });
   } catch {
     // logout is best-effort; local state cleared regardless
