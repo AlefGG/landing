@@ -120,6 +120,7 @@ export default function OrdersListPage() {
           {t("auth.orders.title")}
         </h2>
         <label className="flex items-center gap-2 font-body text-sm">
+          <span className="text-neutral-700">{t("auth.orders.filter.label")}</span>
           <select
             value={filter}
             onChange={(e) => setFilter(e.target.value as OrderStatus | "all")}
