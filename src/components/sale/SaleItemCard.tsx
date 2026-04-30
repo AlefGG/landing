@@ -1,5 +1,6 @@
 import { useTranslation } from "react-i18next";
 import type { SaleItem } from "../../services/catalogService";
+import ResponsiveImage from "../ResponsiveImage";
 
 export default function SaleItemCard({ item }: { item: SaleItem }) {
   const { t } = useTranslation();
@@ -9,9 +10,10 @@ export default function SaleItemCard({ item }: { item: SaleItem }) {
   return (
     <article className="flex flex-col gap-4 bg-white rounded-3xl p-6 transition-shadow hover:shadow-md h-full">
       <div className="flex items-center justify-center">
-        <img
+        <ResponsiveImage
           src={item.image}
           alt={item.name}
+          sizes="(max-width:768px) 100vw, 33vw"
           className="h-[200px] w-auto object-contain"
         />
       </div>

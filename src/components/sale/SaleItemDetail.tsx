@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Seo from "../Seo";
+import ResponsiveImage from "../ResponsiveImage";
 import type { SaleItem } from "../../services/catalogService";
 
 export default function SaleItemDetail({ item }: { item: SaleItem }) {
@@ -71,9 +72,10 @@ export default function SaleItemDetail({ item }: { item: SaleItem }) {
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6 lg:py-12">
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
           <div className="flex items-center justify-center bg-white rounded-3xl p-6">
-            <img
+            <ResponsiveImage
               src={item.image}
               alt={name}
+              sizes="(max-width:768px) 100vw, 50vw"
               className="h-[300px] lg:h-[480px] w-auto object-contain"
             />
           </div>

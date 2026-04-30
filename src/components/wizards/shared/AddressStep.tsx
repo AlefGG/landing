@@ -1,6 +1,9 @@
+import { lazy, Suspense } from "react";
 import { useTranslation } from "react-i18next";
-import { AddressList, MapPicker } from "../../ui";
+import { AddressList } from "../../ui";
 import type { useAddressTrip } from "../../../hooks/useAddressTrip";
+
+const MapPicker = lazy(() => import("../../ui/MapPicker"));
 import type { ZonesFeatureCollection } from "../../../services/zonesService";
 import { deliveryLabel } from "../../../utils/deliveryLabel";
 
@@ -28,16 +31,22 @@ export default function AddressStep({ trip, zones = null }: Props) {
         placeholder={t(`${k}.step4Placeholder`)}
         addLabel={t(`${k}.step4AddAddress`)}
       />
-      <MapPicker
-        points={trip.locations}
-        onMapClick={trip.appendFromMap}
-        routes={trip.routes}
-        warehouse={warehouse}
-        loading={trip.loading}
-        loadingText={t(`${k}.step4RouteLoading`)}
-        className="mt-0 h-[300px] lg:h-[550px]"
-        zones={zones}
-      />
+      <Suspense
+        fallback={
+          <div className="mt-0 h-[300px] lg:h-[550px] bg-neutral-100 animate-pulse rounded-[12px]" />
+        }
+      >
+        <MapPicker
+          points={trip.locations}
+          onMapClick={trip.appendFromMap}
+          routes={trip.routes}
+          warehouse={warehouse}
+          loading={trip.loading}
+          loadingText={t(`${k}.step4RouteLoading`)}
+          className="mt-0 h-[300px] lg:h-[550px]"
+          zones={zones}
+        />
+      </Suspense>
       {!trip.loading && trip.error && (
         <div className="mt-2 font-body text-base text-red-600">{t(`${k}.step4RouteError`)}</div>
       )}

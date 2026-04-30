@@ -1,8 +1,11 @@
-import { useCallback, useState, useEffect } from "react";
+import { lazy, Suspense, useCallback, useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 import Seo from "../Seo";
-import { StepHeader, MapPicker, InlineError, FieldErrors } from "../ui";
+import ResponsiveImage from "../ResponsiveImage";
+import { StepHeader, InlineError, FieldErrors } from "../ui";
+
+const MapPicker = lazy(() => import("../ui/MapPicker"));
 import AddressAutocomplete from "../ui/AddressAutocomplete";
 import ContactsSection, {
   type ContactsValue,
@@ -238,9 +241,10 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6 lg:py-12">
         <div className="flex flex-col lg:flex-row items-start lg:items-center gap-6 lg:gap-8">
           <div className="size-[120px] shrink-0 flex items-center justify-center bg-white rounded-2xl">
-            <img
+            <ResponsiveImage
               src={item.image}
               alt={name}
+              sizes="120px"
               className="h-[120px] w-[120px] object-contain"
             />
           </div>
@@ -310,26 +314,32 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
             })}
             className="max-w-full lg:max-w-[488px]"
           />
-          <MapPicker
-            points={trip.locations}
-            onMapClick={async (p) => {
-              const name = await reverseGeocode(p.lat, p.lng);
-              if (!entry) return;
-              trip.setText(
-                entry.id,
-                name ?? `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
-              );
-              trip.setLocation(entry.id, p);
-            }}
-            routes={trip.routes}
-            warehouse={trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null}
-            loading={trip.loading}
-            loadingText={t("wizard.service.step2RouteLoading", {
-              defaultValue: "Считаем маршрут…",
-            })}
-            className="mt-0 h-[374px] lg:h-[450px]"
-            zones={zones}
-          />
+          <Suspense
+            fallback={
+              <div className="mt-0 h-[374px] lg:h-[450px] bg-neutral-100 animate-pulse rounded-[12px]" />
+            }
+          >
+            <MapPicker
+              points={trip.locations}
+              onMapClick={async (p) => {
+                const name = await reverseGeocode(p.lat, p.lng);
+                if (!entry) return;
+                trip.setText(
+                  entry.id,
+                  name ?? `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
+                );
+                trip.setLocation(entry.id, p);
+              }}
+              routes={trip.routes}
+              warehouse={trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null}
+              loading={trip.loading}
+              loadingText={t("wizard.service.step2RouteLoading", {
+                defaultValue: "Считаем маршрут…",
+              })}
+              className="mt-0 h-[374px] lg:h-[450px]"
+              zones={zones}
+            />
+          </Suspense>
           {!trip.loading && trip.error && (
             <div className="mt-2 font-body text-base text-red-600">
               {t("wizard.service.step2RouteError", {

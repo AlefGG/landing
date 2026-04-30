@@ -58,6 +58,8 @@ jobs:
           cache-dependency-path: package-lock.json
       - run: npm ci
       - run: npm test
+      - name: Run build-script tests
+        run: npm run test:scripts
 
   build:
     runs-on: ubuntu-latest
@@ -69,6 +71,13 @@ jobs:
           cache: "npm"
           cache-dependency-path: package-lock.json
       - run: npm ci
+      - name: Cache optimized images (Wave-2 FE-PF-002)
+        uses: actions/cache@v4
+        with:
+          path: public/assets/images-optimized
+          key: images-optimized-${{ hashFiles('public/assets/images/**') }}
+          restore-keys: |
+            images-optimized-
       - run: npm run build
       - name: Upload dist artifact (for downstream jobs)
         uses: actions/upload-artifact@v4
@@ -93,8 +102,5 @@ jobs:
         with:
           name: landing-dist
           path: dist
-      - name: Check bundle size (soft-warn)
+      - name: "Check bundle size (Wave-2 hard-fail)"
         run: npm run size:check
-        env:
-          SOFT_WARN: "1"
-          BUDGET_GZ_KB: "250"

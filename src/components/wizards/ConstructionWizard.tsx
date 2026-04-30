@@ -12,6 +12,7 @@ import {
   type ConstructionOrderPayload,
 } from "../../services/orderService";
 import RentalFaq from "../RentalFaq";
+import ResponsiveImage from "../ResponsiveImage";
 import { Select, InlineError, FieldErrors } from "../ui";
 import { computeDiscountDisplay } from "../../utils/discountDisplay";
 import {
@@ -169,9 +170,10 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
         <div className="lg:px-[104px]">
           <StepLabel step={1 + stepOffset} title={t(`${k}.step2Title`)} />
           <div className="mt-4 py-4 flex items-center lg:flex-col gap-6 w-full lg:w-[288px] mx-auto px-0 lg:px-10 lg:py-4 rounded-3xl bg-white">
-            <img
+            <ResponsiveImage
               src={cabin.image}
               alt={t(`${ck}.cabinName`)}
+              sizes="(max-width:768px) 100vw, 288px"
               className="h-[98px] lg:h-[200px] w-auto object-contain shrink-0"
             />
             <div className="flex flex-col gap-1">

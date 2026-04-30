@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Tag, Button } from "../ui";
+import ResponsiveImage from "../ResponsiveImage";
 
 const cabins = [
   { key: "standard", image: "/assets/images/cabin-standard.png", saleId: 1 },
@@ -44,13 +45,13 @@ export default function Cabins() {
               {/* Top content: photo + text */}
               <div className="flex flex-col items-center gap-6 w-full">
                 {/* Photo */}
-                <img
+                <ResponsiveImage
                   src={cabin.image}
                   alt={t(`cabins.${cabin.key}.name`)}
+                  sizes="(max-width:768px) 100vw, 33vw"
                   width={150}
                   height={252}
                   className="h-[252px] w-[150px] object-contain"
-                  loading="lazy"
                 />
 
                 {/* Info block */}
