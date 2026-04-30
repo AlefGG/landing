@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useLocation, useNavigate } from "react-router-dom";
 import { Button, InlineError, PageError } from "../components/ui";
@@ -35,17 +35,27 @@ export default function OrdersListPage() {
   const [hasMore, setHasMore] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
+  // FE-DT-008: aborts the in-flight refetch on filter change so a stale
+  // response can't render under a fresh filter label.
+  const abortRef = useRef<AbortController | null>(null);
+
   const refetch = useCallback(() => {
+    abortRef.current?.abort();
+    const controller = new AbortController();
+    abortRef.current = controller;
+
     setLoadError(null);
     setOrders(null);
     const statusParam = filter === "all" ? undefined : filter;
-    listMyOrders({ page: 1, status: statusParam })
+    listMyOrders({ page: 1, status: statusParam }, { signal: controller.signal })
       .then((p) => {
+        if (controller.signal.aborted) return;
         setOrders(p.results);
         setHasMore(p.hasMore);
         setPage(1);
       })
       .catch((err) => {
+        if (controller.signal.aborted) return;
         const normalized = normalizeError(err);
         if (normalized.kind === "auth") {
           navigate(`/login?redirect=${encodeURIComponent(location.pathname)}`);
@@ -58,19 +68,26 @@ export default function OrdersListPage() {
 
   useEffect(() => {
     refetch();
+    return () => abortRef.current?.abort();
   }, [refetch]);
 
   const loadMore = async () => {
     if (loadingMore || !hasMore) return;
     setLoadingMore(true);
     setLoadMoreError(null);
+    // Snapshot the filter at call time. If the user changes the filter while
+    // page+1 is in flight, the resolution path drops the result.
+    const filterAtCallTime = filter;
     try {
-      const statusParam = filter === "all" ? undefined : filter;
+      const statusParam =
+        filterAtCallTime === "all" ? undefined : filterAtCallTime;
       const next = await listMyOrders({ page: page + 1, status: statusParam });
+      if (filter !== filterAtCallTime) return;
       setOrders((prev) => (prev ? [...prev, ...next.results] : next.results));
       setHasMore(next.hasMore);
       setPage((p) => p + 1);
     } catch (err) {
+      if (filter !== filterAtCallTime) return;
       setLoadMoreError(normalizeError(err));
     } finally {
       setLoadingMore(false);
