@@ -309,24 +309,30 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
             placeholder={t("catalog.sale.checkout.addressPlaceholder")}
             className="max-w-full lg:max-w-[488px]"
           />
-          <MapPicker
-            points={trip.locations}
-            onMapClick={async (p) => {
-              const name = await reverseGeocode(p.lat, p.lng);
-              if (!entry) return;
-              trip.setText(
-                entry.id,
-                name ?? `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
-              );
-              trip.setLocation(entry.id, p);
-            }}
-            routes={trip.routes}
-            warehouse={trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null}
-            loading={trip.loading}
-            loadingText={t("wizard.service.step2RouteLoading")}
-            className="mt-0 h-[374px] lg:h-[450px]"
-            zones={zones}
-          />
+          <Suspense
+            fallback={
+              <div className="mt-0 h-[374px] lg:h-[450px] bg-neutral-100 animate-pulse rounded-[12px]" />
+            }
+          >
+            <MapPicker
+              points={trip.locations}
+              onMapClick={async (p) => {
+                const name = await reverseGeocode(p.lat, p.lng);
+                if (!entry) return;
+                trip.setText(
+                  entry.id,
+                  name ?? `${p.lat.toFixed(6)}, ${p.lng.toFixed(6)}`,
+                );
+                trip.setLocation(entry.id, p);
+              }}
+              routes={trip.routes}
+              warehouse={trip.warehouse ? { lat: trip.warehouse.lat, lng: trip.warehouse.lon } : null}
+              loading={trip.loading}
+              loadingText={t("wizard.service.step2RouteLoading")}
+              className="mt-0 h-[374px] lg:h-[450px]"
+              zones={zones}
+            />
+          </Suspense>
           {!trip.loading && trip.error && (
             <div className="mt-2 font-body text-base text-red-600">
               {t("wizard.service.step2RouteError")}
