@@ -161,8 +161,8 @@ export default function Header() {
               className="h-8 w-auto lg:h-11"
             />
             <span
-              className="flex flex-col text-neutral-900 text-[15px] lg:text-[18px] leading-[1.05] tracking-[-0.01em]"
-              style={{ fontFamily: '"Geologica", "Nunito Sans", sans-serif', fontWeight: 400 }}
+              className="flex flex-col text-neutral-900 text-[14px] lg:text-[17px] leading-[1.05] tracking-[-0.01em]"
+              style={{ fontFamily: '"Onest", "Nunito Sans", sans-serif', fontWeight: 500 }}
             >
               <span>Эко</span>
               <span>Ресурс</span>
