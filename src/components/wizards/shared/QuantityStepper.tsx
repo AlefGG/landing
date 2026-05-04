@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 
 export default function QuantityStepper({
   value,
@@ -14,10 +14,15 @@ export default function QuantityStepper({
   ariaLabel?: string;
 }) {
   const [input, setInput] = useState<string>(String(value));
-
-  useEffect(() => {
+  // FE-CQ-001: sync the editable string mirror when the parent flips
+  // `value` programmatically (e.g. clamp on validation). React-19 "adjust
+  // state during render" pattern; cheaper than a useEffect that flagged
+  // react-hooks/set-state-in-effect.
+  const [prevValue, setPrevValue] = useState(value);
+  if (value !== prevValue) {
+    setPrevValue(value);
     setInput(String(value));
-  }, [value]);
+  }
 
   const clamp = (n: number) => Math.min(max, Math.max(min, n));
 

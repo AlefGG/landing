@@ -61,7 +61,12 @@ export default function KaspiPayment({
   // through a regular browser <img> request.
   const loadQr = useCallback(() => {
     let cancelled = false;
-    setQr({ status: "loading" });
+    // FE-CQ-001: schedule the "mark loading" setState as a microtask so
+    // callers (the useEffect below) don't trigger setState-in-effect.
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setQr({ status: "loading" });
+    });
     getKaspiQr(orderId)
       .then(({ qr_image_url }) => {
         if (cancelled) return;

@@ -28,10 +28,19 @@ export default function AddressAutocomplete({
       skipSearchRef.current = false;
       return;
     }
+    let cancelled = false;
+    // FE-CQ-001: early-clear for short queries via microtask so the effect
+    // body has no synchronous setState. Search query for ≥3 chars uses
+    // the existing 400 ms debounce timer.
     if (value.trim().length < 3) {
-      setSuggestions([]);
-      setOpen(false);
-      return;
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setSuggestions([]);
+        setOpen(false);
+      });
+      return () => {
+        cancelled = true;
+      };
     }
     const ctrl = new AbortController();
     const timer = setTimeout(async () => {

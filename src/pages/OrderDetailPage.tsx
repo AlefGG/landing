@@ -68,7 +68,16 @@ export default function OrderDetailPage() {
   }, [id, location.pathname, navigate]);
 
   useEffect(() => {
-    void load();
+    // FE-CQ-001: defer the call into a microtask so the loader's
+    // internal setState calls don't trigger setState-in-effect.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      void load();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [load]);
 
   const onCancel = async () => {
