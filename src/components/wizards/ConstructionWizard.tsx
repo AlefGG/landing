@@ -1,9 +1,7 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useZones } from "../../hooks/useZones";
-import { useOrderSubmit } from "../../hooks/useOrderSubmit";
-import { useOrderPreview } from "../../hooks/useOrderPreview";
 import { useCabinTypes } from "../../hooks/useCabinTypes";
 import { useRentalAvailability, dateKey } from "../../hooks/useAvailabilityCalendar";
 import {
@@ -23,11 +21,13 @@ import {
   ConstructionDiscountTable,
   constructionCabins,
   BASE_DAY_PRICE,
+  useWizardDraft,
+  useRentalSubmit,
+  constructionServerFieldMap,
   type ContactsValue,
 } from "./shared";
 import { useConstructionDiscounts } from "../../hooks/useConstructionDiscounts";
 import AddressStep from "./shared/AddressStep";
-import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
 import InlineOtpGate from "./shared/InlineOtpGate";
 
 const DRAFT_SLUG = "construction" as const;
@@ -37,49 +37,59 @@ type ConstructionDraft = {
   contacts: ContactsValue;
 };
 
+const DRAFT_DEFAULTS: ConstructionDraft = {
+  months: 1,
+  // BUG-055: default to individual — payment_channel must mirror an
+  // explicit Физлицо/Юрлицо click, not a hard-coded default.
+  contacts: {
+    contactType: "individual",
+    name: "",
+    phone: "",
+    email: "",
+  },
+};
 
 export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: number } = {}) {
   const { t } = useTranslation();
   const k = "wizard.rental" as const;
   const ck = "wizard.construction" as const;
 
-  // Draft hydration via useState initializers (runs once, no effects needed).
-  // Trip items are NOT restored — useAddressTrip exposes no hydrate/replace API;
-  // only internal setItems mutations are available.
-  const [months, setMonths] = useState<number>(() => {
-    const draft = loadDraft<ConstructionDraft>(DRAFT_SLUG);
-    return draft?.months ?? 1;
-  });
+  const { draft, setDraft } = useWizardDraft<ConstructionDraft>(DRAFT_SLUG, DRAFT_DEFAULTS);
+  const { months, contacts } = draft;
+  const setMonths = useCallback(
+    (next: number) => setDraft((d) => ({ ...d, months: next })),
+    [setDraft],
+  );
+  const setContacts = useCallback(
+    (next: ContactsValue) => setDraft((d) => ({ ...d, contacts: next })),
+    [setDraft],
+  );
+
   const trip = useAddressTrip("construction");
   const { zones } = useZones("rental_construction");
-  const [contacts, setContacts] = useState<ContactsValue>(() => {
-    const draft = loadDraft<ConstructionDraft>(DRAFT_SLUG);
-    return draft?.contacts ?? {
-      // BUG-055: default to individual — payment_channel must mirror an
-      // explicit Физлицо/Юрлицо click, not a hard-coded default.
-      contactType: "individual",
-      name: "",
-      phone: "",
-      email: "",
-    };
-  });
-  // Debounced save on every relevant state change.
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      saveDraft<ConstructionDraft>(DRAFT_SLUG, { months, contacts });
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [months, contacts]);
 
   const cabin = constructionCabins[0]!;
 
   const { types: constructionCabinTypes } = useCabinTypes("construction");
   const constructionCabinId = constructionCabinTypes?.[0]?.id ?? null;
   const availability = useRentalAvailability("rental_construction", constructionCabinId);
-  const startDateMeta = useMemo(() => {
-    const meta = availability.dayMap.get(dateKey(new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)));
-    return meta ?? null;
-  }, [availability.dayMap]);
+
+  // FE-CQ-002: anchor the start date at mount via useState initializer so
+  // the value is stable for the component lifetime. The previous code
+  // recomputed `Date.now() + 7 * day` inside a useMemo factory on every
+  // render, which is impure and made `availability.dayMap.get(...)` return
+  // mismatched meta when other deps changed mid-session. Same anchor is
+  // reused for previewPayload.start_date so preview cache stays warm.
+  const [startDateAnchor] = useState<Date>(() => {
+    const d = new Date();
+    d.setDate(d.getDate() + 7);
+    d.setHours(10, 0, 0, 0);
+    return d;
+  });
+  const startDateMeta = useMemo(
+    () => availability.dayMap.get(dateKey(startDateAnchor)) ?? null,
+    [availability.dayMap, startDateAnchor],
+  );
 
   // F-010: discount tiers come from the backend so the admin can change
   // them without a frontend release. Hook returns the static fallback if
@@ -102,23 +112,33 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
     })
     .filter((x): x is NonNullable<typeof x> => x !== null);
 
-  // Start date — first day next week to satisfy start_date in future.
-  const startDate = new Date();
-  startDate.setDate(startDate.getDate() + 7);
-  startDate.setHours(10, 0, 0, 0);
-
   const previewPayload: ConstructionOrderPayload | null =
     addressesPayload.length > 0
       ? {
           months,
-          start_date: startDate.toISOString(),
+          start_date: startDateAnchor.toISOString(),
           logistics_type: "standard",
           payment_channel: contacts.contactType,
           addresses: addressesPayload,
         }
       : null;
 
-  const preview = useOrderPreview(previewPayload, previewConstructionOrder);
+  const canProceed = !!previewPayload && !(startDateMeta?.blocked ?? false);
+
+  const { preview, submitState } = useRentalSubmit({
+    draftSlug: DRAFT_SLUG,
+    contacts,
+    canProceed,
+    previewPayload,
+    previewer: previewConstructionOrder,
+    createOrder: async () => {
+      if (!previewPayload) throw new Error("payload not ready");
+      return createConstructionOrder(previewPayload);
+    },
+    mapServerField: constructionServerFieldMap,
+    draftSnapshot: () => draft,
+  });
+
   // BUG-017: only fall back to a heuristic total when the user has already
   // started the wizard; otherwise show 0 so the widget doesn't lie.
   const fallbackTotal = previewPayload
@@ -139,33 +159,6 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
     : undefined;
   const priceBefore = serverDiscount?.priceBefore ?? localPriceBefore;
   const discountPercent = serverDiscount?.percent ?? localPercent;
-
-  const mapServerField = useCallback((field: string): string | null => {
-    if (field === "months") return "duration";
-    if (field === "start_date") return "startDate";
-    if (field === "addresses") return "addresses";
-    if (field === "logistics_type") return "logistics";
-    if (field === "payment_channel") return "paymentChannel";
-    return null;
-  }, []);
-
-  const submitState = useOrderSubmit({
-    contacts,
-    canProceed: !!previewPayload && !(startDateMeta?.blocked ?? false),
-    mapServerField,
-    buildOrder: async () => {
-      if (!previewPayload) throw new Error("payload not ready");
-      return createConstructionOrder(previewPayload);
-    },
-    afterCreate: async () => {
-      clearDraft(DRAFT_SLUG);
-    },
-    onPendingAuthChange: (pending) => {
-      if (pending) {
-        saveDraft<ConstructionDraft>(DRAFT_SLUG, { months, contacts });
-      }
-    },
-  });
 
   return (
     <>

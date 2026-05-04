@@ -1,11 +1,9 @@
-import { useState, useMemo, useCallback, useEffect } from "react";
+import { useMemo, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useZones } from "../../hooks/useZones";
 import { useTimeSlots } from "../../hooks/useTimeSlots";
 import { useCabinTypes } from "../../hooks/useCabinTypes";
-import { useOrderSubmit } from "../../hooks/useOrderSubmit";
-import { useOrderPreview } from "../../hooks/useOrderPreview";
 import { useRentalAvailability, dateKey } from "../../hooks/useAvailabilityCalendar";
 import {
   createRentalOrder,
@@ -27,13 +25,15 @@ import {
   Toggle,
   SurchargeNotice,
   EMERGENCY_SURCHARGE_RATE,
+  useWizardDraft,
+  useRentalSubmit,
+  rentalServerFieldMap,
   type CabinQuantityMap,
   type ContactsValue,
 } from "./shared";
 import InstallDismantleStep from "./shared/InstallDismantleStep";
 import AddressStep from "./shared/AddressStep";
 import { InlineError, FieldErrors } from "../ui";
-import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
 import InlineOtpGate from "./shared/InlineOtpGate";
 
 const DRAFT_SLUG = "emergency" as const;
@@ -46,60 +46,61 @@ type EmergencyDraft = {
   contacts: ContactsValue;
 };
 
+const DRAFT_DEFAULTS: EmergencyDraft = {
+  cabinQuantities: [],
+  installDismantle: {
+    installDate: null,
+    installSlotId: null,
+    dismantleDate: null,
+    dismantleSlotId: null,
+  },
+  installConsent: false,
+  cleaning: true,
+  contacts: {
+    contactType: "individual",
+    name: "",
+    phone: "",
+    email: "",
+  },
+};
+
 export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: number } = {}) {
   const { t } = useTranslation();
   const k = "wizard.rental" as const;
   const ek = "wizard.emergency" as const;
 
-  // Draft hydration via useState initializers (runs once, no effects needed).
-  // Trip items are NOT restored — useAddressTrip exposes no hydrate/replace API;
-  // only internal setItems mutations are available.
-  const [cabinQuantities, setCabinQuantities] = useState<CabinQuantityMap>(() => {
-    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
-    return draft ? new Map(draft.cabinQuantities) : new Map();
-  });
-  const [installDismantle, setInstallDismantle] = useState<InstallDismantleValue>(() => {
-    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
-    return draft?.installDismantle ?? {
-      installDate: null,
-      installSlotId: null,
-      dismantleDate: null,
-      dismantleSlotId: null,
-    };
-  });
-  const [installConsent, setInstallConsent] = useState(() => {
-    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
-    return draft?.installConsent ?? false;
-  });
+  const { draft, setDraft } = useWizardDraft<EmergencyDraft>(DRAFT_SLUG, DRAFT_DEFAULTS);
+
+  const cabinQuantities = useMemo<CabinQuantityMap>(
+    () => new Map(draft.cabinQuantities),
+    [draft.cabinQuantities],
+  );
+  const setCabinQuantities = useCallback(
+    (next: CabinQuantityMap) =>
+      setDraft((d) => ({ ...d, cabinQuantities: Array.from(next.entries()) })),
+    [setDraft],
+  );
+  const { installDismantle, installConsent, cleaning, contacts } = draft;
+  const setInstallDismantle = useCallback(
+    (next: InstallDismantleValue) => setDraft((d) => ({ ...d, installDismantle: next })),
+    [setDraft],
+  );
+  const setInstallConsent = useCallback(
+    (next: boolean) => setDraft((d) => ({ ...d, installConsent: next })),
+    [setDraft],
+  );
+  const setCleaning = useCallback(
+    (next: boolean) => setDraft((d) => ({ ...d, cleaning: next })),
+    [setDraft],
+  );
+  const setContacts = useCallback(
+    (next: ContactsValue) => setDraft((d) => ({ ...d, contacts: next })),
+    [setDraft],
+  );
+
   const { slots, loading: slotsLoading } = useTimeSlots();
   const trip = useAddressTrip("rental");
   const { zones } = useZones("rental_emergency");
-  const [cleaning, setCleaning] = useState(() => {
-    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
-    return draft?.cleaning ?? true;
-  });
-  const [contacts, setContacts] = useState<ContactsValue>(() => {
-    const draft = loadDraft<EmergencyDraft>(DRAFT_SLUG);
-    return draft?.contacts ?? {
-      contactType: "individual",
-      name: "",
-      phone: "",
-      email: "",
-    };
-  });
-  // Debounced save on every relevant state change.
-  useEffect(() => {
-    const timer = window.setTimeout(() => {
-      saveDraft<EmergencyDraft>(DRAFT_SLUG, {
-        cabinQuantities: Array.from(cabinQuantities.entries()),
-        installDismantle,
-        installConsent,
-        cleaning,
-        contacts,
-      });
-    }, 300);
-    return () => window.clearTimeout(timer);
-  }, [cabinQuantities, installDismantle, installConsent, cleaning, contacts]);
 
   const { types: cabinTypes, loading: cabinTypesLoading } = useCabinTypes("rental");
   const cabinValidation = useMemo(
@@ -136,7 +137,21 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
         }
       : null;
 
-  const preview = useOrderPreview(previewPayload, previewRentalOrder);
+  const canProceed = !!previewPayload && installConsent;
+
+  const { preview, submitState } = useRentalSubmit({
+    draftSlug: DRAFT_SLUG,
+    contacts,
+    canProceed,
+    previewPayload,
+    previewer: previewRentalOrder,
+    createOrder: async () => {
+      if (!previewPayload) throw new Error("payload not ready");
+      return createRentalOrder({ ...previewPayload, install_consent: true });
+    },
+    mapServerField: rentalServerFieldMap,
+    draftSnapshot: () => draft,
+  });
 
   // F-015: do NOT show a hardcoded BASE_DAY_PRICE fallback — it lied to the
   // user when the backend final differed from the heuristic. While preview
@@ -146,55 +161,6 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
   const surchargeAmount = preview.data
     ? Math.round(Number(preview.data.total) * EMERGENCY_SURCHARGE_RATE / (1 + EMERGENCY_SURCHARGE_RATE))
     : 0;
-
-  const canProceed = !!previewPayload && installConsent;
-
-  const mapServerField = useCallback((field: string): string | null => {
-    if (field === "items") return "cabins";
-    if (
-      field === "install_date" ||
-      field === "install_slot" ||
-      field === "dismantle_date" ||
-      field === "dismantle_slot" ||
-      field === "date_start" ||
-      field === "date_end"
-    )
-      return "installDismantle";
-    if (field === "install_consent") return "installConsent";
-    if (
-      field === "address_lat" ||
-      field === "address_lon" ||
-      field === "address_text"
-    )
-      return "address";
-    if (field === "logistics_type") return "logistics";
-    if (field === "payment_channel") return "paymentChannel";
-    return null;
-  }, []);
-
-  const submitState = useOrderSubmit({
-    contacts,
-    canProceed,
-    mapServerField,
-    buildOrder: async () => {
-      if (!previewPayload) throw new Error("payload not ready");
-      return createRentalOrder({ ...previewPayload, install_consent: true });
-    },
-    afterCreate: async () => {
-      clearDraft(DRAFT_SLUG);
-    },
-    onPendingAuthChange: (pending) => {
-      if (pending) {
-        saveDraft<EmergencyDraft>(DRAFT_SLUG, {
-          cabinQuantities: Array.from(cabinQuantities.entries()),
-          installDismantle,
-          installConsent,
-          cleaning,
-          contacts,
-        });
-      }
-    },
-  });
 
   const validatorReason =
     !validation.ok && validation.reason !== "incomplete"
