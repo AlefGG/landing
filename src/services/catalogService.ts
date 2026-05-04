@@ -1,5 +1,7 @@
 import { fetchJson, ApiError } from "./apiClient";
 
+export type SaleItemSpec = { label: string; value: string };
+
 export type SaleItem = {
   id: number;
   name: string;
@@ -7,6 +9,7 @@ export type SaleItem = {
   price: number;
   image: string;
   inStock: boolean;
+  specs: SaleItemSpec[];
 };
 
 type EquipmentDTO = {
@@ -15,11 +18,21 @@ type EquipmentDTO = {
   description: string;
   price: string;
   photo: string | null;
+  // F-007: structured spec rows from the admin panel. Backend versions
+  // older than the F-007 deploy may omit the field; treat undefined as [].
+  specs?: SaleItemSpec[] | null;
 };
 
 const FALLBACK_IMAGE = "/assets/images/cabin-standard.png";
 
 function mapEquipment(dto: EquipmentDTO): SaleItem {
+  const rawSpecs = Array.isArray(dto.specs) ? dto.specs : [];
+  // Defensive: drop malformed rows so a single bad admin entry doesn't
+  // crash the SKU detail page.
+  const specs = rawSpecs.filter(
+    (s): s is SaleItemSpec =>
+      !!s && typeof s.label === "string" && typeof s.value === "string",
+  );
   return {
     id: dto.id,
     name: dto.name,
@@ -27,6 +40,7 @@ function mapEquipment(dto: EquipmentDTO): SaleItem {
     price: Number(dto.price),
     image: dto.photo && dto.photo.length > 0 ? dto.photo : FALLBACK_IMAGE,
     inStock: true,
+    specs,
   };
 }
 

@@ -22,11 +22,10 @@ import {
   PriceSubmit,
   ConstructionDiscountTable,
   constructionCabins,
-  getConstructionDiscount,
   BASE_DAY_PRICE,
-  CONSTRUCTION_DISCOUNTS,
   type ContactsValue,
 } from "./shared";
+import { useConstructionDiscounts } from "../../hooks/useConstructionDiscounts";
 import AddressStep from "./shared/AddressStep";
 import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
 import InlineOtpGate from "./shared/InlineOtpGate";
@@ -38,7 +37,6 @@ type ConstructionDraft = {
   contacts: ContactsValue;
 };
 
-const MONTH_OPTIONS = CONSTRUCTION_DISCOUNTS.map((r) => r.months);
 
 export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: number } = {}) {
   const { t } = useTranslation();
@@ -83,7 +81,13 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
     return meta ?? null;
   }, [availability.dayMap]);
 
-  const discount = getConstructionDiscount(months);
+  // F-010: discount tiers come from the backend so the admin can change
+  // them without a frontend release. Hook returns the static fallback if
+  // the fetch fails or the company has no RentalDiscount rows seeded.
+  const { discounts: discountTiers } = useConstructionDiscounts();
+  const discount =
+    discountTiers.find((r) => r.months === months)?.discount ?? 0;
+  const monthOptions = discountTiers.map((r) => r.months);
   const monthlyPriceApprox = BASE_DAY_PRICE * 30;
 
   const addressesPayload = trip.items
@@ -201,7 +205,7 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
             <Select
               value={String(months)}
               onChange={(v) => setMonths(Number(v))}
-              options={MONTH_OPTIONS.map((m) => ({
+              options={monthOptions.map((m) => ({
                 value: String(m),
                 label: t(`${ck}.monthsValue`, { count: m }),
               }))}
@@ -214,7 +218,11 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
             <h3 className="font-body font-semibold text-base leading-6 text-neutral-900">
               {t(`${ck}.discountTable.title`)}
             </h3>
-            <ConstructionDiscountTable selectedMonths={months} onSelect={setMonths} />
+            <ConstructionDiscountTable
+              selectedMonths={months}
+              onSelect={setMonths}
+              rows={discountTiers}
+            />
             {discount > 0 && (
               <p className="mt-2 font-body text-sm leading-4 text-cta-main">
                 {t(`${ck}.discountTable.selectedNote`, {

@@ -21,6 +21,13 @@ type Variants = {
 };
 
 function deriveVariants(src: string): Variants | null {
+  // F-003: optimized variants only exist for build-time assets that the
+  // Vite pipeline pre-generates under /assets/images-optimized/. Runtime
+  // uploads (Equipment.photo → /media/equipment/...) and absolute remote
+  // URLs have no companion .avif/.webp on disk, so requesting them just
+  // floods the console with 404s. Gate variant generation on the
+  // /assets/images/ prefix.
+  if (!src.startsWith("/assets/images/")) return null;
   // /assets/images/cabin-hero.png -> dir "/assets/images", basename "cabin-hero", ext "png"
   // Match png/jpg/jpeg only; svg/webp/data-uri etc fall through to plain <img>.
   const match = src.match(/^(.*)\/([^/]+)\.(png|jpe?g)$/i);

@@ -1,12 +1,18 @@
 import { useTranslation } from "react-i18next";
 import { CONSTRUCTION_DISCOUNTS } from "./pricingConstants";
+import type { ConstructionDiscountRow } from "../../../services/pricingService";
 
 export default function ConstructionDiscountTable({
   selectedMonths,
   onSelect,
+  // F-010: callers pass the live tier list from useConstructionDiscounts;
+  // when omitted we fall back to the hardcoded constants so existing
+  // call-sites (and tests) keep working without a wider refactor.
+  rows = CONSTRUCTION_DISCOUNTS,
 }: {
   selectedMonths: number;
   onSelect?: (months: number) => void;
+  rows?: readonly ConstructionDiscountRow[];
 }) {
   const { t } = useTranslation();
   const ck = "wizard.construction" as const;
@@ -21,7 +27,7 @@ export default function ConstructionDiscountTable({
         <span className="text-right">{t(`${ck}.discountTable.headerDiscount`)}</span>
       </div>
       <ul className="divide-y divide-neutral-100">
-        {CONSTRUCTION_DISCOUNTS.map(({ months, discount }) => {
+        {rows.map(({ months, discount }) => {
           const selected = months === selectedMonths;
           const percent = Math.round(discount * 100);
           return (

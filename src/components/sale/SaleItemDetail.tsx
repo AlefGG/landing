@@ -97,25 +97,20 @@ export default function SaleItemDetail({ item }: { item: SaleItem }) {
               {item.description}
             </p>
 
-            {/* BUG-019: specs — per ТЗ §3.7 product detail page. */}
-            {(() => {
-              const specKey = `catalog.sale.specs.${item.id}`;
-              const specs = t(specKey, {
-                returnObjects: true,
-                defaultValue: "[]",
-              }) as unknown as Array<{ label: string; value: string }> | string;
-              if (!Array.isArray(specs)) return null;
-              return (
-                <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 font-body text-base leading-6">
-                  {specs.map((s) => (
-                    <div key={s.label} className="contents">
-                      <dt className="text-neutral-500">{s.label}</dt>
-                      <dd className="text-neutral-900">{s.value}</dd>
-                    </div>
-                  ))}
-                </dl>
-              );
-            })()}
+            {/* F-007: specs come from Equipment.specs in the API instead of
+                hard-coded i18n catalog.sale.specs.<id>. Admin can edit them
+                from the admin panel and the change shows up here without
+                needing a frontend release. */}
+            {item.specs.length > 0 && (
+              <dl className="grid grid-cols-[max-content_1fr] gap-x-6 gap-y-2 font-body text-base leading-6">
+                {item.specs.map((s) => (
+                  <div key={s.label} className="contents">
+                    <dt className="text-neutral-500">{s.label}</dt>
+                    <dd className="text-neutral-900">{s.value}</dd>
+                  </div>
+                ))}
+              </dl>
+            )}
 
             <div className="flex items-center gap-2">
               <span className="font-body text-xl text-neutral-900">

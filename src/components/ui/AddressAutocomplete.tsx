@@ -86,6 +86,31 @@ export default function AddressAutocomplete({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         onFocus={() => suggestions.length > 0 && setOpen(true)}
+        // F-011: when the user types an address but tabs/clicks away without
+        // picking a suggestion, auto-resolve to the first match (if any).
+        // Without this the wizard's price preview stayed at 0 ₸ until the
+        // user explicitly clicked a suggestion — confusing because nothing
+        // on screen says "you must pick from the list". Use onMouseDown of
+        // the suggestion list (handlePick) when present; on blur fall back
+        // to the top hit.
+        onBlur={() => {
+          // The suggestion list <button> uses onClick which fires AFTER
+          // onBlur on the input — so suggestions[] is still populated here.
+          // Skip if the user already picked one (skipSearchRef set by handlePick).
+          if (skipSearchRef.current) return;
+          const top = suggestions[0];
+          if (top && value.trim().length >= 3) {
+            // Defer one tick so a suggestion-button click that's already in
+            // flight wins over our auto-pick (avoids double-fire).
+            window.setTimeout(() => {
+              if (skipSearchRef.current) return;
+              skipSearchRef.current = true;
+              onChange(top.displayName);
+              onSelect(top);
+              setOpen(false);
+            }, 200);
+          }
+        }}
         placeholder={placeholder}
         aria-label={placeholder}
         className="!h-10 !pl-10"
