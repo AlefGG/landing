@@ -2,7 +2,8 @@ import { lazy, Suspense } from "react";
 import { HelmetProvider } from "react-helmet-async";
 import { useTranslation } from "react-i18next";
 import { MotionConfig } from "framer-motion";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-router-dom";
+import type { ReactNode } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
 import LandingPage from "./pages/LandingPage";
@@ -24,6 +25,17 @@ const OrdersListPage = lazy(() => import("./pages/OrdersListPage"));
 const OrderDetailPage = lazy(() => import("./pages/OrderDetailPage"));
 const ProfilePage = lazy(() => import("./pages/ProfilePage"));
 const NotFoundPage = lazy(() => import("./pages/NotFoundPage"));
+
+/**
+ * Resets ErrorBoundary state when the URL pathname changes. Without this
+ * an error caught on /rental keeps the UI in error mode even after the
+ * user clicks the logo to go to "/" — React boundaries only reset when
+ * their key changes or they unmount.
+ */
+function RouteResetBoundary({ children }: { children: ReactNode }) {
+  const { pathname } = useLocation();
+  return <ErrorBoundary key={pathname}>{children}</ErrorBoundary>;
+}
 
 function RouteFallback() {
   return (
@@ -50,7 +62,7 @@ export default function App() {
             </a>
             <Header />
             <main id="main">
-              <ErrorBoundary>
+              <RouteResetBoundary>
                 <Suspense fallback={<RouteFallback />}>
                   <Routes>
                   <Route path="/" element={<LandingPage />} />
@@ -84,7 +96,7 @@ export default function App() {
                   <Route path="*" element={<NotFoundPage />} />
                 </Routes>
                 </Suspense>
-              </ErrorBoundary>
+              </RouteResetBoundary>
             </main>
             <Footer />
           </AuthProvider>

@@ -31,7 +31,12 @@ export default function Header() {
     logout();
     setAccountMenuOpen(false);
     setMenuOpen(false);
-    navigate("/");
+    // F-005 (deeper): force a hard reload so any in-flight refresh / API
+    // client / Suspense chunk that captured the previous AuthContext state
+    // is dropped. A soft `navigate("/")` left the user's phone visible in
+    // the header on prod 2026-05-04 — symptom of stale state being
+    // resurrected by a refresh that raced with logout.
+    window.location.assign("/");
   };
   const navLinks = [
     { label: t("nav.about"), href: "#about" },
