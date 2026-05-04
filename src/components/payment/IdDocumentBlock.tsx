@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from "react";
+import { useState, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import IdDocumentUpload from "../wizards/shared/IdDocumentUpload";
 import { uploadIdDocuments } from "../../services/idDocumentService";
@@ -37,9 +37,11 @@ export default function IdDocumentBlock({
   const [front, setFront] = useState<SlotState>(() => initialSlot(hasFront));
   const [back, setBack] = useState<SlotState>(() => initialSlot(hasBack));
 
-  useEffect(() => {
-    onFrontUploadedChange(front.status === "uploaded");
-  }, [front.status, onFrontUploadedChange]);
+  // FE-RX-003: lift parent state via event handlers, not via a child effect
+  // that would re-fire the same boolean on mount and on every status change.
+  // Parent owns its own derived state from `hasIdDocumentFront`; we only
+  // notify on actual transitions (upload success, validation/network
+  // failure, replace).
 
   const upload = useCallback(
     async (file: File, slot: "front" | "back") => {
@@ -55,21 +57,24 @@ export default function IdDocumentBlock({
           ),
           fileName: file.name,
         });
+        if (slot === "front") onFrontUploadedChange(false);
         return;
       }
       setter({ status: "uploading", error: null, fileName: file.name });
       try {
         await uploadIdDocuments(orderId, { [slot]: file });
         setter({ status: "uploaded", error: null, fileName: file.name });
+        if (slot === "front") onFrontUploadedChange(true);
       } catch {
         setter({
           status: "error",
           error: t("payment.kaspi.idDocument.uploadFailed"),
           fileName: file.name,
         });
+        if (slot === "front") onFrontUploadedChange(false);
       }
     },
-    [orderId, t],
+    [orderId, t, onFrontUploadedChange],
   );
 
   const onFrontPick = useCallback(
@@ -104,7 +109,10 @@ export default function IdDocumentBlock({
           slot="front"
           label={t("payment.kaspi.idDocument.frontLabel")}
           onPick={onFrontPick}
-          onReplace={() => setFront({ status: "idle", error: null, fileName: front.fileName })}
+          onReplace={() => {
+            setFront({ status: "idle", error: null, fileName: front.fileName });
+            onFrontUploadedChange(false);
+          }}
         />
         <Slot
           state={back}

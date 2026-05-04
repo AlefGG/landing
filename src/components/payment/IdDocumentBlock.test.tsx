@@ -39,7 +39,9 @@ describe("IdDocumentBlock", () => {
     expect(screen.getByTestId("payment-id-document-block")).toBeTruthy();
     expect(screen.queryByTestId("payment-id-doc-front-uploaded")).toBeNull();
     expect(screen.queryByTestId("payment-id-doc-back-uploaded")).toBeNull();
-    expect(onChange).toHaveBeenCalledWith(false);
+    // FE-RX-003: callback fires only on actual transitions, not on mount.
+    // Parent already knows the initial state via the `hasFront` prop.
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it("renders uploaded state when hasFront=true initial", () => {
@@ -54,7 +56,10 @@ describe("IdDocumentBlock", () => {
     );
     expect(screen.getByTestId("payment-id-doc-front-uploaded")).toBeTruthy();
     expect(screen.getByTestId("payment-id-doc-front-replace")).toBeTruthy();
-    expect(onChange).toHaveBeenCalledWith(true);
+    // FE-RX-003: callback fires only on transitions, not on mount. Parent
+    // already passed `hasFront=true` so it knows; mount call would be a
+    // redundant re-render trigger.
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it("uploads valid front file and flips callback to true", async () => {
