@@ -192,6 +192,13 @@ export function __resetApiClient(): void {
   });
 }
 
+// FE-DT-002: AuthProvider unmount path. Restores the unauthenticated
+// default client so subsequent fetches do not retain a reference to the
+// unmounted provider's getAccessToken / onRefresh closures.
+export function resetApiClientToUnauthDefault(): void {
+  __resetApiClient();
+}
+
 async function handleResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     const body = await parseBody(response);

@@ -9,7 +9,7 @@ import {
   type ReactNode,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { configureApiClient } from "../services/apiClient";
+import { configureApiClient, resetApiClientToUnauthDefault } from "../services/apiClient";
 import {
   fetchMe,
   logout as logoutRequest,
@@ -78,6 +78,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       onRefresh: handleRefresh,
       onAuthError: handleAuthError,
     });
+    // FE-DT-002: drop the configured client when AuthProvider unmounts so
+    // residual fetches (e.g. teardown of a test, route-level remount, HMR)
+    // do not retain a reference to the unmounted provider's closures.
+    return () => {
+      resetApiClientToUnauthDefault();
+    };
   }, [handleRefresh, handleAuthError]);
 
   useEffect(() => {

@@ -288,4 +288,32 @@ describe("AuthContext — cookie-mode (FE-SEC-001 step 2)", () => {
     // outcome above; navigate count is incidental.
     expect(mockNavigate).not.toHaveBeenCalled();
   });
+
+  it("FE-DT-002: AuthProvider unmount restores unauth default client", async () => {
+    vi.spyOn(authService, "refresh").mockResolvedValue({ access: "A1" });
+    vi.spyOn(authService, "fetchMe").mockResolvedValue(FAKE_USER);
+
+    const { findByTestId, unmount } = render(
+      <MemoryRouter>
+        <AuthProvider>
+          <Capture onReady={() => {}} />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+    const status = await findByTestId("status");
+    await waitFor(() => expect(status.textContent).toBe("authenticated"));
+
+    fetchMock.mockResolvedValue(jsonResponse({ ok: true }));
+    fetchMock.mockClear();
+
+    unmount();
+
+    // Post-unmount, fetchJson uses the unauth default client → no
+    // Authorization header attached (provider's accessTokenRef no longer
+    // referenced by the live client).
+    await fetchJson("/post-unmount");
+    const call = fetchMock.mock.calls.at(-1)!;
+    const headers = new Headers((call[1] as RequestInit).headers);
+    expect(headers.get("Authorization")).toBeNull();
+  });
 });

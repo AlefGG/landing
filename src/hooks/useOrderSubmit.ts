@@ -60,6 +60,12 @@ export function useOrderSubmit({
   const contactsValid = nameValid && phoneValid && emailValid;
   const canSubmit = contactsValid && canProceed;
 
+  // FE-DT-007: cancellation epoch — incremented by cancelPendingAuth and
+  // checked after every await inside runBuildOrder. If the user dismisses
+  // the OTP gate while runBuildOrder is mid-flight, the resolved order is
+  // ignored (no navigate, no state writes after the boundary).
+  const submitEpochRef = useRef(0);
+
   const setPendingAuth = useCallback(
     (next: boolean) => {
       setPendingAuthState(next);
@@ -69,6 +75,7 @@ export function useOrderSubmit({
   );
 
   const cancelPendingAuth = useCallback(() => {
+    submitEpochRef.current += 1;
     setPendingAuth(false);
   }, [setPendingAuth]);
 
@@ -88,14 +95,21 @@ export function useOrderSubmit({
 
   const runBuildOrder = useCallback(async () => {
     if (submitting) return;
+    const epoch = submitEpochRef.current;
     setSubmitting(true);
     try {
       const order = await buildOrder();
+      // FE-DT-007: bail if cancelPendingAuth bumped the epoch mid-await.
+      // Order may have been created on the backend, but the user has
+      // dismissed the OTP gate — don't navigate or write success state.
+      if (submitEpochRef.current !== epoch) return;
       if (afterCreate) {
         await afterCreate(order);
+        if (submitEpochRef.current !== epoch) return;
       }
       navigate(`/orders/${order.order_number}/pay`);
     } catch (err) {
+      if (submitEpochRef.current !== epoch) return;
       const normalized = normalizeError(err);
       if (normalized.fieldErrors) {
         const known: Record<string, string> = {};
@@ -114,7 +128,9 @@ export function useOrderSubmit({
       setSubmitError(normalized);
       setPendingAuth(false);
     } finally {
-      setSubmitting(false);
+      if (submitEpochRef.current === epoch) {
+        setSubmitting(false);
+      }
     }
   }, [submitting, buildOrder, afterCreate, navigate, mapServerField, setPendingAuth]);
 
