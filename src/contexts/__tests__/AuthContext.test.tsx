@@ -37,12 +37,13 @@ function jsonResponse(body: unknown, status = 200): Response {
   });
 }
 
+// FE-CQ-004: avoid the inline `typeof import("...")` form which the
+// consistent-type-imports rule rejects; use a top-level `import type * as`
+// alias instead.
+import type * as ReactRouterDom from "react-router-dom";
 const mockNavigate = vi.fn();
 vi.mock("react-router-dom", async () => {
-  const actual =
-    await vi.importActual<typeof import("react-router-dom")>(
-      "react-router-dom",
-    );
+  const actual = await vi.importActual<typeof ReactRouterDom>("react-router-dom");
   return {
     ...actual,
     useNavigate: () => mockNavigate,

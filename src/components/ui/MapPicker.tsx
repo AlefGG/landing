@@ -20,7 +20,9 @@ function sortedByPriorityAsc(fc: ZonesFeatureCollection): ZonesFeatureCollection
 
 export type LatLng = { lat: number; lng: number };
 
-export const ALMATY_CENTER: LatLng = { lat: 43.2567, lng: 76.9286 };
+// FE-CQ-003: kept module-private. Was exported alongside the default
+// component which broke react-refresh; only used inside this file.
+const ALMATY_CENTER: LatLng = { lat: 43.2567, lng: 76.9286 };
 
 function ClickHandler({ onPick }: { onPick: (p: LatLng) => void }) {
   useMapEvents({
