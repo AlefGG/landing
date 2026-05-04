@@ -26,7 +26,6 @@ import {
   PriceSubmit,
   Toggle,
   SurchargeNotice,
-  BASE_DAY_PRICE,
   EXPRESS_SURCHARGE_RATE,
   type CabinQuantityMap,
   type ContactsValue,
@@ -145,11 +144,11 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
 
   const preview = useOrderPreview(previewPayload, previewRentalOrder);
 
-  const fallbackSurcharge = expressMounting
-    ? Math.round(BASE_DAY_PRICE * EXPRESS_SURCHARGE_RATE)
-    : 0;
-  const fallbackTotal = previewPayload ? BASE_DAY_PRICE + fallbackSurcharge : 0;
-  const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
+  // F-015: do NOT show a hardcoded BASE_DAY_PRICE fallback — it misrepresented
+  // the cost when the backend final differed from the heuristic. While
+  // preview is in-flight, show 0; the submit button is gated on
+  // `previewPayload` being valid, so the user can't submit on a 0.
+  const totalPrice = preview.data ? Number(preview.data.total) : 0;
   const surchargeAmount = preview.data
     ? (preview.data.pricing_snapshot as { express_surcharge?: string })
         .express_surcharge
@@ -157,8 +156,8 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
           (preview.data.pricing_snapshot as { express_surcharge: string })
             .express_surcharge,
         )
-      : fallbackSurcharge
-    : fallbackSurcharge;
+      : 0
+    : 0;
 
   const canProceed = !!previewPayload && installConsent;
 

@@ -20,6 +20,7 @@ import {
   type AuthUser,
   type ProfilePatch,
 } from "../services/authService";
+import { getCsrfToken } from "../services/csrf";
 
 type AuthStatus = "loading" | "authenticated" | "anonymous";
 
@@ -89,6 +90,18 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // ignore
     }
     (async () => {
+      // F-001: skip the bootstrap refresh entirely when no CSRF cookie is
+      // present. CookieTokenRefreshView is csrf_protect-decorated, so an
+      // anonymous browser (no cookies) gets a 403 logged to the console on
+      // every page load — noisy and misleading. Real returning users who
+      // were logged in have csrftoken set by Django's middleware on prior
+      // 2xx responses, so the bootstrap still runs for them.
+      if (!getCsrfToken()) {
+        if (cancelled) return;
+        accessTokenRef.current = null;
+        setStatus("anonymous");
+        return;
+      }
       try {
         const { access } = await refresh();
         if (cancelled) return;

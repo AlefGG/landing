@@ -76,6 +76,11 @@ describe("AuthContext — cookie-mode (FE-SEC-001 step 2)", () => {
 
   beforeEach(() => {
     localStorage.clear();
+    // F-001: AuthContext now skips bootstrap refresh when no csrftoken cookie
+    // exists (anonymous browser). Tests that exercise the bootstrap path need
+    // a csrftoken to enter the refresh branch, mirroring a returning user
+    // whose Django middleware seeded the cookie on a prior 2xx.
+    document.cookie = "csrftoken=test-csrf-token; path=/";
     mockNavigate.mockReset();
     __resetApiClient();
     fetchMock = vi.fn();
@@ -87,6 +92,8 @@ describe("AuthContext — cookie-mode (FE-SEC-001 step 2)", () => {
     vi.unstubAllGlobals();
     vi.restoreAllMocks();
     __resetApiClient();
+    document.cookie =
+      "csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
   });
 
   it("bootstrap with valid cookie → authenticated; no localStorage refresh write", async () => {
@@ -127,6 +134,24 @@ describe("AuthContext — cookie-mode (FE-SEC-001 step 2)", () => {
 
     const status = await findByTestId("status");
     await waitFor(() => expect(status.textContent).toBe("anonymous"));
+  });
+
+  it("F-001: bootstrap with no csrftoken → skips refresh, no console noise", async () => {
+    document.cookie =
+      "csrftoken=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/";
+    const refreshSpy = vi.spyOn(authService, "refresh");
+
+    const { findByTestId } = render(
+      <MemoryRouter>
+        <AuthProvider>
+          <Capture onReady={() => {}} />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    const status = await findByTestId("status");
+    await waitFor(() => expect(status.textContent).toBe("anonymous"));
+    expect(refreshSpy).not.toHaveBeenCalled();
   });
 
   it("legacy localStorage purge on first mount", async () => {

@@ -164,7 +164,7 @@
   "auth": {
     "login": {
       "title": "Вход в кабинет",
-      "subtitle": "Введите номер телефона — мы отправим код в WhatsApp",
+      "subtitle": "Введите номер телефона — мы отправим код для входа",
       "phoneLabel": "Номер телефона",
       "phonePlaceholder": "+7 7XX XXX XX XX",
       "submit": "Получить код",
@@ -176,7 +176,7 @@
     },
     "verify": {
       "title": "Введите код",
-      "subtitle": "Код отправлен в WhatsApp на {{phone}}",
+      "subtitle": "Код отправлен на {{phone}}",
       "change": "Изменить номер",
       "resend": "Отправить код повторно",
       "resendIn": "Повторно через {{seconds}} сек",

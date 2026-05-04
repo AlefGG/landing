@@ -26,7 +26,6 @@ import {
   PriceSubmit,
   Toggle,
   SurchargeNotice,
-  BASE_DAY_PRICE,
   EMERGENCY_SURCHARGE_RATE,
   type CabinQuantityMap,
   type ContactsValue,
@@ -139,12 +138,14 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
 
   const preview = useOrderPreview(previewPayload, previewRentalOrder);
 
-  const fallbackSurcharge = Math.round(BASE_DAY_PRICE * EMERGENCY_SURCHARGE_RATE);
-  const fallbackTotal = previewPayload ? BASE_DAY_PRICE + fallbackSurcharge : 0;
-  const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
+  // F-015: do NOT show a hardcoded BASE_DAY_PRICE fallback — it lied to the
+  // user when the backend final differed from the heuristic. While preview
+  // is in-flight, show 0; the submit button is gated on `previewPayload`
+  // being valid, so the user can't submit during this transient state.
+  const totalPrice = preview.data ? Number(preview.data.total) : 0;
   const surchargeAmount = preview.data
     ? Math.round(Number(preview.data.total) * EMERGENCY_SURCHARGE_RATE / (1 + EMERGENCY_SURCHARGE_RATE))
-    : fallbackSurcharge;
+    : 0;
 
   const canProceed = !!previewPayload && installConsent;
 
