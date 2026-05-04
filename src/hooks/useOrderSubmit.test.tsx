@@ -131,10 +131,13 @@ describe("useOrderSubmit", () => {
 
   it("FE-DT-007: cancel mid-flight buildOrder skips navigation + afterCreate", async () => {
     mockUseAuth.mockReturnValue({ status: "authenticated" });
-    let resolveBuild: (value: { order_number: string }) => void = () => {};
-    const buildOrder = vi.fn(
+    type OrderResponseShape = Parameters<
+      NonNullable<Parameters<typeof useOrderSubmit>[0]["afterCreate"]>
+    >[0];
+    let resolveBuild: (value: OrderResponseShape) => void = () => {};
+    const buildOrder = vi.fn<() => Promise<OrderResponseShape>>(
       () =>
-        new Promise<{ order_number: string }>((res) => {
+        new Promise<OrderResponseShape>((res) => {
           resolveBuild = res;
         }),
     );
@@ -153,9 +156,11 @@ describe("useOrderSubmit", () => {
     act(() => {
       result.current.cancelPendingAuth();
     });
-    // Resolve the network call.
+    // Resolve the network call (cast to satisfy OrderResponse shape; only
+    // order_number is consumed by the navigate path, which the cancel
+    // guard short-circuits anyway).
     await act(async () => {
-      resolveBuild({ order_number: "X-1" });
+      resolveBuild({ order_number: "X-1" } as OrderResponseShape);
       await Promise.resolve();
     });
     // Cancellation epoch bumped → afterCreate should NOT have run.
