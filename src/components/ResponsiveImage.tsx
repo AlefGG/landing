@@ -6,6 +6,16 @@ type Props = {
   alt: string;
   sizes: string;
   priority?: boolean;
+  /**
+   * FE-PF-006: viewport guard for the `<link rel="preload">` emitted when
+   * `priority` is true. Browsers honour the `media` attribute on preload
+   * links — when set, the preload only fetches on matching viewports.
+   * Use this when the same logical hero image renders in two layouts
+   * (one for desktop, one for mobile) and only one is visible at a time.
+   * Example: `priorityMedia="(min-width: 1024px)"` on the desktop variant
+   * means mobile devices skip the desktop preload entirely.
+   */
+  priorityMedia?: string;
   className?: string;
   width?: number;
   height?: number;
@@ -48,6 +58,7 @@ export default function ResponsiveImage({
   alt,
   sizes,
   priority,
+  priorityMedia,
   className,
   width,
   height,
@@ -57,19 +68,24 @@ export default function ResponsiveImage({
 
   useEffect(() => {
     if (!priority) return;
+    // FE-PF-006: priority+priorityMedia is the legitimate "two variants
+    // for two viewports, only one preload fires per device" pattern;
+    // it must not trip the single-LCP warning. Counted only when
+    // priorityMedia is absent (the global-preload case).
+    if (priorityMedia) return;
     if (typeof window === "undefined") return;
     const w = window as unknown as { __responsiveImagePriorityCount?: number };
     w.__responsiveImagePriorityCount = (w.__responsiveImagePriorityCount ?? 0) + 1;
     if (import.meta.env.DEV && w.__responsiveImagePriorityCount > 1) {
       console.warn(
-        "[ResponsiveImage] more than one priority={true} mounted — only one LCP per route",
+        "[ResponsiveImage] more than one priority={true} mounted — only one LCP per route (use priorityMedia to viewport-gate)",
       );
     }
     return () => {
       w.__responsiveImagePriorityCount =
         (w.__responsiveImagePriorityCount ?? 1) - 1;
     };
-  }, [priority]);
+  }, [priority, priorityMedia]);
 
   if (!variants) {
     // src didn't match expected pattern → render plain img.
@@ -97,6 +113,7 @@ export default function ResponsiveImage({
             imageSrcSet={variants.srcSets.avif}
             imageSizes={sizes}
             type="image/avif"
+            {...(priorityMedia ? { media: priorityMedia } : {})}
           />
           <link
             rel="preload"
@@ -104,6 +121,7 @@ export default function ResponsiveImage({
             imageSrcSet={variants.srcSets.webp}
             imageSizes={sizes}
             type="image/webp"
+            {...(priorityMedia ? { media: priorityMedia } : {})}
           />
         </Helmet>
       )}

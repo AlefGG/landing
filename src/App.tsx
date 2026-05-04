@@ -6,11 +6,18 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from "react-route
 import type { ReactNode } from "react";
 import Header from "./components/Header";
 import Footer from "./components/Footer";
-import LandingPage from "./pages/LandingPage";
 import RequireAuth from "./components/auth/RequireAuth";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { AuthProvider } from "./contexts/AuthContext";
 
+// FE-PF-007: LandingPage joins the lazy bundle. Previously the static
+// import pulled the entire landing-section subtree (Hero / Services /
+// About / Partners / Events / Advantages / Cabins / CtaBanner / Faq /
+// StatsBanner) into the entry chunk, costing every non-`/` first-load
+// ~50–80 KB raw of unused JS. With this split the Suspense boundary
+// already in App.tsx renders RouteFallback for ~50 ms while the
+// LandingPage chunk fetches on `/`.
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 const ServicePage = lazy(() => import("./pages/ServicePage"));
 const RentalPage = lazy(() => import("./pages/RentalPage"));
 const SalePage = lazy(() => import("./pages/SalePage"));
