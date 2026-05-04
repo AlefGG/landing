@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 export type TimeSlotDTO = {
   id: number;
   name: string;
@@ -22,7 +24,15 @@ function resolveSlug(): string {
   );
 }
 
-export function fetchPublicTimeSlots(): Promise<TimeSlotDTO[]> {
+// FE-DT-004: locale-aware cache + Accept-Language header. Locale change
+// (i18n.language) yields a different cache key → automatic refetch.
+function resolveLocale(): string {
+  return i18n?.language || "ru";
+}
+
+export function fetchPublicTimeSlots(
+  signal?: AbortSignal,
+): Promise<TimeSlotDTO[]> {
   const slug = resolveSlug();
   if (!slug) {
     if (!warnedAboutMissingSlug) {
@@ -34,17 +44,29 @@ export function fetchPublicTimeSlots(): Promise<TimeSlotDTO[]> {
     return Promise.resolve(EMPTY);
   }
 
-  const key = slug;
+  const locale = resolveLocale();
+  const key = `${slug}:${locale}`;
   const existing = cache.get(key);
-  if (existing) return existing;
+  const promise = existing ?? buildPromise(key, slug, locale);
+  if (!existing) cache.set(key, promise);
 
+  if (!signal) return promise;
+  return wrapSignal(promise, signal);
+}
+
+function buildPromise(
+  key: string,
+  slug: string,
+  locale: string,
+): Promise<TimeSlotDTO[]> {
   const baseUrl = resolveBaseUrl().replace(/\/$/, "");
   const url =
     `${baseUrl}/public/time-slots/` +
     `?company=${encodeURIComponent(slug)}`;
-
-  const promise = (async () => {
-    const resp = await fetch(url);
+  return (async () => {
+    const resp = await fetch(url, {
+      headers: { "Accept-Language": locale },
+    });
     if (!resp.ok) {
       throw new Error(`fetchPublicTimeSlots: HTTP ${resp.status}`);
     }
@@ -61,9 +83,32 @@ export function fetchPublicTimeSlots(): Promise<TimeSlotDTO[]> {
     cache.delete(key);
     throw err;
   });
+}
 
-  cache.set(key, promise);
-  return promise;
+// FE-DT-006: shared cache must NOT cancel for everyone when one consumer
+// aborts. Wrap the cached promise in a per-call signal-aware shell —
+// matches the pattern in zonesService.fetchPublicZones.
+function wrapSignal<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const onAbort = () => {
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (v) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(v);
+      },
+      (e) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(e);
+      },
+    );
+  });
 }
 
 export function __resetTimeSlotsCacheForTests(): void {

@@ -62,4 +62,25 @@ describe("useTimeSlots", () => {
     expect(result.current.error?.message).toBe("second boom");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("FE-DT-006: ignores resolved data after unmount (abort path)", async () => {
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    let resolveFetch: (value: { ok: boolean; json: () => Promise<unknown> }) => void = () => {};
+    fetchMock.mockReturnValueOnce(
+      new Promise((res) => {
+        resolveFetch = res;
+      }),
+    );
+    const { result, unmount } = renderHook(() => useTimeSlots());
+    unmount();
+    resolveFetch({
+      ok: true,
+      json: async () => [
+        { id: 1, name: "X", start_time: "08:00", end_time: "12:00", order: 1, is_active: true },
+      ],
+    });
+    await Promise.resolve();
+    // No throw, no setState-on-unmounted warning. result is captured at last render.
+    expect(result.current.loading).toBe(true);
+  });
 });

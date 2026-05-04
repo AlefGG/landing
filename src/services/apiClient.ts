@@ -6,6 +6,9 @@
  * the request once. A second 401 triggers onAuthError (logout + redirect).
  */
 
+import * as Sentry from "@sentry/react";
+import type { z } from "zod";
+
 export class ApiError extends Error {
   readonly status: number;
   readonly body?: unknown;
@@ -23,6 +26,58 @@ export class AuthExpiredError extends Error {
     super("Authentication expired");
     this.name = "AuthExpiredError";
   }
+}
+
+// FE-TS-002: thrown by fetchValidated/parseValidated when a service
+// response fails its zod schema. In warn-mode the error is captured to
+// Sentry but never thrown; in strict-mode it propagates.
+export class SchemaMismatchError extends Error {
+  readonly path: string;
+  readonly schemaName: string;
+  readonly issues: z.core.$ZodIssue[];
+  constructor(path: string, schemaName: string, issues: z.core.$ZodIssue[]) {
+    super(`Schema mismatch at ${path} against ${schemaName}`);
+    this.name = "SchemaMismatchError";
+    this.path = path;
+    this.schemaName = schemaName;
+    this.issues = issues;
+  }
+}
+
+type SchemaValidationMode = "warn" | "strict";
+function resolveValidationMode(): SchemaValidationMode {
+  const raw = import.meta.env.VITE_SCHEMA_VALIDATION_MODE as
+    | string
+    | undefined;
+  return raw === "strict" ? "strict" : "warn";
+}
+
+// Snapshot at module init. Vite bakes import.meta.env at build time so the
+// flip warn → strict requires a rebuild (documented in mini-spec §8.3).
+export const SCHEMA_VALIDATION_MODE: SchemaValidationMode = resolveValidationMode();
+
+function describeSchema(schema: z.ZodType<unknown>): string {
+  // zod v4 exposes the .describe() text on `schema.description`.
+  return (
+    (schema as unknown as { description?: string }).description ?? "anonymous"
+  );
+}
+
+export function reportSchemaMismatch<T>(
+  path: string,
+  schema: z.ZodType<T>,
+  issues: z.core.$ZodIssue[],
+  raw: unknown,
+): T {
+  const err = new SchemaMismatchError(path, describeSchema(schema), issues);
+  if (SCHEMA_VALIDATION_MODE === "strict") {
+    throw err;
+  }
+  Sentry.captureException(err, {
+    tags: { kind: "schema-mismatch", path },
+    extra: { issues: issues.slice(0, 10) },
+  });
+  return raw as T;
 }
 
 type ApiClientConfig = {
@@ -170,11 +225,34 @@ export function getApiClient(): ApiClient {
   return activeClient;
 }
 
+/**
+ * @deprecated FE-TS-002: prefer `fetchValidated(path, schema, init?)` which
+ *   returns `z.infer<typeof schema>` and surfaces schema mismatches via
+ *   Sentry (warn mode) / throws SchemaMismatchError (strict mode).
+ *   `fetchJson<T>` is retained for unmigrated services and tests; no
+ *   removal scheduled until Wave-4.
+ */
 export function fetchJson<T = unknown>(
   path: string,
   init?: RequestInit,
 ): Promise<T> {
   return activeClient.request<T>(path, init);
+}
+
+// FE-TS-002: validated wrapper. Runs the response body through `schema`
+// before returning. On mismatch, behaviour depends on SCHEMA_VALIDATION_MODE:
+//   warn (default) — Sentry-log + cast-and-return (legacy behaviour preserved).
+//   strict          — throw SchemaMismatchError.
+// Flip is via VITE_SCHEMA_VALIDATION_MODE env var at build time.
+export async function fetchValidated<S extends z.ZodType<unknown>>(
+  path: string,
+  schema: S,
+  init?: RequestInit,
+): Promise<z.infer<S>> {
+  const body = await activeClient.request<unknown>(path, init);
+  const result = schema.safeParse(body);
+  if (result.success) return result.data as z.infer<S>;
+  return reportSchemaMismatch(path, schema, result.error.issues, body) as z.infer<S>;
 }
 
 export function fetchBlob(path: string, init?: RequestInit): Promise<Blob> {
@@ -190,6 +268,13 @@ export function __resetApiClient(): void {
     onRefresh: async () => null,
     onAuthError: () => {},
   });
+}
+
+// FE-DT-002: AuthProvider unmount path. Restores the unauthenticated
+// default client so subsequent fetches do not retain a reference to the
+// unmounted provider's getAccessToken / onRefresh closures.
+export function resetApiClientToUnauthDefault(): void {
+  __resetApiClient();
 }
 
 async function handleResponse<T>(response: Response): Promise<T> {

@@ -1,3 +1,9 @@
+// TODO(FE-TS-002 wave-3b): migrate create*Order / preview*Order to
+// fetchValidated. The OrderResponse + PreviewResponse shapes are stable
+// (snapshot record is opaque z.unknown), but POST-write paths have lower
+// blast radius than the read paths migrated in this PR. Deferred to keep
+// the PR scope focused; warn-mode mismatches on these endpoints are
+// already covered by Sentry's generic error capture.
 import { fetchJson, ApiError } from "./apiClient";
 
 export type PaymentChannel = "individual" | "legal";
@@ -99,10 +105,12 @@ export class OrderValidationError extends Error {
 function post<TPayload, TResponse>(
   path: string,
   payload: TPayload,
+  opts?: { signal?: AbortSignal },
 ): Promise<TResponse> {
   return fetchJson<TResponse>(path, {
     method: "POST",
     body: JSON.stringify(payload),
+    ...(opts?.signal ? { signal: opts.signal } : {}),
   }).catch((err) => {
     if (err instanceof ApiError && err.status >= 400 && err.status < 500) {
       const message =
@@ -139,27 +147,34 @@ export function createSaleOrder(
   return post("/orders/sale/", payload);
 }
 
+// FE-DT-005: previewers accept opts.signal so useOrderPreview aborts
+// in-flight requests on payload change / unmount instead of just dropping
+// the response client-side.
 export function previewRentalOrder(
   payload: RentalOrderPayload,
+  opts?: { signal?: AbortSignal },
 ): Promise<PreviewResponse> {
-  return post("/orders/rental/preview/", payload);
+  return post("/orders/rental/preview/", payload, opts);
 }
 
 export function previewConstructionOrder(
   payload: ConstructionOrderPayload,
+  opts?: { signal?: AbortSignal },
 ): Promise<PreviewResponse> {
-  return post("/orders/construction/preview/", payload);
+  return post("/orders/construction/preview/", payload, opts);
 }
 
 export function previewServiceOrder(
   payload: ServiceOrderPayload,
+  opts?: { signal?: AbortSignal },
 ): Promise<PreviewResponse> {
-  return post("/orders/service/preview/", payload);
+  return post("/orders/service/preview/", payload, opts);
 }
 
 
 export function previewSaleOrder(
   payload: SaleOrderPayload,
+  opts?: { signal?: AbortSignal },
 ): Promise<PreviewResponse> {
-  return post("/orders/sale/preview/", payload);
+  return post("/orders/sale/preview/", payload, opts);
 }

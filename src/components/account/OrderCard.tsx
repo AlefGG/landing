@@ -5,6 +5,7 @@ import type {
   OrderListItem,
 } from "../../services/ordersService";
 import { formatRelativeDate } from "../../utils/date";
+import { assertNever } from "../../utils/assertNever";
 import OrderStatusBadge from "./OrderStatusBadge";
 
 type Props = {
@@ -23,6 +24,8 @@ function serviceLabelKey(t: BackendServiceType): string {
       return "auth.orders.serviceType.sanitation";
     case "sale":
       return "auth.orders.serviceType.sale";
+    default:
+      return assertNever(t, "OrderCard.serviceLabelKey");
   }
 }
 

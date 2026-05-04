@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 
 const DEBOUNCE_MS = 500;
 
@@ -11,11 +11,14 @@ export type PreviewResult<T> = {
 /**
  * Debounced POST /preview/ call.
  * `payload` must be null when inputs are incomplete — hook returns idle state.
- * Aborts in-flight requests on payload change / unmount.
+ * Aborts in-flight requests on payload change / unmount via AbortSignal.
  */
 export function useOrderPreview<TPayload, TResponse>(
   payload: TPayload | null,
-  fetcher: (payload: TPayload) => Promise<TResponse>,
+  fetcher: (
+    payload: TPayload,
+    opts?: { signal?: AbortSignal },
+  ) => Promise<TResponse>,
 ): PreviewResult<TResponse> {
   const [state, setState] = useState<PreviewResult<TResponse>>({
     data: null,
@@ -23,31 +26,29 @@ export function useOrderPreview<TPayload, TResponse>(
     error: null,
   });
   const key = payload ? JSON.stringify(payload) : null;
-  const latestKey = useRef<string | null>(null);
 
-  // FE-CQ-001: schedule all state mutations (idle clear + mark-loading +
-  // resolve/reject) on the timer / promise callbacks. Effect body itself
-  // is side-effect-free at the React-state level, so set-state-in-effect
-  // does not fire. The empty-payload branch uses a 0 ms timer so the
-  // shape is uniform with the populated branch.
+  // FE-CQ-001: schedule all state mutations on timer / promise callbacks.
+  // FE-DT-005: signal-based abort instead of latestKey-filtering — the
+  // server stops processing when the dep changes / hook unmounts, not just
+  // its response getting dropped client-side.
   useEffect(() => {
     if (!payload || !key) {
       const idleHandle = window.setTimeout(() => {
         setState({ data: null, loading: false, error: null });
-        latestKey.current = null;
       }, 0);
       return () => window.clearTimeout(idleHandle);
     }
-    latestKey.current = key;
+    const ctrl = new AbortController();
     const handle = window.setTimeout(() => {
       setState((prev) => ({ ...prev, loading: true, error: null }));
-      fetcher(payload)
+      fetcher(payload, { signal: ctrl.signal })
         .then((data) => {
-          if (latestKey.current !== key) return;
+          if (ctrl.signal.aborted) return;
           setState({ data, loading: false, error: null });
         })
-        .catch((err) => {
-          if (latestKey.current !== key) return;
+        .catch((err: unknown) => {
+          if (ctrl.signal.aborted) return;
+          if ((err as Error).name === "AbortError") return;
           setState({
             data: null,
             loading: false,
@@ -58,6 +59,7 @@ export function useOrderPreview<TPayload, TResponse>(
 
     return () => {
       window.clearTimeout(handle);
+      ctrl.abort();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [key]);

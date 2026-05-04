@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   fetchPublicZones,
   type ZoneServiceType,
@@ -14,8 +15,11 @@ type UseZonesReturn = {
 const EMPTY: UseZonesReturn = { zones: null, loading: false, error: null };
 
 export function useZones(serviceType: ZoneServiceType | null): UseZonesReturn {
+  const { i18n } = useTranslation();
   const [state, setState] = useState<UseZonesReturn>(EMPTY);
 
+  // FE-DT-004: locale dep so the zones overlay re-keys + refetches when
+  // the user switches language.
   useEffect(() => {
     if (!serviceType) {
       // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -37,7 +41,7 @@ export function useZones(serviceType: ZoneServiceType | null): UseZonesReturn {
       });
 
     return () => ctrl.abort();
-  }, [serviceType]);
+  }, [serviceType, i18n.language]);
 
   return state;
 }

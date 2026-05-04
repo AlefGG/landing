@@ -128,4 +128,42 @@ describe("useOrderSubmit", () => {
     expect(result.current.pendingAuth).toBe(false);
     expect(buildOrder).toHaveBeenCalledTimes(1);
   });
+
+  it("FE-DT-007: cancel mid-flight buildOrder skips navigation + afterCreate", async () => {
+    mockUseAuth.mockReturnValue({ status: "authenticated" });
+    type OrderResponseShape = Parameters<
+      NonNullable<Parameters<typeof useOrderSubmit>[0]["afterCreate"]>
+    >[0];
+    let resolveBuild: (value: OrderResponseShape) => void = () => {};
+    const buildOrder = vi.fn<() => Promise<OrderResponseShape>>(
+      () =>
+        new Promise<OrderResponseShape>((res) => {
+          resolveBuild = res;
+        }),
+    );
+    const afterCreate = vi.fn(async () => {});
+    const { result } = renderHook(
+      () =>
+        useOrderSubmit({ contacts: validContacts, buildOrder, afterCreate }),
+      { wrapper },
+    );
+    // Start submit; buildOrder hangs.
+    void act(async () => {
+      await result.current.submit();
+    });
+    await waitFor(() => expect(buildOrder).toHaveBeenCalledTimes(1));
+    // User cancels while buildOrder is still pending.
+    act(() => {
+      result.current.cancelPendingAuth();
+    });
+    // Resolve the network call (cast to satisfy OrderResponse shape; only
+    // order_number is consumed by the navigate path, which the cancel
+    // guard short-circuits anyway).
+    await act(async () => {
+      resolveBuild({ order_number: "X-1" } as OrderResponseShape);
+      await Promise.resolve();
+    });
+    // Cancellation epoch bumped → afterCreate should NOT have run.
+    expect(afterCreate).not.toHaveBeenCalled();
+  });
 });

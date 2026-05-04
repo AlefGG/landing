@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 export type ServicePackageDTO = {
   id: number;
   name: string;
@@ -20,7 +22,14 @@ function resolveSlug(): string {
   );
 }
 
-export function fetchPublicServicePackages(): Promise<ServicePackageDTO[]> {
+// FE-DT-004: locale-aware cache + Accept-Language header.
+function resolveLocale(): string {
+  return i18n?.language || "ru";
+}
+
+export function fetchPublicServicePackages(
+  signal?: AbortSignal,
+): Promise<ServicePackageDTO[]> {
   const slug = resolveSlug();
   if (!slug) {
     if (!warnedAboutMissingSlug) {
@@ -32,17 +41,29 @@ export function fetchPublicServicePackages(): Promise<ServicePackageDTO[]> {
     return Promise.resolve(EMPTY);
   }
 
-  const key = slug;
+  const locale = resolveLocale();
+  const key = `${slug}:${locale}`;
   const existing = cache.get(key);
-  if (existing) return existing;
+  const promise = existing ?? buildPromise(key, slug, locale);
+  if (!existing) cache.set(key, promise);
 
+  if (!signal) return promise;
+  return wrapSignal(promise, signal);
+}
+
+function buildPromise(
+  key: string,
+  slug: string,
+  locale: string,
+): Promise<ServicePackageDTO[]> {
   const baseUrl = resolveBaseUrl().replace(/\/$/, "");
   const url =
     `${baseUrl}/public/service-packages/` +
     `?company=${encodeURIComponent(slug)}`;
-
-  const promise = (async () => {
-    const resp = await fetch(url);
+  return (async () => {
+    const resp = await fetch(url, {
+      headers: { "Accept-Language": locale },
+    });
     if (!resp.ok) {
       throw new Error(`fetchPublicServicePackages: HTTP ${resp.status}`);
     }
@@ -52,9 +73,31 @@ export function fetchPublicServicePackages(): Promise<ServicePackageDTO[]> {
     cache.delete(key);
     throw err;
   });
+}
 
-  cache.set(key, promise);
-  return promise;
+// FE-DT-006: per-call signal-aware shell around the shared cached promise;
+// matches zonesService.fetchPublicZones pattern.
+function wrapSignal<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const onAbort = () => {
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (v) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(v);
+      },
+      (e) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(e);
+      },
+    );
+  });
 }
 
 export function __resetServicePackagesCacheForTests(): void {

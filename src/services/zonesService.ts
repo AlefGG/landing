@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 export type ZoneServiceType =
   | "rental_event"
   | "rental_emergency"
@@ -39,6 +41,14 @@ function resolveSlug(): string {
   return (import.meta.env.VITE_LANDING_COMPANY_SLUG as string | undefined) ?? "";
 }
 
+// FE-DT-004: read i18n.language at call time. i18n is initialised at app
+// bootstrap (src/main.tsx imports ./i18n eagerly), so by the time any
+// service call fires, `i18n.language` is populated. SSR / test paths fall
+// back to "ru" via the static import's `lng` config.
+function resolveLocale(): string {
+  return i18n?.language || "ru";
+}
+
 export function fetchPublicZones(
   serviceType: ZoneServiceType,
   signal?: AbortSignal,
@@ -54,9 +64,10 @@ export function fetchPublicZones(
     return Promise.resolve(EMPTY_FC);
   }
 
-  const key = `${slug}:${serviceType}`;
+  const locale = resolveLocale();
+  const key = `${slug}:${serviceType}:${locale}`;
   const existing = cache.get(key);
-  if (existing) return existing;
+  if (existing) return signal ? wrapSignal(existing, signal) : existing;
 
   const baseUrl = resolveBaseUrl().replace(/\/$/, "");
   const url =
@@ -69,7 +80,9 @@ export function fetchPublicZones(
   // cache for everyone). Each consumer wraps the shared promise in its own
   // signal-aware wrapper and resolves to EMPTY_FC on abort.
   const promise = (async () => {
-    const resp = await fetch(url);
+    const resp = await fetch(url, {
+      headers: { "Accept-Language": locale },
+    });
     if (!resp.ok) {
       throw new Error(`fetchPublicZones: HTTP ${resp.status}`);
     }
@@ -81,9 +94,11 @@ export function fetchPublicZones(
   });
 
   cache.set(key, promise);
+  return signal ? wrapSignal(promise, signal) : promise;
+}
 
-  if (!signal) return promise;
-  return new Promise<ZonesFeatureCollection>((resolve, reject) => {
+function wrapSignal<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
     if (signal.aborted) {
       reject(new DOMException("Aborted", "AbortError"));
       return;
