@@ -10,13 +10,16 @@ type LoadState =
 
 export default function SaleCheckoutPage() {
   const { id } = useParams<{ id: string }>();
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  // FE-CQ-001: hoist the missing-id early-out out of the effect to avoid
+  // synchronous setState during effect body. The valid-id path stays in
+  // the effect; setState there fires from a .then() (microtask) which the
+  // lint rule does not flag.
+  const [state, setState] = useState<LoadState>(() =>
+    id ? { status: "loading" } : { status: "not-found" },
+  );
 
   useEffect(() => {
-    if (!id) {
-      setState({ status: "not-found" });
-      return;
-    }
+    if (!id) return;
     let cancelled = false;
     fetchCatalogItem(id).then((item) => {
       if (cancelled) return;

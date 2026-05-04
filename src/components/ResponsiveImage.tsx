@@ -12,10 +12,10 @@ type Props = {
 };
 
 const WIDTHS = [480, 800, 1280] as const;
-const FORMATS = ["avif", "webp"] as const;
+type Format = "avif" | "webp";
 
 type Variants = {
-  srcSets: Record<(typeof FORMATS)[number], string>;
+  srcSets: Record<Format, string>;
   fallback: string;
   originalSrc: string;
 };

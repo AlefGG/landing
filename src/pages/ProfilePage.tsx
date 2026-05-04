@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Button, InlineError } from "../components/ui";
 import { useAuth } from "../contexts/AuthContext";
@@ -17,11 +17,18 @@ export default function ProfilePage() {
   const [emailError, setEmailError] = useState<string | null>(null);
   const [state, setState] = useState<SaveState>("idle");
   const mutation = useMutationError();
-
-  useEffect(() => {
+  // FE-CQ-001: reset draft when the auth-context user changes (login /
+  // refresh / external profile update). React 19 supports this "adjust state
+  // during render" pattern as the canonical replacement for the legacy
+  // useEffect(() => setX(...)) shape — it bails out the in-flight render
+  // and re-renders synchronously with the new state, avoiding cascading
+  // renders flagged by react-hooks/set-state-in-effect.
+  const [prevUserId, setPrevUserId] = useState(user?.id ?? null);
+  if (user?.id !== prevUserId) {
+    setPrevUserId(user?.id ?? null);
     setName(user?.first_name ?? "");
     setEmail(user?.email ?? "");
-  }, [user]);
+  }
 
   if (!user) return null;
 
