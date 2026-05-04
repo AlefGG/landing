@@ -15,6 +15,7 @@ import {
   type OrderDetail,
 } from "../services/ordersService";
 import { formatAbsoluteDate } from "../utils/date";
+import { assertNever } from "../utils/assertNever";
 
 type LoadState =
   | { kind: "loading" }
@@ -34,6 +35,8 @@ function serviceLabelKey(t: BackendServiceType): string {
       return "auth.orders.serviceType.sanitation";
     case "sale":
       return "auth.orders.serviceType.sale";
+    default:
+      return assertNever(t, "OrderDetailPage.serviceLabelKey");
   }
 }
 

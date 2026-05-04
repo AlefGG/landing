@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 import { describe, it, expect, beforeEach, vi, afterEach } from "vitest";
+import { z } from "zod";
 import { saveDraft, loadDraft, clearDraft } from "./wizardDraft";
 
 const SLUG = "event" as const;
@@ -70,5 +71,36 @@ describe("wizardDraft", () => {
     });
     expect(() => saveDraft(SLUG, { x: 1 })).not.toThrow();
     setItem.mockRestore();
+  });
+
+  describe("FE-TS-003 schema validation", () => {
+    const PayloadSchema = z.object({
+      name: z.string(),
+      count: z.number(),
+    });
+
+    it("returns parsed payload when schema matches", () => {
+      saveDraft(SLUG, { name: "Alice", count: 2 });
+      const out = loadDraft(SLUG, PayloadSchema);
+      expect(out).toEqual({ name: "Alice", count: 2 });
+    });
+
+    it("returns null AND clears storage when payload fails the schema", () => {
+      saveDraft(SLUG, { name: "Alice", count: "two" }); // count wrong type
+      const out = loadDraft(SLUG, PayloadSchema);
+      expect(out).toBeNull();
+      // Cleared so the next mount won't loop on the corrupt payload.
+      expect(window.localStorage.getItem("biotoilets:wizardDraft:event")).toBeNull();
+    });
+
+    it("returns null AND clears storage when envelope shape is wrong", () => {
+      window.localStorage.setItem(
+        "biotoilets:wizardDraft:event",
+        JSON.stringify({ noSavedAt: true }),
+      );
+      const out = loadDraft(SLUG, PayloadSchema);
+      expect(out).toBeNull();
+      expect(window.localStorage.getItem("biotoilets:wizardDraft:event")).toBeNull();
+    });
   });
 });
