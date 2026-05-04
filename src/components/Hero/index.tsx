@@ -220,7 +220,11 @@ export default function Hero() {
 
         {/* Title + subtitle/24-7 card row */}
         <div className="relative z-10 w-full px-3 pt-6 flex flex-col gap-4 items-start">
-          <motion.h1
+          {/* F-013: mobile copy of the hero heading is demoted to <h2> so the
+              page still has exactly one <h1> in the DOM (the desktop one is
+              `display: none` on mobile but axe and screen readers see both).
+              Visual styling is unchanged. */}
+          <motion.h2
             id="hero-heading-mobile"
             className={`font-heading font-extrabold ${mobileTitleSize} text-cta-main text-left w-full whitespace-pre-line`}
             {...fadeUp(0.4, prefersReducedMotion)}
@@ -228,7 +232,7 @@ export default function Hero() {
             {t("hero.title1")}
             <span className="text-cta-blue">{t("hero.titleHighlight")}</span>
             {t("hero.title2")}
-          </motion.h1>
+          </motion.h2>
 
           <div className="flex gap-4 items-start w-full">
             <motion.div

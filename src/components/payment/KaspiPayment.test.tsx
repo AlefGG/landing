@@ -8,7 +8,12 @@ vi.mock("../../services/paymentService", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../../services/paymentService")>();
   return {
     ...actual,
-    fetchKaspiQrImage: vi.fn().mockResolvedValue({ objectUrl: "blob:test" }),
+    getKaspiQr: vi.fn().mockResolvedValue({
+      order_number: "ORD-1",
+      amount: "1000",
+      qr_image_url: "https://api.biotualeti.com/media/company_kaspi_qr/test.png",
+      instruction: "scan",
+    }),
     uploadPaymentFile: vi.fn(),
   };
 });

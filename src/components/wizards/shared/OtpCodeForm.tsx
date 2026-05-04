@@ -19,7 +19,7 @@ export type OtpCodeFormProps = {
 };
 
 type SubmitError =
-  | { kind: "invalidOtp" }
+  | { kind: "invalidOtp"; reason: "invalid" | "expired" | "too_many_attempts" }
   | { kind: "other"; error: NormalizedError };
 
 const CODE_LENGTH = 6;
@@ -61,7 +61,7 @@ export default function OtpCodeForm({ phone, onSuccess, onChangePhone }: OtpCode
         onSuccess();
       } catch (err) {
         if (err instanceof InvalidOtpError) {
-          setSubmitErrorState({ kind: "invalidOtp" });
+          setSubmitErrorState({ kind: "invalidOtp", reason: err.reason });
         } else {
           setSubmitErrorState({ kind: "other", error: normalizeError(err) });
         }
@@ -197,10 +197,14 @@ export default function OtpCodeForm({ phone, onSuccess, onChangePhone }: OtpCode
         <p
           role="alert"
           data-testid="verify-error"
-          data-error-kind="invalidOtp"
+          data-error-kind={submitErrorState.reason}
           className="font-body text-sm leading-4 text-red-600 mb-4"
         >
-          {t("auth.verify.errors.invalidCode")}
+          {submitErrorState.reason === "expired"
+            ? t("auth.verify.errors.expiredCode")
+            : submitErrorState.reason === "too_many_attempts"
+              ? t("auth.verify.errors.tooManyAttempts")
+              : t("auth.verify.errors.invalidCode")}
         </p>
       )}
       {submitErrorState?.kind === "other" && (

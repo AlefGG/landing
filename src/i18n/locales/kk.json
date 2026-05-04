@@ -181,7 +181,9 @@
       "resend": "Кодты қайта жіберу",
       "resendIn": "{{seconds}} сек кейін қайта",
       "errors": {
-        "invalidCode": "Қате код"
+        "invalidCode": "Қате код",
+        "expiredCode": "Кодтың мерзімі өтті. Жаңасын сұратыңыз.",
+        "tooManyAttempts": "Тым көп әрекет. Жаңа кодты сұратыңыз."
       }
     },
     "header": {

@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { useNavigate } from "react-router-dom";
 import {
-  fetchKaspiQrImage,
+  getKaspiQr,
   uploadPaymentFile,
   PaymentUploadError,
 } from "../../services/paymentService";
@@ -51,18 +51,21 @@ export default function KaspiPayment({
   const formattedAmount = amount.toLocaleString("ru-RU");
   const idGateBlocked = requireIdDocument && !frontUploaded;
 
+  // F-009: Kaspi QR is a PUBLIC company asset (sits under /media/, not
+  // /private_media/), so we render it via plain <img src> instead of fetching
+  // bytes through the Bearer-attached apiClient. The previous fetchBlob
+  // approach triggered a CORS preflight on api.biotualeti.com/media/, which
+  // has no Access-Control-* headers — every customer saw "Не найдено" on
+  // /pay even though the QR was uploaded. The endpoint itself still requires
+  // auth so we keep the order-ownership check; only the image bytes go
+  // through a regular browser <img> request.
   const loadQr = useCallback(() => {
     let cancelled = false;
-    let revokeUrl: string | null = null;
     setQr({ status: "loading" });
-    fetchKaspiQrImage(orderId)
-      .then(({ objectUrl }) => {
-        if (cancelled) {
-          URL.revokeObjectURL(objectUrl);
-          return;
-        }
-        revokeUrl = objectUrl;
-        setQr({ status: "ready", url: objectUrl });
+    getKaspiQr(orderId)
+      .then(({ qr_image_url }) => {
+        if (cancelled) return;
+        setQr({ status: "ready", url: qr_image_url });
       })
       .catch((err) => {
         if (cancelled) return;
@@ -74,7 +77,6 @@ export default function KaspiPayment({
       });
     return () => {
       cancelled = true;
-      if (revokeUrl) URL.revokeObjectURL(revokeUrl);
     };
   }, [orderId]);
 

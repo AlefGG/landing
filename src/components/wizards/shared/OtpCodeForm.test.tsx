@@ -62,7 +62,7 @@ describe("OtpCodeForm", () => {
     await waitFor(() => expect(onSuccess).toHaveBeenCalled());
   });
 
-  it("shows InvalidOtp message when login throws InvalidOtpError", async () => {
+  it("shows InvalidOtp message when login throws InvalidOtpError (default 'invalid')", async () => {
     mockLogin.mockRejectedValue(new InvalidOtpError());
     renderForm();
     for (let i = 0; i < 6; i += 1) {
@@ -72,7 +72,38 @@ describe("OtpCodeForm", () => {
     }
     await waitFor(() => {
       const el = screen.getByTestId("verify-error");
-      expect(el.getAttribute("data-error-kind")).toBe("invalidOtp");
+      expect(el.getAttribute("data-error-kind")).toBe("invalid");
+      expect(el.textContent).toMatch(/Неверный код/);
+    });
+  });
+
+  it("F-006: shows 'expired' message + 'request new' hint when reason='expired'", async () => {
+    mockLogin.mockRejectedValue(new InvalidOtpError("expired"));
+    renderForm();
+    for (let i = 0; i < 6; i += 1) {
+      fireEvent.change(screen.getByTestId(`otp-input-${i}`), {
+        target: { value: "1" },
+      });
+    }
+    await waitFor(() => {
+      const el = screen.getByTestId("verify-error");
+      expect(el.getAttribute("data-error-kind")).toBe("expired");
+      expect(el.textContent).toMatch(/истёк/);
+    });
+  });
+
+  it("F-006: shows 'too_many_attempts' message when reason='too_many_attempts'", async () => {
+    mockLogin.mockRejectedValue(new InvalidOtpError("too_many_attempts"));
+    renderForm();
+    for (let i = 0; i < 6; i += 1) {
+      fireEvent.change(screen.getByTestId(`otp-input-${i}`), {
+        target: { value: "1" },
+      });
+    }
+    await waitFor(() => {
+      const el = screen.getByTestId("verify-error");
+      expect(el.getAttribute("data-error-kind")).toBe("too_many_attempts");
+      expect(el.textContent).toMatch(/Слишком много/);
     });
   });
 

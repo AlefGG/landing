@@ -33,10 +33,14 @@ export type ProfilePatch = {
   language?: string;
 };
 
+export type InvalidOtpReason = "invalid" | "expired" | "too_many_attempts";
+
 export class InvalidOtpError extends Error {
-  constructor() {
-    super("Invalid OTP code");
+  reason: InvalidOtpReason;
+  constructor(reason: InvalidOtpReason = "invalid") {
+    super(`Invalid OTP code (${reason})`);
     this.name = "InvalidOtpError";
+    this.reason = reason;
   }
 }
 
@@ -94,7 +98,21 @@ export async function verifyOtp(
       body: JSON.stringify({ phone: toE164(phone), code }),
     });
     if (!response.ok) {
-      if (response.status === 400) throw new InvalidOtpError();
+      if (response.status === 400) {
+        // F-006: backend distinguishes invalid / expired / too_many_attempts
+        // via a `code` field on the 400 body. Default to "invalid" if the
+        // body is missing/unparseable so we never lose the legacy behaviour.
+        let reason: InvalidOtpReason = "invalid";
+        try {
+          const body = (await response.json()) as { code?: string };
+          if (body?.code === "expired" || body?.code === "too_many_attempts") {
+            reason = body.code;
+          }
+        } catch {
+          // ignore — fall through to default 'invalid'
+        }
+        throw new InvalidOtpError(reason);
+      }
       throw new ApiError(response.status, "verify failed");
     }
     const body = (await response.json()) as {
