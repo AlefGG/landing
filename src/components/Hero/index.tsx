@@ -173,8 +173,9 @@ export default function Hero() {
           <ResponsiveImage
             src="/assets/images/cabin-hero.png"
             alt={t("a11y.heroCabin")}
-            sizes="(max-width:768px) 100vw, 50vw"
+            sizes="50vw"
             priority
+            priorityMedia="(min-width: 1024px)"
             width={150}
             height={252}
             className="absolute left-1/2 -translate-x-1/2 bottom-3 h-[252px] w-[150px] object-contain"
@@ -257,7 +258,11 @@ export default function Hero() {
               <ResponsiveImage
                 src="/assets/images/cabin-hero.png"
                 alt={t("a11y.heroCabin")}
-                sizes="100vw"
+                sizes="116px"
+                priority
+                priorityMedia="(max-width: 1023.98px)"
+                width={116}
+                height={176}
                 className="absolute left-1/2 -translate-x-1/2 top-[38px] w-[116px] h-[176px] object-contain"
               />
               <p className="absolute bottom-3 left-2 right-2 font-body text-[11px] leading-3 text-neutral-700 text-center whitespace-pre-line">
