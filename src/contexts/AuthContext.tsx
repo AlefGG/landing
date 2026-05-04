@@ -153,6 +153,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 }
 
+// FE-CQ-003: useAuth lives next to AuthProvider for ergonomic imports.
+// Splitting it to a sibling file would require updating 9 production
+// import sites + 2 test mock files (vi.mock targets) for a dev-HMR-only
+// benefit (react-refresh fast-refresh of files that mix component +
+// non-component exports). Folded back into Wave-4 if the HMR pain
+// becomes real.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useAuth(): AuthContextValue {
   const ctx = useContext(AuthContext);
   if (!ctx) {

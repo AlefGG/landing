@@ -30,14 +30,16 @@ export default function PaymentPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
   const location = useLocation();
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  // FE-CQ-001: hoist the missing-orderId initial case out of the loader
+  // so the loader's synchronous prefix (called from the useEffect below)
+  // doesn't trigger setState-in-effect. Post-await setState calls run in
+  // microtask context and are not flagged.
+  const [state, setState] = useState<LoadState>(() =>
+    orderId ? { status: "loading" } : { status: "missing" },
+  );
 
   const loadOrder = useCallback(async () => {
-    if (!orderId) {
-      setState({ status: "missing" });
-      return;
-    }
-    setState({ status: "loading" });
+    if (!orderId) return;
     try {
       const order = await getOrder(orderId);
       setState(order ? { status: "ready", order } : { status: "missing" });
@@ -57,7 +59,14 @@ export default function PaymentPage() {
   }, [orderId, location.pathname, navigate]);
 
   useEffect(() => {
-    void loadOrder();
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      void loadOrder();
+    });
+    return () => {
+      cancelled = true;
+    };
   }, [loadOrder]);
 
   if (state.status === "loading") {

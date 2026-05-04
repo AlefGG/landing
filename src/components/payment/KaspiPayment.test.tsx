@@ -2,10 +2,14 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, cleanup, waitFor } from "@testing-library/react";
 import { MemoryRouter } from "react-router-dom";
+import type * as PaymentService from "../../services/paymentService";
 import KaspiPayment from "./KaspiPayment";
 
+// FE-CQ-004: avoid the inline `typeof import("...")` form which the
+// consistent-type-imports rule rejects; use a top-level `import type * as`
+// alias instead.
 vi.mock("../../services/paymentService", async (importOriginal) => {
-  const actual = await importOriginal<typeof import("../../services/paymentService")>();
+  const actual = await importOriginal<typeof PaymentService>();
   return {
     ...actual,
     getKaspiQr: vi.fn().mockResolvedValue({

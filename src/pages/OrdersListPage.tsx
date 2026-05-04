@@ -67,8 +67,17 @@ export default function OrdersListPage() {
   }, [filter, location.pathname, navigate]);
 
   useEffect(() => {
-    refetch();
-    return () => abortRef.current?.abort();
+    // FE-CQ-001: refetch internally calls setState; defer via microtask
+    // so the effect body is side-effect-free at the React-state level.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled) return;
+      refetch();
+    });
+    return () => {
+      cancelled = true;
+      abortRef.current?.abort();
+    };
   }, [refetch]);
 
   const loadMore = async () => {

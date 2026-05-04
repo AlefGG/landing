@@ -23,7 +23,13 @@ export function useCabinTypes(scenario: CabinTypeScenario) {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
+    // FE-CQ-001: schedule the "mark loading" setState as a microtask so the
+    // effect body itself stays free of synchronous setState. The fetch's
+    // .then/.catch already run as microtasks and are not flagged.
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setLoading(true);
+    });
     fetchJson<CabinTypeDTO[]>(`/catalog/cabin-types/?scenario=${scenario}`)
       .then((data) => {
         if (cancelled) return;

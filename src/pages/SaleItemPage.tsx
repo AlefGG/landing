@@ -10,13 +10,14 @@ type LoadState =
 
 export default function SaleItemPage() {
   const { id } = useParams<{ id: string }>();
-  const [state, setState] = useState<LoadState>({ status: "loading" });
+  // FE-CQ-001: same hoist as SaleCheckoutPage — initialise to "not-found"
+  // when id is missing so the effect body has no synchronous setState.
+  const [state, setState] = useState<LoadState>(() =>
+    id ? { status: "loading" } : { status: "not-found" },
+  );
 
   useEffect(() => {
-    if (!id) {
-      setState({ status: "not-found" });
-      return;
-    }
+    if (!id) return;
     let cancelled = false;
     fetchCatalogItem(id).then((item) => {
       if (cancelled) return;

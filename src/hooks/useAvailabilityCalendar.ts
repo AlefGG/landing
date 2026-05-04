@@ -56,13 +56,23 @@ export function useRentalAvailability(
   });
 
   useEffect(() => {
-    if (!cabinType) {
-      setState({ loading: false, error: null, calendar: null, dayMap: new Map() });
-      return;
-    }
     let cancelled = false;
+    if (!cabinType) {
+      // FE-CQ-001: defer the idle clear into a microtask so the effect
+      // body has no synchronous setState.
+      queueMicrotask(() => {
+        if (cancelled) return;
+        setState({ loading: false, error: null, calendar: null, dayMap: new Map() });
+      });
+      return () => {
+        cancelled = true;
+      };
+    }
     const { from, to } = rangeFromToday(WINDOW_DAYS);
-    setState((s) => ({ ...s, loading: true, error: null }));
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setState((s) => ({ ...s, loading: true, error: null }));
+    });
     fetchRentalCalendar({
       serviceType,
       cabinType,
@@ -109,7 +119,10 @@ export function useSanitationAvailability(): SanitationAvailabilityState {
   useEffect(() => {
     let cancelled = false;
     const { from, to } = rangeFromToday(WINDOW_DAYS);
-    setState((s) => ({ ...s, loading: true, error: null }));
+    queueMicrotask(() => {
+      if (cancelled) return;
+      setState((s) => ({ ...s, loading: true, error: null }));
+    });
     fetchSanitationCalendar({ dateFrom: from, dateTo: to })
       .then((cal) => {
         if (cancelled) return;

@@ -20,7 +20,9 @@ function sortedByPriorityAsc(fc: ZonesFeatureCollection): ZonesFeatureCollection
 
 export type LatLng = { lat: number; lng: number };
 
-export const ALMATY_CENTER: LatLng = { lat: 43.2567, lng: 76.9286 };
+// FE-CQ-003: kept module-private. Was exported alongside the default
+// component which broke react-refresh; only used inside this file.
+const ALMATY_CENTER: LatLng = { lat: 43.2567, lng: 76.9286 };
 
 function ClickHandler({ onPick }: { onPick: (p: LatLng) => void }) {
   useMapEvents({
@@ -39,6 +41,19 @@ function FitBounds({
   routes: Array<Array<[number, number]>>;
 }) {
   const map = useMap();
+  // FE-RX-002: re-fit only when the actual lat/lng values change, not on
+  // every parent render. `points` / `routes` may already be stable from
+  // useAddressTrip (FE-RX-005), but a value-digest defends against future
+  // callers that pass fresh array literals — the user's manual pan/zoom
+  // would otherwise be lost on every keystroke in the parent form.
+  const pointsKey = useMemo(
+    () => points.map((p) => `${p.lat},${p.lng}`).join("|"),
+    [points],
+  );
+  const routesKey = useMemo(
+    () => routes.map((r) => r.length).join("|"),
+    [routes],
+  );
   useEffect(() => {
     const flat = routes.flat();
     if (flat.length > 1) {
@@ -54,7 +69,11 @@ function FitBounds({
         padding: [40, 40],
       });
     }
-  }, [map, points, routes]);
+    // Effect deps are the digests, not the arrays — `points` / `routes` are
+    // read from closure and re-resolved on each effect run; same identity
+    // is fine since the digest gates re-run.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [map, pointsKey, routesKey]);
   return null;
 }
 
