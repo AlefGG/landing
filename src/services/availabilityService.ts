@@ -39,29 +39,41 @@ function iso(d: Date): string {
   return `${y}-${m}-${day}`;
 }
 
-export async function fetchRentalCalendar(params: {
-  serviceType: RentalServiceType;
-  cabinType: number;
-  dateFrom: Date;
-  dateTo: Date;
-}): Promise<RentalCalendar> {
+export async function fetchRentalCalendar(
+  params: {
+    serviceType: RentalServiceType;
+    cabinType: number;
+    dateFrom: Date;
+    dateTo: Date;
+  },
+  opts?: { signal?: AbortSignal },
+): Promise<RentalCalendar> {
   const qs = new URLSearchParams({
     service_type: params.serviceType,
     cabin_type: String(params.cabinType),
     date_from: iso(params.dateFrom),
     date_to: iso(params.dateTo),
   });
-  return fetchJson<RentalCalendar>(`/orders/availability/calendar/?${qs}`);
+  return fetchJson<RentalCalendar>(
+    `/orders/availability/calendar/?${qs}`,
+    opts?.signal ? { signal: opts.signal } : undefined,
+  );
 }
 
-export async function fetchSanitationCalendar(params: {
-  dateFrom: Date;
-  dateTo: Date;
-}): Promise<SanitationCalendar> {
+export async function fetchSanitationCalendar(
+  params: {
+    dateFrom: Date;
+    dateTo: Date;
+  },
+  opts?: { signal?: AbortSignal },
+): Promise<SanitationCalendar> {
   const qs = new URLSearchParams({
     service_type: "sanitation",
     date_from: iso(params.dateFrom),
     date_to: iso(params.dateTo),
   });
-  return fetchJson<SanitationCalendar>(`/orders/availability/calendar/?${qs}`);
+  return fetchJson<SanitationCalendar>(
+    `/orders/availability/calendar/?${qs}`,
+    opts?.signal ? { signal: opts.signal } : undefined,
+  );
 }

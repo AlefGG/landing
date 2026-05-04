@@ -20,30 +20,29 @@ export function useTimeSlots(): UseTimeSlotsReturn {
   const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
-    let cancelled = false;
-    fetchPublicTimeSlots()
+    const ctrl = new AbortController();
+    fetchPublicTimeSlots(ctrl.signal)
       .then((slots) => {
-        if (cancelled) return;
+        if (ctrl.signal.aborted) return;
         setState({ slots, loading: false, error: null });
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
+        if (ctrl.signal.aborted) return;
+        if ((err as Error).name === "AbortError") return;
         if (retryToken === 0) {
           // F-016: a single transient failure (AbortError on fast
           // post-login navigation, slow first paint, etc.) used to lock
           // the dropdown empty until the user reloaded. Retry once before
           // surfacing the error.
           window.setTimeout(() => {
-            if (!cancelled) setRetryToken(1);
+            if (!ctrl.signal.aborted) setRetryToken(1);
           }, RETRY_DELAY_MS);
           return;
         }
         console.warn("useTimeSlots: fetch failed", err);
         setState({ slots: [], loading: false, error: err as Error });
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => ctrl.abort();
   }, [retryToken]);
 
   return state;

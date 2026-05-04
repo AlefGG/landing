@@ -20,7 +20,9 @@ function resolveSlug(): string {
   );
 }
 
-export function fetchPublicServicePackages(): Promise<ServicePackageDTO[]> {
+export function fetchPublicServicePackages(
+  signal?: AbortSignal,
+): Promise<ServicePackageDTO[]> {
   const slug = resolveSlug();
   if (!slug) {
     if (!warnedAboutMissingSlug) {
@@ -34,14 +36,19 @@ export function fetchPublicServicePackages(): Promise<ServicePackageDTO[]> {
 
   const key = slug;
   const existing = cache.get(key);
-  if (existing) return existing;
+  const promise = existing ?? buildPromise(key);
+  if (!existing) cache.set(key, promise);
 
+  if (!signal) return promise;
+  return wrapSignal(promise, signal);
+}
+
+function buildPromise(key: string): Promise<ServicePackageDTO[]> {
   const baseUrl = resolveBaseUrl().replace(/\/$/, "");
   const url =
     `${baseUrl}/public/service-packages/` +
-    `?company=${encodeURIComponent(slug)}`;
-
-  const promise = (async () => {
+    `?company=${encodeURIComponent(key)}`;
+  return (async () => {
     const resp = await fetch(url);
     if (!resp.ok) {
       throw new Error(`fetchPublicServicePackages: HTTP ${resp.status}`);
@@ -52,9 +59,31 @@ export function fetchPublicServicePackages(): Promise<ServicePackageDTO[]> {
     cache.delete(key);
     throw err;
   });
+}
 
-  cache.set(key, promise);
-  return promise;
+// FE-DT-006: per-call signal-aware shell around the shared cached promise;
+// matches zonesService.fetchPublicZones pattern.
+function wrapSignal<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const onAbort = () => {
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (v) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(v);
+      },
+      (e) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(e);
+      },
+    );
+  });
 }
 
 export function __resetServicePackagesCacheForTests(): void {

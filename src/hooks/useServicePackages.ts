@@ -20,20 +20,19 @@ export function useServicePackages(): UseServicePackagesReturn {
   const [state, setState] = useState<UseServicePackagesReturn>(INITIAL);
 
   useEffect(() => {
-    let cancelled = false;
-    fetchPublicServicePackages()
+    const ctrl = new AbortController();
+    fetchPublicServicePackages(ctrl.signal)
       .then((packages) => {
-        if (cancelled) return;
+        if (ctrl.signal.aborted) return;
         setState({ packages, loading: false, error: null });
       })
       .catch((err: unknown) => {
-        if (cancelled) return;
+        if (ctrl.signal.aborted) return;
+        if ((err as Error).name === "AbortError") return;
         console.warn("useServicePackages: fetch failed", err);
         setState({ packages: [], loading: false, error: err as Error });
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => ctrl.abort();
   }, []);
 
   return state;

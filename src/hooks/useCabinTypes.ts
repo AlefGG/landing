@@ -22,17 +22,19 @@ export function useCabinTypes(scenario: CabinTypeScenario) {
   const [error, setError] = useState<Error | null>(null);
 
   useEffect(() => {
-    let cancelled = false;
+    const ctrl = new AbortController();
     // FE-CQ-001: schedule the "mark loading" setState as a microtask so the
     // effect body itself stays free of synchronous setState. The fetch's
     // .then/.catch already run as microtasks and are not flagged.
     queueMicrotask(() => {
-      if (cancelled) return;
+      if (ctrl.signal.aborted) return;
       setLoading(true);
     });
-    fetchJson<CabinTypeDTO[]>(`/catalog/cabin-types/?scenario=${scenario}`)
+    fetchJson<CabinTypeDTO[]>(`/catalog/cabin-types/?scenario=${scenario}`, {
+      signal: ctrl.signal,
+    })
       .then((data) => {
-        if (cancelled) return;
+        if (ctrl.signal.aborted) return;
         if (!Array.isArray(data)) {
           setError(new Error("Unexpected cabin-types response shape"));
           setTypes(null);
@@ -42,14 +44,13 @@ export function useCabinTypes(scenario: CabinTypeScenario) {
         setTypes(data);
         setLoading(false);
       })
-      .catch((err) => {
-        if (cancelled) return;
+      .catch((err: unknown) => {
+        if (ctrl.signal.aborted) return;
+        if ((err as Error).name === "AbortError") return;
         setError(err instanceof Error ? err : new Error(String(err)));
         setLoading(false);
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => ctrl.abort();
   }, [scenario]);
 
   return { types, loading, error };

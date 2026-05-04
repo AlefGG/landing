@@ -22,7 +22,9 @@ function resolveSlug(): string {
   );
 }
 
-export function fetchPublicTimeSlots(): Promise<TimeSlotDTO[]> {
+export function fetchPublicTimeSlots(
+  signal?: AbortSignal,
+): Promise<TimeSlotDTO[]> {
   const slug = resolveSlug();
   if (!slug) {
     if (!warnedAboutMissingSlug) {
@@ -36,14 +38,19 @@ export function fetchPublicTimeSlots(): Promise<TimeSlotDTO[]> {
 
   const key = slug;
   const existing = cache.get(key);
-  if (existing) return existing;
+  const promise = existing ?? buildPromise(key);
+  if (!existing) cache.set(key, promise);
 
+  if (!signal) return promise;
+  return wrapSignal(promise, signal);
+}
+
+function buildPromise(key: string): Promise<TimeSlotDTO[]> {
   const baseUrl = resolveBaseUrl().replace(/\/$/, "");
   const url =
     `${baseUrl}/public/time-slots/` +
-    `?company=${encodeURIComponent(slug)}`;
-
-  const promise = (async () => {
+    `?company=${encodeURIComponent(key)}`;
+  return (async () => {
     const resp = await fetch(url);
     if (!resp.ok) {
       throw new Error(`fetchPublicTimeSlots: HTTP ${resp.status}`);
@@ -61,9 +68,32 @@ export function fetchPublicTimeSlots(): Promise<TimeSlotDTO[]> {
     cache.delete(key);
     throw err;
   });
+}
 
-  cache.set(key, promise);
-  return promise;
+// FE-DT-006: shared cache must NOT cancel for everyone when one consumer
+// aborts. Wrap the cached promise in a per-call signal-aware shell —
+// matches the pattern in zonesService.fetchPublicZones.
+function wrapSignal<T>(promise: Promise<T>, signal: AbortSignal): Promise<T> {
+  return new Promise<T>((resolve, reject) => {
+    if (signal.aborted) {
+      reject(new DOMException("Aborted", "AbortError"));
+      return;
+    }
+    const onAbort = () => {
+      reject(new DOMException("Aborted", "AbortError"));
+    };
+    signal.addEventListener("abort", onAbort, { once: true });
+    promise.then(
+      (v) => {
+        signal.removeEventListener("abort", onAbort);
+        resolve(v);
+      },
+      (e) => {
+        signal.removeEventListener("abort", onAbort);
+        reject(e);
+      },
+    );
+  });
 }
 
 export function __resetTimeSlotsCacheForTests(): void {

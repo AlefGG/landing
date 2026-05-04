@@ -56,31 +56,32 @@ export function useRentalAvailability(
   });
 
   useEffect(() => {
-    let cancelled = false;
+    const ctrl = new AbortController();
     if (!cabinType) {
       // FE-CQ-001: defer the idle clear into a microtask so the effect
       // body has no synchronous setState.
       queueMicrotask(() => {
-        if (cancelled) return;
+        if (ctrl.signal.aborted) return;
         setState({ loading: false, error: null, calendar: null, dayMap: new Map() });
       });
-      return () => {
-        cancelled = true;
-      };
+      return () => ctrl.abort();
     }
     const { from, to } = rangeFromToday(WINDOW_DAYS);
     queueMicrotask(() => {
-      if (cancelled) return;
+      if (ctrl.signal.aborted) return;
       setState((s) => ({ ...s, loading: true, error: null }));
     });
-    fetchRentalCalendar({
-      serviceType,
-      cabinType,
-      dateFrom: from,
-      dateTo: to,
-    })
+    fetchRentalCalendar(
+      {
+        serviceType,
+        cabinType,
+        dateFrom: from,
+        dateTo: to,
+      },
+      { signal: ctrl.signal },
+    )
       .then((cal) => {
-        if (cancelled) return;
+        if (ctrl.signal.aborted) return;
         const dayMap = new Map<string, DayMeta>();
         for (const d of cal.days) {
           dayMap.set(d.date, {
@@ -91,8 +92,9 @@ export function useRentalAvailability(
         }
         setState({ loading: false, error: null, calendar: cal, dayMap });
       })
-      .catch((err) => {
-        if (cancelled) return;
+      .catch((err: unknown) => {
+        if (ctrl.signal.aborted) return;
+        if ((err as Error).name === "AbortError") return;
         setState({
           loading: false,
           error: err instanceof Error ? err : new Error(String(err)),
@@ -100,9 +102,7 @@ export function useRentalAvailability(
           dayMap: new Map(),
         });
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => ctrl.abort();
   }, [serviceType, cabinType]);
 
   return state;
@@ -117,15 +117,15 @@ export function useSanitationAvailability(): SanitationAvailabilityState {
   });
 
   useEffect(() => {
-    let cancelled = false;
+    const ctrl = new AbortController();
     const { from, to } = rangeFromToday(WINDOW_DAYS);
     queueMicrotask(() => {
-      if (cancelled) return;
+      if (ctrl.signal.aborted) return;
       setState((s) => ({ ...s, loading: true, error: null }));
     });
-    fetchSanitationCalendar({ dateFrom: from, dateTo: to })
+    fetchSanitationCalendar({ dateFrom: from, dateTo: to }, { signal: ctrl.signal })
       .then((cal) => {
-        if (cancelled) return;
+        if (ctrl.signal.aborted) return;
         const dayMap = new Map<string, { trucksAvailable: number; cleanersAvailable: number }>();
         for (const d of cal.days) {
           dayMap.set(d.date, {
@@ -135,8 +135,9 @@ export function useSanitationAvailability(): SanitationAvailabilityState {
         }
         setState({ loading: false, error: null, calendar: cal, dayMap });
       })
-      .catch((err) => {
-        if (cancelled) return;
+      .catch((err: unknown) => {
+        if (ctrl.signal.aborted) return;
+        if ((err as Error).name === "AbortError") return;
         setState({
           loading: false,
           error: err instanceof Error ? err : new Error(String(err)),
@@ -144,9 +145,7 @@ export function useSanitationAvailability(): SanitationAvailabilityState {
           dayMap: new Map(),
         });
       });
-    return () => {
-      cancelled = true;
-    };
+    return () => ctrl.abort();
   }, []);
 
   return state;
