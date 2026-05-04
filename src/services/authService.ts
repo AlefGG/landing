@@ -14,18 +14,41 @@
  * /refresh/ and /logout/ (Django middleware enforces).
  */
 
-import { ApiError, fetchJson } from "./apiClient";
+import { z } from "zod";
+import {
+  ApiError,
+  fetchJson,
+  fetchValidated,
+  reportSchemaMismatch,
+} from "./apiClient";
 import { getCsrfToken } from "./csrf";
 
-export type AuthUser = {
-  id: number;
-  phone: string;
-  role: string;
-  language: string;
-  company: number | null;
-  first_name: string;
-  email: string;
-};
+// FE-TS-002 — pairs with backend/apps/accounts/serializers.py::UserSerializer
+export const AuthUserSchema = z
+  .object({
+    id: z.number(),
+    phone: z.string(),
+    role: z.string(),
+    language: z.string(),
+    company: z.number().nullable(),
+    first_name: z.string(),
+    email: z.string(),
+  })
+  .describe("AuthUserSchema");
+
+export type AuthUser = z.infer<typeof AuthUserSchema>;
+
+const VerifyOtpResponseSchema = z
+  .object({
+    access: z.string(),
+    user: AuthUserSchema,
+    refresh: z.string().optional(), // legacy body field — backend SEC-001 step 3 will drop
+  })
+  .describe("VerifyOtpResponseSchema");
+
+const RefreshResponseSchema = z
+  .object({ access: z.string() })
+  .describe("RefreshResponseSchema");
 
 export type ProfilePatch = {
   first_name?: string;
@@ -115,11 +138,16 @@ export async function verifyOtp(
       }
       throw new ApiError(response.status, "verify failed");
     }
-    const body = (await response.json()) as {
-      access: string;
-      user: AuthUser;
-      refresh?: string;
-    };
+    const raw = (await response.json()) as unknown;
+    const parsed = VerifyOtpResponseSchema.safeParse(raw);
+    const body = parsed.success
+      ? parsed.data
+      : (reportSchemaMismatch(
+          "/auth/verify-otp/",
+          VerifyOtpResponseSchema,
+          parsed.error.issues,
+          raw,
+        ) as z.infer<typeof VerifyOtpResponseSchema>);
     // Step 1+2: backend may still echo `refresh` in body; ignore it — the
     // cookie is the source of truth. Step 3 will drop the field entirely.
     return { access: body.access, user: body.user };
@@ -149,16 +177,25 @@ export async function refresh(): Promise<{ access: string }> {
   if (!response.ok) {
     throw new ApiError(response.status, "refresh failed");
   }
-  const body = (await response.json()) as { access: string };
+  const raw = (await response.json()) as unknown;
+  const parsed = RefreshResponseSchema.safeParse(raw);
+  const body = parsed.success
+    ? parsed.data
+    : (reportSchemaMismatch(
+        "/auth/refresh/",
+        RefreshResponseSchema,
+        parsed.error.issues,
+        raw,
+      ) as z.infer<typeof RefreshResponseSchema>);
   return { access: body.access };
 }
 
 export async function fetchMe(): Promise<AuthUser> {
-  return fetchJson<AuthUser>("/auth/me/");
+  return fetchValidated("/auth/me/", AuthUserSchema);
 }
 
 export async function updateProfile(patch: ProfilePatch): Promise<AuthUser> {
-  return fetchJson<AuthUser>("/auth/me/", {
+  return fetchValidated("/auth/me/", AuthUserSchema, {
     method: "PATCH",
     body: JSON.stringify(patch),
   });

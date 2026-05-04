@@ -1,4 +1,5 @@
-import { fetchJson, ApiError } from "./apiClient";
+import { z } from "zod";
+import { fetchValidated, ApiError } from "./apiClient";
 
 export type SaleItemSpec = { label: string; value: string };
 
@@ -12,16 +13,25 @@ export type SaleItem = {
   specs: SaleItemSpec[];
 };
 
-type EquipmentDTO = {
-  id: number;
-  name: string;
-  description: string;
-  price: string;
-  photo: string | null;
-  // F-007: structured spec rows from the admin panel. Backend versions
-  // older than the F-007 deploy may omit the field; treat undefined as [].
-  specs?: SaleItemSpec[] | null;
-};
+const SaleItemSpecSchema = z.object({
+  label: z.string(),
+  value: z.string(),
+});
+
+// FE-TS-002 — pairs with backend/apps/catalog/serializers.py::EquipmentSerializer
+const EquipmentDTOSchema = z
+  .object({
+    id: z.number(),
+    name: z.string(),
+    description: z.string(),
+    price: z.string(),
+    photo: z.string().nullable(),
+    // F-007: structured spec rows from the admin panel. Backend versions
+    // older than the F-007 deploy may omit the field; treat undefined as [].
+    specs: z.array(SaleItemSpecSchema).nullable().optional(),
+  })
+  .describe("EquipmentDTOSchema");
+type EquipmentDTO = z.infer<typeof EquipmentDTOSchema>;
 
 const FALLBACK_IMAGE = "/assets/images/cabin-standard.png";
 
@@ -44,8 +54,15 @@ function mapEquipment(dto: EquipmentDTO): SaleItem {
   };
 }
 
+const EquipmentListSchema = z
+  .array(EquipmentDTOSchema)
+  .describe("EquipmentListSchema");
+
 export async function fetchCatalog(): Promise<SaleItem[]> {
-  const data = await fetchJson<EquipmentDTO[]>("/catalog/sale/equipment/");
+  const data = await fetchValidated(
+    "/catalog/sale/equipment/",
+    EquipmentListSchema,
+  );
   return data.map(mapEquipment);
 }
 
@@ -53,8 +70,9 @@ export async function fetchCatalogItem(id: string): Promise<SaleItem | null> {
   const numericId = Number(id);
   if (!Number.isFinite(numericId) || numericId <= 0) return null;
   try {
-    const dto = await fetchJson<EquipmentDTO>(
+    const dto = await fetchValidated(
       `/catalog/sale/equipment/${numericId}/`,
+      EquipmentDTOSchema,
     );
     return mapEquipment(dto);
   } catch (err) {

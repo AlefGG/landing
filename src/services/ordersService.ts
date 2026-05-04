@@ -1,40 +1,51 @@
-import { fetchJson, ApiError } from "./apiClient";
+import { z } from "zod";
+import { fetchJson, fetchValidated, ApiError } from "./apiClient";
 
-export type OrderStatus =
-  | "draft"
-  | "pending_payment"
-  | "awaiting_accountant_review"
-  | "processing"
-  | "assigned"
-  | "completed"
-  | "cancelled";
+export const OrderStatusSchema = z.enum([
+  "draft",
+  "pending_payment",
+  "awaiting_accountant_review",
+  "processing",
+  "assigned",
+  "completed",
+  "cancelled",
+]);
+export type OrderStatus = z.infer<typeof OrderStatusSchema>;
 
-export type BackendServiceType =
-  | "rental_event"
-  | "rental_emergency"
-  | "rental_construction"
-  | "sanitation"
-  | "sale";
+export const BackendServiceTypeSchema = z.enum([
+  "rental_event",
+  "rental_emergency",
+  "rental_construction",
+  "sanitation",
+  "sale",
+]);
+export type BackendServiceType = z.infer<typeof BackendServiceTypeSchema>;
 
-export type PaymentChannel = "individual" | "legal";
+export const PaymentChannelSchema = z.enum(["individual", "legal"]);
+export type PaymentChannel = z.infer<typeof PaymentChannelSchema>;
 
 export type OrderService = "rental" | "sanitation" | "sale";
 
-export type OrderDTO = {
-  order_number: string;
-  service_type: BackendServiceType;
-  status: OrderStatus;
-  total_price: string;
-  payment_channel: PaymentChannel;
-  created_at: string;
-  pricing_snapshot: Record<string, unknown> | null;
-  has_id_document_front: boolean;
-  has_id_document_back: boolean;
-};
+// FE-TS-002 — pairs with backend/apps/orders/serializers.py::OrderSerializer
+export const OrderDTOSchema = z
+  .object({
+    order_number: z.string(),
+    service_type: BackendServiceTypeSchema,
+    status: OrderStatusSchema,
+    total_price: z.string(),
+    payment_channel: PaymentChannelSchema,
+    created_at: z.string(),
+    pricing_snapshot: z.record(z.string(), z.unknown()).nullable(),
+    has_id_document_front: z.boolean(),
+    has_id_document_back: z.boolean(),
+  })
+  .describe("OrderDTOSchema");
+
+export type OrderDTO = z.infer<typeof OrderDTOSchema>;
 
 export async function getOrder(orderNumber: string): Promise<OrderDTO | null> {
   try {
-    return await fetchJson<OrderDTO>(`/orders/${orderNumber}/`);
+    return await fetchValidated(`/orders/${orderNumber}/`, OrderDTOSchema);
   } catch (err) {
     if (err instanceof ApiError && err.status === 404) return null;
     throw err;
@@ -45,17 +56,20 @@ export async function getOrder(orderNumber: string): Promise<OrderDTO | null> {
 // Phase 4 — list + detail, real API.
 // ---------------------------------------------------------------------------
 
-type RawListItem = {
-  order_number: string;
-  service_type: BackendServiceType;
-  status: OrderStatus;
-  total_price: string;
-  payment_channel: PaymentChannel;
-  created_at: string;
-  date_start: string | null;
-  date_end: string | null;
-  address_text: string;
-};
+const RawListItemSchema = z
+  .object({
+    order_number: z.string(),
+    service_type: BackendServiceTypeSchema,
+    status: OrderStatusSchema,
+    total_price: z.string(),
+    payment_channel: PaymentChannelSchema,
+    created_at: z.string(),
+    date_start: z.string().nullable(),
+    date_end: z.string().nullable(),
+    address_text: z.string(),
+  })
+  .describe("RawListItemSchema");
+type RawListItem = z.infer<typeof RawListItemSchema>;
 
 export type OrderListItem = {
   orderNumber: string;
@@ -91,12 +105,20 @@ function mapListItem(raw: RawListItem): OrderListItem {
   };
 }
 
-type Paginated<T> = {
-  count: number;
-  next: string | null;
-  previous: string | null;
-  results: T[];
-};
+function PaginatedSchema<T extends z.ZodType<unknown>>(item: T) {
+  return z
+    .object({
+      count: z.number(),
+      next: z.string().nullable(),
+      previous: z.string().nullable(),
+      results: z.array(item),
+    })
+    .describe("PaginatedSchema");
+}
+
+const MyOrdersPageSchema = PaginatedSchema(RawListItemSchema).describe(
+  "MyOrdersPageSchema",
+);
 
 export type MyOrdersPage = {
   count: number;
@@ -118,8 +140,9 @@ export async function listMyOrders(
   if (params?.page) search.set("page", String(params.page));
   if (params?.pageSize) search.set("page_size", String(params.pageSize));
   const qs = search.toString();
-  const raw = await fetchJson<Paginated<RawListItem>>(
+  const raw = await fetchValidated(
     `/orders/my/${qs ? `?${qs}` : ""}`,
+    MyOrdersPageSchema,
     opts?.signal ? { signal: opts.signal } : undefined,
   );
   return {
@@ -220,6 +243,10 @@ export type OrderDetail = {
   canCancel: boolean;
 };
 
+// TODO(FE-TS-002 wave-3b): migrate getOrderDetail to fetchValidated. The
+// RawDetail shape is large (nested items / addresses / sanitation /
+// assigned_executor / attachments / status_history); deferred to keep
+// this PR's schema footprint focused on the high-blast list path.
 export async function getOrderDetail(
   orderNumber: string,
 ): Promise<OrderDetail | null> {

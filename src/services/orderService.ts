@@ -1,3 +1,9 @@
+// TODO(FE-TS-002 wave-3b): migrate create*Order / preview*Order to
+// fetchValidated. The OrderResponse + PreviewResponse shapes are stable
+// (snapshot record is opaque z.unknown), but POST-write paths have lower
+// blast radius than the read paths migrated in this PR. Deferred to keep
+// the PR scope focused; warn-mode mismatches on these endpoints are
+// already covered by Sentry's generic error capture.
 import { fetchJson, ApiError } from "./apiClient";
 
 export type PaymentChannel = "individual" | "legal";
