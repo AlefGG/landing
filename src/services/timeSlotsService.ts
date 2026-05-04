@@ -1,3 +1,5 @@
+import i18n from "../i18n";
+
 export type TimeSlotDTO = {
   id: number;
   name: string;
@@ -22,6 +24,12 @@ function resolveSlug(): string {
   );
 }
 
+// FE-DT-004: locale-aware cache + Accept-Language header. Locale change
+// (i18n.language) yields a different cache key → automatic refetch.
+function resolveLocale(): string {
+  return i18n?.language || "ru";
+}
+
 export function fetchPublicTimeSlots(
   signal?: AbortSignal,
 ): Promise<TimeSlotDTO[]> {
@@ -36,22 +44,29 @@ export function fetchPublicTimeSlots(
     return Promise.resolve(EMPTY);
   }
 
-  const key = slug;
+  const locale = resolveLocale();
+  const key = `${slug}:${locale}`;
   const existing = cache.get(key);
-  const promise = existing ?? buildPromise(key);
+  const promise = existing ?? buildPromise(key, slug, locale);
   if (!existing) cache.set(key, promise);
 
   if (!signal) return promise;
   return wrapSignal(promise, signal);
 }
 
-function buildPromise(key: string): Promise<TimeSlotDTO[]> {
+function buildPromise(
+  key: string,
+  slug: string,
+  locale: string,
+): Promise<TimeSlotDTO[]> {
   const baseUrl = resolveBaseUrl().replace(/\/$/, "");
   const url =
     `${baseUrl}/public/time-slots/` +
-    `?company=${encodeURIComponent(key)}`;
+    `?company=${encodeURIComponent(slug)}`;
   return (async () => {
-    const resp = await fetch(url);
+    const resp = await fetch(url, {
+      headers: { "Accept-Language": locale },
+    });
     if (!resp.ok) {
       throw new Error(`fetchPublicTimeSlots: HTTP ${resp.status}`);
     }

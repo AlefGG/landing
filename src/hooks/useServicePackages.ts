@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   fetchPublicServicePackages,
   type ServicePackageDTO,
@@ -17,8 +18,10 @@ const INITIAL: UseServicePackagesReturn = {
 };
 
 export function useServicePackages(): UseServicePackagesReturn {
+  const { i18n } = useTranslation();
   const [state, setState] = useState<UseServicePackagesReturn>(INITIAL);
 
+  // FE-DT-004: refetch on locale change (cache key includes locale).
   useEffect(() => {
     const ctrl = new AbortController();
     fetchPublicServicePackages(ctrl.signal)
@@ -33,7 +36,7 @@ export function useServicePackages(): UseServicePackagesReturn {
         setState({ packages: [], loading: false, error: err as Error });
       });
     return () => ctrl.abort();
-  }, []);
+  }, [i18n.language]);
 
   return state;
 }
