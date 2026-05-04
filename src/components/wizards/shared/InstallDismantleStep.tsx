@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { Calendar } from "../../ui";
 import type { CalendarDayMeta } from "../../ui/Calendar/Calendar";
@@ -92,23 +92,33 @@ export default function InstallDismantleStep({
     return timeToMinutes(s.start_time) > timeToMinutes(installSlot.end_time);
   });
 
-  // Auto-clear dismantle slot if it became invalid after a same-day toggle
-  // or install-slot change.
-  useEffect(() => {
-    if (
-      isSameDay &&
-      installSlot &&
-      value.dismantleSlotId != null
-    ) {
-      const ds = slots.find((s) => s.id === value.dismantleSlotId);
+  // FE-RX-004: auto-clear dismantle-slot when it became invalid after a
+  // same-day toggle or install-slot change. Previously a child useEffect
+  // mutated parent state — that effect re-fired on every parent re-render
+  // (because `value` and `installSlot` had new identities each render),
+  // and the resulting onChange-from-effect was a lint-invisible class of
+  // setState-in-effect (the rule only flags self-state). Now the
+  // sanitisation runs as a pure derivation at the onChange call site so
+  // the parent receives one atomic update with the corrected dismantle
+  // slot — no second-render bounce.
+  const sanitizeDismantle = useCallback(
+    (next: InstallDismantleValue): InstallDismantleValue => {
+      if (next.dismantleSlotId == null) return next;
+      if (!sameDay(next.installDate, next.dismantleDate)) return next;
+      const installSlotNext = slots.find((s) => s.id === next.installSlotId);
+      if (!installSlotNext) return next;
+      const dismantleSlotNext = slots.find((s) => s.id === next.dismantleSlotId);
+      if (!dismantleSlotNext) return next;
       if (
-        ds &&
-        timeToMinutes(ds.start_time) <= timeToMinutes(installSlot.end_time)
+        timeToMinutes(dismantleSlotNext.start_time) <=
+        timeToMinutes(installSlotNext.end_time)
       ) {
-        onChange({ ...value, dismantleSlotId: null });
+        return { ...next, dismantleSlotId: null };
       }
-    }
-  }, [isSameDay, installSlot, value, slots, onChange]);
+      return next;
+    },
+    [slots],
+  );
 
   const slotsEmpty = !slotsLoading && slots.length === 0;
   const slotsDisabled = slotsLoading || slotsEmpty;
@@ -149,7 +159,7 @@ export default function InstallDismantleStep({
                   mode="single"
                   value={value.installDate}
                   onChange={(d) => {
-                    onChange({ ...value, installDate: d as Date });
+                    onChange(sanitizeDismantle({ ...value, installDate: d as Date }));
                     setInstallCalOpen(false);
                   }}
                   dayMeta={installDayMeta}
@@ -164,10 +174,12 @@ export default function InstallDismantleStep({
             value={value.installSlotId == null ? "" : String(value.installSlotId)}
             onChange={(e) => {
               const v = e.target.value;
-              onChange({
-                ...value,
-                installSlotId: v === "" ? null : Number(v),
-              });
+              onChange(
+                sanitizeDismantle({
+                  ...value,
+                  installSlotId: v === "" ? null : Number(v),
+                }),
+              );
             }}
             className="h-10 lg:h-[44px] w-full lg:w-[280px] rounded-[8px] border border-neutral-400 bg-white px-[11px] font-body text-base leading-6 text-neutral-900 disabled:text-neutral-500 disabled:bg-neutral-100"
           >
@@ -206,7 +218,7 @@ export default function InstallDismantleStep({
                   mode="single"
                   value={value.dismantleDate}
                   onChange={(d) => {
-                    onChange({ ...value, dismantleDate: d as Date });
+                    onChange(sanitizeDismantle({ ...value, dismantleDate: d as Date }));
                     setDismantleCalOpen(false);
                   }}
                   dayMeta={dismantleDayMeta}
