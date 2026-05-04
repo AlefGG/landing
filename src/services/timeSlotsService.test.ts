@@ -78,4 +78,22 @@ describe("fetchPublicTimeSlots", () => {
     expect(slots[0]!.name).toBe("R");
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
+
+  it("does NOT cache empty results — F-016 (next caller refetches)", async () => {
+    const fetchMock = fetch as unknown as ReturnType<typeof vi.fn>;
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [],
+    });
+    const first = await fetchPublicTimeSlots();
+    expect(first).toEqual([]);
+    fetchMock.mockResolvedValueOnce({
+      ok: true,
+      json: async () => [mockSlot("X")],
+    });
+    const second = await fetchPublicTimeSlots();
+    expect(second).toHaveLength(1);
+    expect(second[0]!.name).toBe("X");
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
 });

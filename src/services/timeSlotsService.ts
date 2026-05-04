@@ -49,7 +49,14 @@ export function fetchPublicTimeSlots(): Promise<TimeSlotDTO[]> {
       throw new Error(`fetchPublicTimeSlots: HTTP ${resp.status}`);
     }
     const json = (await resp.json()) as TimeSlotDTO[];
-    return Array.isArray(json) ? json : [];
+    const arr = Array.isArray(json) ? json : [];
+    if (arr.length === 0) {
+      // F-016: don't cache empty results. A transient race (slow seed,
+      // service worker hiccup) returning [] would otherwise leave every
+      // future consumer with an empty dropdown until full page reload.
+      cache.delete(key);
+    }
+    return arr;
   })().catch((err: unknown) => {
     cache.delete(key);
     throw err;

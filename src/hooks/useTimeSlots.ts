@@ -11,9 +11,13 @@ type UseTimeSlotsReturn = {
 };
 
 const INITIAL: UseTimeSlotsReturn = { slots: [], loading: true, error: null };
+const RETRY_DELAY_MS = 400;
+
+export const __TIME_SLOTS_RETRY_DELAY_MS_FOR_TESTS = RETRY_DELAY_MS;
 
 export function useTimeSlots(): UseTimeSlotsReturn {
   const [state, setState] = useState<UseTimeSlotsReturn>(INITIAL);
+  const [retryToken, setRetryToken] = useState(0);
 
   useEffect(() => {
     let cancelled = false;
@@ -24,13 +28,23 @@ export function useTimeSlots(): UseTimeSlotsReturn {
       })
       .catch((err: unknown) => {
         if (cancelled) return;
+        if (retryToken === 0) {
+          // F-016: a single transient failure (AbortError on fast
+          // post-login navigation, slow first paint, etc.) used to lock
+          // the dropdown empty until the user reloaded. Retry once before
+          // surfacing the error.
+          window.setTimeout(() => {
+            if (!cancelled) setRetryToken(1);
+          }, RETRY_DELAY_MS);
+          return;
+        }
         console.warn("useTimeSlots: fetch failed", err);
         setState({ slots: [], loading: false, error: err as Error });
       });
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [retryToken]);
 
   return state;
 }
