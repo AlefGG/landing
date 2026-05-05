@@ -43,4 +43,12 @@ describe("Seo noindex + canonicalOverride", () => {
       expect(canonical?.getAttribute("href")).not.toContain("/sanitation");
     });
   });
+
+  it("uses location.pathname as canonical when canonicalOverride is undefined", async () => {
+    renderAt("/service", {});
+    await waitFor(() => {
+      const canonical = document.head.querySelector("link[rel=canonical]");
+      expect(canonical?.getAttribute("href")).toContain("/service");
+    });
+  });
 });

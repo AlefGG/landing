@@ -2,7 +2,7 @@ import { lazy, Suspense, useState, useRef, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import { saveDraft, loadDraft, clearDraft } from "../../services/wizardDraft";
 import InlineOtpGate from "./shared/InlineOtpGate";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { StepHeader, Calendar, AddressList } from "../ui";
 
 const MapPicker = lazy(() => import("../ui/MapPicker"));
@@ -57,6 +57,7 @@ type ServiceDraft = {
 
 export default function ServiceWizard() {
   const { t } = useTranslation();
+  const isSanitationAlias = useLocation().pathname === "/sanitation";
   const k = "wizard.service";
   const breadcrumbLabel = t("buttons.service");
   const heroTitle = t("wizard.service.title");
@@ -286,7 +287,10 @@ export default function ServiceWizard() {
 
   return (
     <div className="bg-white overflow-x-clip">
-      <Seo pageKey="service" />
+      <Seo
+        pageKey="service"
+        canonicalOverride={isSanitationAlias ? "/service" : undefined}
+      />
       <section className="relative h-[104px] lg:h-[176px]">
         <div
           className="hidden lg:block absolute left-1/2 -translate-x-1/2 w-[1216px] h-[712px] pointer-events-none"
