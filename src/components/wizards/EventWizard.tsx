@@ -247,7 +247,7 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
             onConsentChange={setInstallConsent}
           />
           {validatorReason && (
-            <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
+            <div className="mt-2 rounded-[8px] bg-status-error-light border border-status-error p-4 font-body text-base leading-6 text-neutral-900">
               {t(`${k}.installValidator.${validatorReason}`)}
             </div>
           )}

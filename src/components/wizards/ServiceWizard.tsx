@@ -636,7 +636,7 @@ export default function ServiceWizard() {
               {t(`${k}.step3CalcHint`)}
             </p>
             {hasShortage && (
-              <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900 flex flex-col gap-1">
+              <div className="mt-2 rounded-[8px] bg-status-error-light border border-status-error p-4 font-body text-base leading-6 text-neutral-900 flex flex-col gap-1">
                 {insufficientTrucks && startDateAvailability && (
                   <span>
                     {t(`${k}.step4TrucksShortage`, {

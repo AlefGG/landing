@@ -171,8 +171,8 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
     <>
       {/* Banner */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 pt-4 lg:pt-6">
-        <div className="flex gap-2 items-start bg-[#fee7e2] border border-[#f2704f] rounded-[8px] p-4 lg:py-4 lg:pl-6 lg:pr-4 shadow-[0px_6px_8px_0px_rgba(0,0,0,0.08)]">
-          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="shrink-0 text-[#e0533a] mt-0.5">
+        <div className="flex gap-2 items-start bg-status-error-light border border-status-error rounded-[8px] p-4 lg:py-4 lg:pl-6 lg:pr-4 shadow-[0px_6px_8px_0px_rgba(0,0,0,0.08)]">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" className="shrink-0 text-status-error-dark mt-0.5">
             <path d="M12 9v4M12 16h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
           </svg>
           <p className="font-body text-base leading-6 text-neutral-900">{t(`${ek}.banner`)}</p>
@@ -236,7 +236,7 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
             onConsentChange={setInstallConsent}
           />
           {validatorReason && (
-            <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
+            <div className="mt-2 rounded-[8px] bg-status-error-light border border-status-error p-4 font-body text-base leading-6 text-neutral-900">
               {t(`${k}.installValidator.${validatorReason}`)}
             </div>
           )}

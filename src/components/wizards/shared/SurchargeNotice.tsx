@@ -18,8 +18,8 @@ export default function SurchargeNotice({
 
   const toneClass =
     tone === "danger"
-      ? "bg-[#fee7e2] border-[#f2704f]"
-      : "bg-[#fff7de] border-[#f2bc70]";
+      ? "bg-status-error-light border-status-error"
+      : "bg-status-alert-light border-status-alert";
 
   const percent = Math.round(rate * 100);
 
