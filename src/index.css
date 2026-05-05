@@ -50,13 +50,23 @@
   /* CTA-main darker — header phone link only. */
   --color-cta-main-dark: #0F7A37;
 
-  /* Social brands. */
+  /* CTA-blue gradient (Button blue/blue-ghost variants). */
+  --color-cta-blue-gradient-from: #20B7FB;
+  --color-cta-blue-gradient-to: #0295CB;
+
+  /* CTA-main soft tint — FileUploader drag-active state. */
+  --color-cta-main-soft: #F0F9E8;
+
+  /* Toggle off-state grey. */
+  --color-toggle-off: #C5D3DD;
+
+  /* Social brands. Footer audit verified: link with #009EEB is Telegram. */
   --color-social-vk: #0077FF;
+  --color-social-telegram: #009EEB;
   --color-social-instagram: #E1306C;
   --color-social-facebook: #1877F2;
   --color-social-whatsapp: #25D366;
   --color-social-youtube: #FF0000;
-  --color-social-twitter: #009EEB;
 
   --font-heading: "Nunito Sans", sans-serif;
   --font-body: "Noto Sans", sans-serif;
