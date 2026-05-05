@@ -45,13 +45,16 @@ function RouteResetBoundary({ children }: { children: ReactNode }) {
 }
 
 function RouteFallback() {
+  const { t } = useTranslation();
   return (
     <div
       role="status"
       aria-busy="true"
+      aria-live="polite"
       className="min-h-[60vh] flex items-center justify-center"
     >
       <span className="inline-block size-10 rounded-full border-4 border-neutral-200 border-t-cta-main animate-spin" />
+      <span className="sr-only">{t("common.loading")}</span>
     </div>
   );
 }
