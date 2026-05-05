@@ -8,7 +8,8 @@ import { useAuth } from "../contexts/AuthContext";
 import { OtpSendError } from "../services/authService";
 
 function toDigits(value: string): string {
-  return value.replace(/\D/g, "");
+  const digits = value.replace(/\D/g, "");
+  return digits.startsWith("8") ? "7" + digits.slice(1) : digits;
 }
 
 function isValidPhone(digits: string): boolean {
@@ -102,7 +103,7 @@ export default function LoginPage() {
             autoComplete="tel"
             placeholder={t("auth.login.phonePlaceholder")}
             value={formatPhone(phoneInput)}
-            onChange={(e) => setPhoneInput(e.target.value)}
+            onChange={(e) => setPhoneInput(toDigits(e.target.value).slice(0, 11))}
             aria-invalid={error !== null || undefined}
             aria-describedby={error ? "auth-phone-error" : undefined}
           />
