@@ -23,7 +23,7 @@ export default function Footer() {
   const { t } = useTranslation();
 
   return (
-    <footer className="relative bg-[#f8fafc] lg:bg-[#efefef] pt-[72px] lg:pt-[88px]">
+    <footer className="relative bg-surface-elevated pt-[72px] lg:pt-[88px]">
       {/* Circular badge */}
       <div className="absolute left-1/2 -translate-x-1/2 top-[40px] lg:top-[24px] z-10">
         <div className="bg-white rounded-full w-[64px] h-[64px] lg:w-[128px] lg:h-[128px] flex items-center justify-center shadow-[0px_5px_14px_0px_rgba(93,96,120,0.2)] lg:shadow-none">
@@ -35,7 +35,7 @@ export default function Footer() {
         </div>
       </div>
 
-      <div className="bg-[#f8fafc] lg:bg-white border-t border-neutral-200 pt-[48px] pb-[72px] px-6 lg:pt-[96px] lg:pb-[40px] lg:px-0">
+      <div className="bg-surface-elevated lg:bg-white border-t border-neutral-200 pt-[48px] pb-[72px] px-6 lg:pt-[96px] lg:pb-[40px] lg:px-0">
         <div className="max-w-[1216px] mx-auto lg:px-0">
           <div className="flex flex-col lg:flex-row gap-4 lg:gap-4 items-start">
             {/* Description */}

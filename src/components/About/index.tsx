@@ -14,7 +14,7 @@ export default function About() {
 
   return (
     <section
-      className="relative w-full bg-[#ecece8] lg:bg-white lg:min-h-[500px] lg:h-[clamp(600px,45vw,900px)] lg:overflow-hidden"
+      className="relative w-full bg-surface-elevated lg:bg-white lg:min-h-[500px] lg:h-[clamp(600px,45vw,900px)] lg:overflow-hidden"
       id="about"
       aria-label={t("about.heading")}
     >
@@ -54,7 +54,7 @@ export default function About() {
             sizes="100vw"
             className="absolute inset-0 w-full h-full object-cover object-top"
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-transparent from-[88%] to-[#ecece8]" />
+          <div className="absolute inset-0 bg-gradient-to-t from-transparent from-[88%] to-surface-elevated" />
         </div>
       </div>
 

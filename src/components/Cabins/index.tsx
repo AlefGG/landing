@@ -13,7 +13,7 @@ export default function Cabins() {
   const { t } = useTranslation();
 
   return (
-    <section className="w-full bg-[#efefef] py-[88px]" id="cabins">
+    <section className="w-full bg-surface-elevated py-[88px]" id="cabins">
       <div className="max-w-[1216px] mx-auto px-4 lg:px-0">
         <h2 className="font-heading font-extrabold text-2xl leading-6 lg:text-[40px] lg:leading-[40px] text-neutral-800 text-center">
           {t("cabins.title1")}
