@@ -11,9 +11,17 @@ type SeoProps = {
   pageKey?: string;
   titleOverride?: string;
   descriptionOverride?: string;
+  noindex?: boolean;
+  canonicalOverride?: string;
 };
 
-export default function Seo({ pageKey, titleOverride, descriptionOverride }: SeoProps = {}) {
+export default function Seo({
+  pageKey,
+  titleOverride,
+  descriptionOverride,
+  noindex,
+  canonicalOverride,
+}: SeoProps = {}) {
   const { t, i18n } = useTranslation();
   const location = useLocation();
   const lang = i18n.language in LOCALE_MAP ? i18n.language : "ru";
@@ -29,6 +37,8 @@ export default function Seo({ pageKey, titleOverride, descriptionOverride }: Seo
     typeof window !== "undefined" && window.location?.origin
       ? window.location.origin
       : "";
+  const canonicalPath = canonicalOverride ?? location.pathname;
+  const canonicalUrl = origin ? `${origin}${canonicalPath}` : canonicalPath;
   const ogUrl = origin ? `${origin}${location.pathname}` : location.pathname;
 
   // BUG-042: key props force React to treat tags as new when `lang` flips,
@@ -39,6 +49,7 @@ export default function Seo({ pageKey, titleOverride, descriptionOverride }: Seo
       <html lang={lang} />
       <title>{title}</title>
       <meta name="description" content={description} />
+      {noindex && <meta name="robots" content="noindex,follow" />}
       <meta property="og:title" content={title} />
       <meta property="og:description" content={description} />
       <meta property="og:type" content="website" />
@@ -49,7 +60,7 @@ export default function Seo({ pageKey, titleOverride, descriptionOverride }: Seo
       <meta name="twitter:card" content="summary_large_image" />
       {/* BUG-068: emit a canonical link for every indexed route so
           RU / KK and trailing-slash variants collapse to a single URL. */}
-      <link rel="canonical" href={ogUrl} />
+      {!noindex && <link rel="canonical" href={canonicalUrl} />}
     </Helmet>
   );
 }
