@@ -43,13 +43,14 @@ function Stepper({
   onChange: (v: number) => void;
   min?: number;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2 w-[160px]">
       <button
         type="button"
         onClick={() => onChange(Math.max(min, value - 1))}
         className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
-        aria-label="Уменьшить"
+        aria-label={t("wizard.shared.qty.dec")}
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -58,7 +59,7 @@ function Stepper({
       <input
         type="number"
         value={value}
-        aria-label="Количество"
+        aria-label={t("wizard.shared.qty.value")}
         onChange={(e) => {
           const n = parseInt(e.target.value, 10);
           if (!isNaN(n) && n >= min) onChange(n);
@@ -69,7 +70,7 @@ function Stepper({
         type="button"
         onClick={() => onChange(value + 1)}
         className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
-        aria-label="Увеличить"
+        aria-label={t("wizard.shared.qty.inc")}
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

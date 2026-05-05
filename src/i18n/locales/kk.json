@@ -432,6 +432,22 @@
         "remove": "Өшіру"
       }
     },
+    "shared": {
+      "qty": {
+        "dec": "Азайту",
+        "value": "Саны",
+        "valueCabins": "Кабиналар саны",
+        "inc": "Көбейту"
+      },
+      "address": {
+        "add": "Мекенжай қосу",
+        "remove": "Мекенжайды жою"
+      },
+      "map": {
+        "myLocation": "Менің орным",
+        "routing": "Бағытты есептеу..."
+      }
+    },
     "rental": {
       "title": "Жалға алу",
       "breadcrumbHome": "Басты",

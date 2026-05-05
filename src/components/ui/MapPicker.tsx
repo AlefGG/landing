@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "react-i18next";
 import { GeoJSON, MapContainer, TileLayer, Marker, Polyline, useMap, useMapEvents } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
@@ -79,6 +80,7 @@ function FitBounds({
 
 function LocateButton() {
   const map = useMap();
+  const { t } = useTranslation();
   const [busy, setBusy] = useState(false);
 
   const buttonRef = useCallback((node: HTMLButtonElement | null) => {
@@ -106,7 +108,7 @@ function LocateButton() {
       ref={buttonRef}
       type="button"
       onClick={handle}
-      aria-label="Моё местоположение"
+      aria-label={t("wizard.shared.map.myLocation")}
       className="absolute right-3 bottom-6 z-[500] size-10 rounded-full bg-white shadow-lg flex items-center justify-center hover:bg-neutral-100 disabled:opacity-50"
       disabled={busy}
     >
@@ -142,10 +144,12 @@ export default function MapPicker({
   warehouse = null,
   showStartMarker = true,
   loading = false,
-  loadingText = "Прокладываем маршрут…",
+  loadingText,
   className = "",
   zones = null,
 }: Props) {
+  const { t } = useTranslation();
+  const resolvedLoadingText = loadingText ?? t("wizard.shared.map.routing");
   const center = warehouse ?? ALMATY_CENTER;
   const showWarehouseMarker = showStartMarker && warehouse !== null;
   const allPoints = useMemo(
@@ -229,7 +233,7 @@ export default function MapPicker({
               <circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="3" fill="none" opacity="0.25" />
               <path d="M12 2a10 10 0 0110 10" stroke="currentColor" strokeWidth="3" fill="none" strokeLinecap="round" />
             </svg>
-            <span className="font-body text-base text-neutral-900">{loadingText}</span>
+            <span className="font-body text-base text-neutral-900">{resolvedLoadingText}</span>
           </div>
         </div>
       )}

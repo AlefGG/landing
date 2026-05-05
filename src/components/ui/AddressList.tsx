@@ -1,3 +1,4 @@
+import { useTranslation } from "react-i18next";
 import AddressAutocomplete from "./AddressAutocomplete";
 import type { LatLng } from "./MapPicker";
 
@@ -24,8 +25,10 @@ export default function AddressList({
   onAdd,
   onRemove,
   placeholder,
-  addLabel = "Добавить адрес",
+  addLabel,
 }: Props) {
+  const { t } = useTranslation();
+  const resolvedAddLabel = addLabel ?? t("wizard.shared.address.add");
   return (
     <div className="flex flex-col gap-3">
       {items.map((item) => (
@@ -42,7 +45,7 @@ export default function AddressList({
           <button
             type="button"
             onClick={() => onRemove(item.id)}
-            aria-label="Удалить адрес"
+            aria-label={t("wizard.shared.address.remove")}
             className="shrink-0 size-10 rounded-[8px] border border-neutral-300 bg-white flex items-center justify-center hover:bg-neutral-100"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-neutral-600">
@@ -66,7 +69,7 @@ export default function AddressList({
           <circle cx="10" cy="10" r="8.25" stroke="currentColor" strokeWidth="1.5" />
           <path d="M10 6.5v7M6.5 10h7" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
         </svg>
-        <span className="font-semibold">{addLabel}</span>
+        <span className="font-semibold">{resolvedAddLabel}</span>
       </button>
     </div>
   );

@@ -384,7 +384,7 @@ export default function ServiceWizard() {
                   setCabinCountInput(String(next));
                 }}
                 className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
-                aria-label="Уменьшить"
+                aria-label={t("wizard.shared.qty.dec")}
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path d="M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -393,7 +393,7 @@ export default function ServiceWizard() {
               <input
                 type="number"
                 value={cabinCountInput}
-                aria-label="Количество кабин"
+                aria-label={t("wizard.shared.qty.valueCabins")}
                 onChange={(e) => {
                   const raw = e.target.value;
                   setCabinCountInput(raw);
@@ -422,7 +422,7 @@ export default function ServiceWizard() {
                   setCabinCountInput(String(next));
                 }}
                 className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white"
-                aria-label="Увеличить"
+                aria-label={t("wizard.shared.qty.inc")}
               >
                 <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
                   <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />

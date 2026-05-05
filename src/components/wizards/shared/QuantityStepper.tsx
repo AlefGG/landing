@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 
 export default function QuantityStepper({
   value,
@@ -13,6 +14,7 @@ export default function QuantityStepper({
   max?: number;
   ariaLabel?: string;
 }) {
+  const { t } = useTranslation();
   const [input, setInput] = useState<string>(String(value));
   // FE-CQ-001: sync the editable string mirror when the parent flips
   // `value` programmatically (e.g. clamp on validation). React-19 "adjust
@@ -44,7 +46,7 @@ export default function QuantityStepper({
         onClick={dec}
         className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white disabled:opacity-50"
         disabled={value <= min}
-        aria-label="Уменьшить"
+        aria-label={t("wizard.shared.qty.dec")}
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -55,7 +57,7 @@ export default function QuantityStepper({
         value={input}
         min={min}
         max={max}
-        aria-label={ariaLabel ?? "Количество"}
+        aria-label={ariaLabel ?? t("wizard.shared.qty.value")}
         onChange={(e) => {
           const raw = e.target.value;
           setInput(raw);
@@ -81,7 +83,7 @@ export default function QuantityStepper({
         onClick={inc}
         className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white disabled:opacity-50"
         disabled={value >= max}
-        aria-label="Увеличить"
+        aria-label={t("wizard.shared.qty.inc")}
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
