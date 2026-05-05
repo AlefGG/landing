@@ -58,6 +58,12 @@ export default function Seo({
       {/* TODO: add real og:image file at /assets/og-image.png (1200x630) */}
       <meta property="og:image" content="/assets/og-image.png" />
       <meta name="twitter:card" content="summary_large_image" />
+      {/* FE-SEO-003: hreflang alternates via query-string locale strategy.
+          Emitted on every route so a Kazakh SERP referral lands on the
+          Kazakh page on first paint via `?lang=kk`. */}
+      <link rel="alternate" hrefLang="ru" href={`${origin}${location.pathname}?lang=ru`} />
+      <link rel="alternate" hrefLang="kk" href={`${origin}${location.pathname}?lang=kk`} />
+      <link rel="alternate" hrefLang="x-default" href={`${origin}${location.pathname}`} />
       {/* BUG-068: emit a canonical link for every indexed route so
           RU / KK and trailing-slash variants collapse to a single URL. */}
       {!noindex && <link rel="canonical" href={canonicalUrl} />}

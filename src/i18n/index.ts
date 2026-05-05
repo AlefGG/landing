@@ -8,6 +8,11 @@ const SUPPORTED = ["ru", "kk"] as const;
 type Supported = (typeof SUPPORTED)[number];
 
 function resolveInitialLang(): Supported {
+  if (typeof window !== "undefined") {
+    const url = new URL(window.location.href);
+    const queryLang = url.searchParams.get("lang");
+    if (queryLang === "kk" || queryLang === "ru") return queryLang;
+  }
   const stored = localStorage.getItem(STORAGE_KEY);
   // Migrate legacy "kz" → "kk"
   if (stored === "kz") {
@@ -46,6 +51,12 @@ if (typeof window !== "undefined") {
   i18n.on("languageChanged", (lng) => {
     if ((SUPPORTED as readonly string[]).includes(lng)) {
       localStorage.setItem(STORAGE_KEY, lng);
+      // Update URL ?lang= so reload / share-link preserves locale.
+      const url = new URL(window.location.href);
+      if (url.searchParams.get("lang") !== lng) {
+        url.searchParams.set("lang", lng);
+        history.replaceState(null, "", url.toString());
+      }
     }
   });
 }

@@ -51,4 +51,17 @@ describe("Seo noindex + canonicalOverride", () => {
       expect(canonical?.getAttribute("href")).toContain("/service");
     });
   });
+
+  it("emits ru/kk/x-default hreflang alternates with ?lang query", async () => {
+    renderAt("/rental");
+    await waitFor(() => {
+      const alternates = Array.from(document.head.querySelectorAll("link[rel=alternate]"));
+      const map = Object.fromEntries(
+        alternates.map((a) => [a.getAttribute("hreflang"), a.getAttribute("href")]),
+      );
+      expect(map.ru).toMatch(/\/rental\?lang=ru$/);
+      expect(map.kk).toMatch(/\/rental\?lang=kk$/);
+      expect(map["x-default"]).toMatch(/\/rental$/);
+    });
+  });
 });
