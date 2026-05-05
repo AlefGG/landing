@@ -140,15 +140,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const logout = useCallback(async () => {
     sessionEpochRef.current += 1;
-    // Clear local state optimistically so the UI flips to anonymous
-    // immediately, then await the backend round-trip so the refresh
-    // cookie is actually cleared before any caller (e.g. Header) hard-
-    // redirects. With fire-and-forget the navigation aborted the POST
-    // and bootstrap-refresh resurrected the session on the next page.
+    // Capture the Bearer access token before we drop it — backend
+    // LogoutView is IsAuthenticated and needs Authorization: Bearer to
+    // clear the refresh cookie. Local state is cleared optimistically so
+    // the UI flips to anonymous immediately; then we await the backend
+    // round-trip so the cookie is gone before any caller (e.g. Header)
+    // hard-redirects.
+    const accessToken = accessTokenRef.current;
     accessTokenRef.current = null;
     setUser(null);
     setStatus("anonymous");
-    await logoutRequest();
+    await logoutRequest(accessToken);
   }, []);
 
   const updateProfile = useCallback(async (patch: ProfilePatch) => {

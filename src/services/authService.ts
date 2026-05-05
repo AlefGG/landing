@@ -201,23 +201,22 @@ export async function updateProfile(patch: ProfilePatch): Promise<AuthUser> {
   });
 }
 
-export async function logout(): Promise<void> {
+export async function logout(accessToken: string | null): Promise<void> {
   try {
     const url = `${authBaseUrl()}/auth/logout/`;
+    const headers: Record<string, string> = {
+      "Content-Type": "application/json",
+      "X-CSRFToken": getCsrfToken(),
+    };
+    // Backend LogoutView is IsAuthenticated — without Bearer it 401s and
+    // never clears the refresh cookie, so bootstrap-refresh on the next
+    // page resurrects the session.
+    if (accessToken) headers.Authorization = `Bearer ${accessToken}`;
     await fetch(url, {
       method: "POST",
       credentials: "include",
-      headers: {
-        "Content-Type": "application/json",
-        "X-CSRFToken": getCsrfToken(),
-      },
+      headers,
       body: "{}",
-      // Header.handleLogout calls window.location.assign("/") right after
-      // dispatching this fetch — without keepalive the navigation aborts
-      // the in-flight request (net::ERR_ABORTED), backend never clears the
-      // refresh cookie, and bootstrap-refresh on the new page resurrects
-      // the session.
-      keepalive: true,
     });
   } catch {
     // logout is best-effort; local state cleared regardless

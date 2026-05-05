@@ -75,27 +75,35 @@ describe("authService — cookie-mode (FE-SEC-001 step 2)", () => {
     await expect(refresh()).rejects.toMatchObject({ status: 403 });
   });
 
-  it("logout sends credentials + CSRF + empty body + keepalive", async () => {
+  it("logout sends credentials + CSRF + Bearer + empty body", async () => {
     setCookie("csrftoken=ZZZ");
     fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
 
-    await logout();
+    await logout("ACCESS_TOKEN_1");
 
     const [, init] = fetchMock.mock.calls[0]!;
     expect(init.method).toBe("POST");
     expect(init.credentials).toBe("include");
     expect(init.body).toBe("{}");
-    // keepalive lets the request survive Header.handleLogout's hard-redirect
-    // (window.location.assign) — without it the browser aborts the in-flight
-    // fetch and the backend never clears the refresh cookie.
-    expect(init.keepalive).toBe(true);
     const headers = new Headers(init.headers);
     expect(headers.get("X-CSRFToken")).toBe("ZZZ");
+    // Backend LogoutView is IsAuthenticated — without Bearer it 401s and
+    // never clears the refresh cookie, so bootstrap-refresh on the next
+    // page resurrects the session.
+    expect(headers.get("Authorization")).toBe("Bearer ACCESS_TOKEN_1");
+  });
+
+  it("logout omits Authorization when accessToken is null", async () => {
+    fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
+    await logout(null);
+    const [, init] = fetchMock.mock.calls[0]!;
+    const headers = new Headers(init.headers);
+    expect(headers.get("Authorization")).toBeNull();
   });
 
   it("logout swallows network error (best-effort)", async () => {
     fetchMock.mockRejectedValue(new Error("network down"));
-    await expect(logout()).resolves.toBeUndefined();
+    await expect(logout("A1")).resolves.toBeUndefined();
   });
 
   it("verifyOtp sends credentials: 'include'", async () => {
