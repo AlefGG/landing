@@ -60,7 +60,7 @@ export default function LoginPage() {
       <Seo pageKey="auth" />
       <div className="max-w-[480px] mx-auto px-4 lg:px-8 pt-8 lg:pt-16 pb-16">
         <nav aria-label="Breadcrumb" className="flex items-center gap-0.5 text-xs font-body mb-6">
-          <Link to="/" className="text-[#1F5F8F] underline leading-4 text-xs px-[10px] py-[8px]">
+          <Link to="/" className="text-link underline leading-4 text-xs px-[10px] py-[8px]">
             {t("success.breadcrumbHome")}
           </Link>
           <svg

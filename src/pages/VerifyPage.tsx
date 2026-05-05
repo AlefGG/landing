@@ -21,7 +21,7 @@ export default function VerifyPage() {
       <Seo pageKey="auth" />
       <div className="max-w-[480px] mx-auto px-4 lg:px-8 pt-8 lg:pt-16 pb-16">
         <nav aria-label="Breadcrumb" className="flex items-center gap-0.5 text-xs font-body mb-6">
-          <Link to="/login" className="text-[#1F5F8F] underline leading-4 text-xs px-[10px] py-[8px]">
+          <Link to="/login" className="text-link underline leading-4 text-xs px-[10px] py-[8px]">
             {t("auth.login.title")}
           </Link>
           <svg
@@ -53,7 +53,7 @@ export default function VerifyPage() {
         </p>
         <Link
           to={`/login${redirect ? `?redirect=${encodeURIComponent(redirect)}` : ""}`}
-          className="inline-block mb-8 font-body text-sm leading-4 text-[#1F5F8F] underline"
+          className="inline-block mb-8 font-body text-sm leading-4 text-link underline"
         >
           {t("auth.verify.change")}
         </Link>
