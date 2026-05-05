@@ -112,6 +112,15 @@ export function errorMessage(
   overrideKey?: string,
   variant: MessageVariant = "short",
 ): string {
+  // When backend returned a non-field validation reason (e.g. business-rule
+  // failure like "less than 24h until event"), prefer that exact text over
+  // generic "check fields above" — there are no fields to fix.
+  const hasFieldErrors =
+    !!err.fieldErrors && Object.keys(err.fieldErrors).length > 0;
+  if (err.kind === "validation" && err.detail && !hasFieldErrors) {
+    return err.detail;
+  }
+
   const candidates: string[] = [];
   if (overrideKey) {
     candidates.push(`${overrideKey}.${err.kind}`);

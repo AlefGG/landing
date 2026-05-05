@@ -55,4 +55,34 @@ describe("errorMessage lookup precedence", () => {
     });
     expect(errorMessage(err, t, undefined, "title")).toBe("T");
   });
+
+  it("validation without fieldErrors prefers backend detail over override", () => {
+    const validationErr: NormalizedError = {
+      kind: "validation",
+      status: 400,
+      detail: 'До мероприятия менее 24 часов. Выберите тип "ЧС" (emergency).',
+    };
+    const t = makeT({
+      "errors.orderCreate.validation": "Проверьте заполненные поля выше",
+      "errors.validation.short": "Проверьте поля",
+    });
+    expect(errorMessage(validationErr, t, "errors.orderCreate", "short")).toBe(
+      'До мероприятия менее 24 часов. Выберите тип "ЧС" (emergency).',
+    );
+  });
+
+  it("validation WITH fieldErrors keeps override (detail is supplementary)", () => {
+    const validationErr: NormalizedError = {
+      kind: "validation",
+      status: 400,
+      detail: "ignored when fields are present",
+      fieldErrors: { items: "too few" },
+    };
+    const t = makeT({
+      "errors.orderCreate.validation": "Проверьте заполненные поля выше",
+    });
+    expect(errorMessage(validationErr, t, "errors.orderCreate", "short")).toBe(
+      "Проверьте заполненные поля выше",
+    );
+  });
 });
