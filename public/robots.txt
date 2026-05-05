@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /verify
+Disallow: /account
+Disallow: /orders
+Disallow: /success
+
+Sitemap: https://biotualeti.com/sitemap.xml
