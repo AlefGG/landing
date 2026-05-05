@@ -27,10 +27,15 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", onClick);
   }, [accountMenuOpen]);
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
     setAccountMenuOpen(false);
     setMenuOpen(false);
+    // Await the backend logout BEFORE the hard redirect — otherwise the
+    // navigation aborts the in-flight POST /api/auth/logout/ (even with
+    // fetch keepalive, Chromium discards the Set-Cookie response on unload),
+    // the refresh cookie survives, and bootstrap-refresh on the new page
+    // resurrects the session.
+    await logout();
     // F-005 (deeper): force a hard reload so any in-flight refresh / API
     // client / Suspense chunk that captured the previous AuthContext state
     // is dropped. A soft `navigate("/")` left the user's phone visible in

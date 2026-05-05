@@ -29,7 +29,7 @@ type AuthContextValue = {
   status: AuthStatus;
   sendOtp: (phone: string) => Promise<{ expiresIn: number }>;
   login: (phone: string, code: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
   updateProfile: (patch: ProfilePatch) => Promise<void>;
 };
 
@@ -138,12 +138,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setStatus("authenticated");
   }, []);
 
-  const logout = useCallback(() => {
+  const logout = useCallback(async () => {
     sessionEpochRef.current += 1;
-    void logoutRequest();
+    // Clear local state optimistically so the UI flips to anonymous
+    // immediately, then await the backend round-trip so the refresh
+    // cookie is actually cleared before any caller (e.g. Header) hard-
+    // redirects. With fire-and-forget the navigation aborted the POST
+    // and bootstrap-refresh resurrected the session on the next page.
     accessTokenRef.current = null;
     setUser(null);
     setStatus("anonymous");
+    await logoutRequest();
   }, []);
 
   const updateProfile = useCallback(async (patch: ProfilePatch) => {
