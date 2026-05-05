@@ -107,7 +107,7 @@ export default function SuccessScreen() {
           <img src="/assets/images/wizard-hero-shape.svg" alt="" className="w-full h-full" />
         </div>
         <div
-          className="lg:hidden absolute inset-0 bg-gradient-to-b from-[#f1f1f1] to-transparent pointer-events-none"
+          className="lg:hidden absolute inset-0 bg-gradient-to-b from-hero-from to-transparent pointer-events-none"
           aria-hidden="true"
         />
 
@@ -184,7 +184,7 @@ export default function SuccessScreen() {
           <div className="flex justify-center pt-8 lg:pt-12 pb-16 lg:pb-[104px]">
             <Link
               to="/"
-              className="flex items-center justify-between gap-4 bg-gradient-to-b from-[#3c4449] to-[#21272b] text-white font-body font-semibold text-base leading-6 rounded-[40px] pl-10 pr-8 py-3 w-full lg:w-[272px] max-w-[360px]"
+              className="flex items-center justify-between gap-4 bg-gradient-to-b from-surface-dark-from to-surface-dark-to text-white font-body font-semibold text-base leading-6 rounded-[40px] pl-10 pr-8 py-3 w-full lg:w-[272px] max-w-[360px]"
             >
               <span>{t("success.toHome")}</span>
               <svg width="24" height="24" viewBox="0 0 24 24" fill="none" aria-hidden="true">

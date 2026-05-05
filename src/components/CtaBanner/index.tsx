@@ -13,7 +13,7 @@ export default function CtaBanner() {
       <section className="relative w-full min-h-[424px] overflow-hidden" id="cta">
         {/* Dark gradient bg + city overlay image */}
         <div aria-hidden="true" className="absolute inset-0 pointer-events-none">
-          <div className="absolute inset-0 bg-gradient-to-b from-[#3c4449] to-[#21272b]" />
+          <div className="absolute inset-0 bg-gradient-to-b from-surface-dark-from to-surface-dark-to" />
           <ResponsiveImage
             alt=""
             className="absolute inset-0 size-full object-cover mix-blend-overlay opacity-50"

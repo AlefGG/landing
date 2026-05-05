@@ -211,11 +211,10 @@ export default function Hero() {
             Ends near island image so stats sit on white. */}
         <div
           aria-hidden="true"
-          className="absolute left-3 right-3 rounded-2xl pointer-events-none z-0"
+          className="absolute left-3 right-3 rounded-2xl pointer-events-none z-0 bg-gradient-to-b from-hero-from to-hero-to"
           style={{
             top: "-104px",
             bottom: "260px",
-            background: "linear-gradient(180deg, #F1F1F1 0%, #E3EFFF 100%)",
           }}
         />
 

@@ -12,7 +12,7 @@ export default function Events() {
 
   return (
     <section
-      className="w-full bg-gradient-to-b from-neutral-800 to-[#21272b] py-[40px] lg:py-[88px]"
+      className="w-full bg-gradient-to-b from-surface-dark-from to-surface-dark-to py-[40px] lg:py-[88px]"
       id="events"
     >
       <div className="max-w-[1216px] mx-auto px-3 lg:px-0">

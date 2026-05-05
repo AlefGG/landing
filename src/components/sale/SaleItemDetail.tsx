@@ -30,7 +30,7 @@ export default function SaleItemDetail({ item }: { item: SaleItem }) {
           <img src="/assets/images/wizard-hero-shape.svg" alt="" className="w-full h-full" />
         </div>
         <div
-          className="lg:hidden absolute inset-0 bg-gradient-to-b from-[#f1f1f1] to-transparent pointer-events-none"
+          className="lg:hidden absolute inset-0 bg-gradient-to-b from-hero-from to-transparent pointer-events-none"
           aria-hidden="true"
         />
 

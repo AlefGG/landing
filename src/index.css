@@ -43,8 +43,9 @@
   --color-surface-dark-from: var(--color-neutral-800);
   --color-surface-dark-to: #21272B;
 
-  /* Hero — light gradient overlay. */
+  /* Hero — light gradient overlay. to-side singleton in Hero/index.tsx. */
   --color-hero-from: #F1F1F1;
+  --color-hero-to: #E3EFFF;
 
   /* CTA-main darker — header phone link only. */
   --color-cta-main-dark: #0F7A37;
