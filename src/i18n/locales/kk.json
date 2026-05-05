@@ -132,7 +132,7 @@
       "title": "Жеке кабинет",
       "nav": {
         "orders": "Менің өтінімдерім",
-        "profile": "Профиль"
+        "profile": "Профайл"
       }
     },
     "orders": {
@@ -210,7 +210,7 @@
       "loadMore": "Тағы көрсету"
     },
     "profile": {
-      "title": "Профиль",
+      "title": "Профайл",
       "name": "Аты-жөні",
       "namePlaceholder": "Тегі Аты",
       "email": "Email",
@@ -464,7 +464,7 @@
       "step1EmergencyDesc": "24 сағаттан аз шұғыл тапсырыс",
       "step2Title": "Кабина таңдау",
       "step2QuantityLabel": "Кабина саны",
-      "step2QuantityHint": "Минимум — 1 кабина",
+      "step2QuantityHint": "Кемінде — 1 кабина",
       "step3Title": "Жалға алу мерзімі",
       "step3StartDate": "басталу күні",
       "step3EndDate": "аяқталу күні",
@@ -527,7 +527,7 @@
       "submit": "Өтінім жіберу",
       "step4Address": "Мекенжай",
       "step3FleetFull": "Бос кабиналар жоқ",
-      "step6NamePlaceholder": "Иванов Иван",
+      "step6NamePlaceholder": "Айдар Серікұлы",
       "step6EmailPlaceholder": "name@mail.kz"
     },
     "rentalFaq": {
