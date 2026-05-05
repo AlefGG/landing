@@ -8,6 +8,17 @@ import { priceTierStyle } from "../../utils/priceTierStyle";
 
 type ZoneFeatureForStyle = Parameters<typeof priceTierStyle>[1];
 
+const colorCache: Record<string, string> = {};
+function resolveColor(name: string, fallback: string): string {
+  if (colorCache[name]) return colorCache[name];
+  if (typeof document === "undefined") return fallback;
+  const v = getComputedStyle(document.documentElement)
+    .getPropertyValue(`--color-${name}`)
+    .trim();
+  colorCache[name] = v || fallback;
+  return colorCache[name];
+}
+
 function sortedByPriorityAsc(fc: ZonesFeatureCollection): ZonesFeatureCollection {
   // Backend returns -priority, -id (highest first). Reverse so highest priority
   // is drawn LAST → ends up on top.
@@ -158,24 +169,28 @@ export default function MapPicker({
   );
 
   const startIcon = useMemo(
-    () =>
-      L.divIcon({
+    () => {
+      const bg = resolveColor("cta-main", "#3E7A01");
+      return L.divIcon({
         className: "",
-        html: `<div style="background:#59b002;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.3);border:2px solid white">A</div>`,
+        html: `<div style="background:${bg};color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.3);border:2px solid white">A</div>`,
         iconSize: [28, 28],
         iconAnchor: [14, 14],
-      }),
+      });
+    },
     [],
   );
 
   const numberedIcon = useCallback(
-    (n: number) =>
-      L.divIcon({
+    (n: number) => {
+      const bg = resolveColor("link", "#036CB5");
+      return L.divIcon({
         className: "",
-        html: `<div style="background:#1F5F8F;color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.3);border:2px solid white">${n}</div>`,
+        html: `<div style="background:${bg};color:white;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:12px;box-shadow:0 2px 6px rgba(0,0,0,0.3);border:2px solid white">${n}</div>`,
         iconSize: [28, 28],
         iconAnchor: [14, 14],
-      }),
+      });
+    },
     [],
   );
 
@@ -198,7 +213,10 @@ export default function MapPicker({
             style={(feature) =>
               feature
                 ? priceTierStyle(zones, feature as unknown as ZoneFeatureForStyle)
-                : { color: "#59b002", fillColor: "#59b002", fillOpacity: 0.18, weight: 1 }
+                : (() => {
+                    const c = resolveColor("cta-main", "#3E7A01");
+                    return { color: c, fillColor: c, fillOpacity: 0.18, weight: 1 };
+                  })()
             }
             onEachFeature={(feature, layer) => {
               const p = (feature as { properties: { name: string; price: string } }).properties;
@@ -219,7 +237,7 @@ export default function MapPicker({
             <Polyline
               key={`route-${i}`}
               positions={route}
-              pathOptions={{ color: "#59b002", weight: 5, opacity: 0.8 }}
+              pathOptions={{ color: resolveColor("cta-main", "#3E7A01"), weight: 5, opacity: 0.8 }}
             />
           ) : null,
         )}

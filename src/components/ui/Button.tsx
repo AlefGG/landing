@@ -26,9 +26,9 @@ const variantClasses: Record<ButtonVariant, string> = {
   ghost:
     "border-[1.5px] border-cta-main text-cta-main bg-white/20 rounded-[40px]",
   text: "text-neutral-600 bg-transparent",
-  blue: "bg-gradient-to-b from-[#20B7FB] to-[#0295CB] text-white rounded-[40px]",
+  blue: "bg-gradient-to-b from-cta-blue-gradient-from to-cta-blue-gradient-to text-white rounded-[40px]",
   "blue-ghost":
-    "border-[1.5px] border-[#20B7FB] text-[#20B7FB] bg-white/20 rounded-[40px]",
+    "border-[1.5px] border-cta-blue-gradient-from text-cta-blue-gradient-from bg-white/20 rounded-[40px]",
 };
 
 const sizeClasses: Record<ButtonSize, string> = {

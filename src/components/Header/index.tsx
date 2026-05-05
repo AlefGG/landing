@@ -80,7 +80,7 @@ export default function Header() {
             href="https://wa.me/77025672091"
             target="_blank"
             rel="noopener noreferrer"
-            className="flex items-center gap-1 text-sm font-semibold font-body text-[#0F7A37]"
+            className="flex items-center gap-1 text-sm font-semibold font-body text-cta-main-dark"
             aria-label="WhatsApp"
           >
             {t("nav.whatsapp")}

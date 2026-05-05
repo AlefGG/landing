@@ -346,13 +346,13 @@ export default function ServiceWizard() {
 
       {warning && (
         <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-4">
-          <div className="flex gap-2 items-start bg-[#fff7de] border border-[#f2bc70] rounded-[8px] p-4 lg:py-4 lg:pl-6 lg:pr-4 shadow-[0px_6px_8px_0px_rgba(0,0,0,0.08)]">
+          <div className="flex gap-2 items-start bg-status-alert-light border border-status-alert rounded-[8px] p-4 lg:py-4 lg:pl-6 lg:pr-4 shadow-[0px_6px_8px_0px_rgba(0,0,0,0.08)]">
             <svg
               width="26"
               height="26"
               viewBox="0 0 24 24"
               fill="none"
-              className="shrink-0 text-[#e7a74c] mt-0.5"
+              className="shrink-0 text-status-alert-dark mt-0.5"
             >
               <path
                 d="M12 9v4M12 16h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"

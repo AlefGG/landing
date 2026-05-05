@@ -130,7 +130,7 @@ export default function InstallDismantleStep({
 
   return (
     <div className="mt-4 flex flex-col gap-6">
-      <div className="rounded-[8px] bg-[#fff7de] border border-[#f2bc70] p-4 font-body text-base leading-6 text-neutral-900">
+      <div className="rounded-[8px] bg-status-alert-light border border-status-alert p-4 font-body text-base leading-6 text-neutral-900">
         ⚠ {t(`${k}.installWarning`)}
       </div>
 

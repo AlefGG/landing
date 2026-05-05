@@ -117,7 +117,7 @@ export default function FileUploader({
         onDragLeave={onDragLeave}
         className={`rounded-[12px] border-2 border-dashed px-6 py-8 text-center transition-colors ${
           isDragging
-            ? "border-cta-main bg-[#f0f9e8]"
+            ? "border-cta-main bg-cta-main-soft"
             : "border-neutral-300 bg-white"
         }`}
       >

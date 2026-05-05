@@ -2,9 +2,9 @@ import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
 const socials = [
-  { name: "Telegram", icon: "/assets/icons/social-telegram.svg", href: "#", bg: "bg-[#009eeb]" },
-  { name: "VK", icon: "/assets/icons/social-vk.svg", href: "#", bg: "bg-[#0077ff]" },
-  { name: "YouTube", icon: "/assets/icons/social-youtube.svg", href: "#", bg: "bg-[#ff0000]" },
+  { name: "Telegram", icon: "/assets/icons/social-telegram.svg", href: "#", bg: "bg-social-telegram" },
+  { name: "VK", icon: "/assets/icons/social-vk.svg", href: "#", bg: "bg-social-vk" },
+  { name: "YouTube", icon: "/assets/icons/social-youtube.svg", href: "#", bg: "bg-social-youtube" },
 ];
 
 function Divider() {

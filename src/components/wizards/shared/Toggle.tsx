@@ -16,7 +16,7 @@ export default function Toggle({
         aria-label={label}
         onClick={() => onChange(!checked)}
         className={`relative h-7 w-12 shrink-0 rounded-full transition-colors cursor-pointer ${
-          checked ? "bg-cta-main" : "bg-[#c5d3dd]"
+          checked ? "bg-cta-main" : "bg-toggle-off"
         }`}
       >
         <span
