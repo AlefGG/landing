@@ -28,6 +28,35 @@
   --color-status-alert: #F2BC70;
   --color-status-alert-dark: #E7A74C;
 
+  /* Link — alias of cta-blue. UX-004. */
+  --color-link: var(--color-cta-blue);
+
+  /* Status-error — replaces inline triplet [#fee7e2] [#f2704f] [#e0533a]. */
+  --color-status-error-light: #FEE7E2;
+  --color-status-error: #F2704F;
+  --color-status-error-dark: #E0533A;
+
+  /* Surface — elevated grey (consolidates [#efefef] [#f8fafc] [#ecece8]). */
+  --color-surface-elevated: #EFEFEF;
+
+  /* Surface — dark gradient. */
+  --color-surface-dark-from: var(--color-neutral-800);
+  --color-surface-dark-to: #21272B;
+
+  /* Hero — light gradient overlay. */
+  --color-hero-from: #F1F1F1;
+
+  /* CTA-main darker — header phone link only. */
+  --color-cta-main-dark: #0F7A37;
+
+  /* Social brands. */
+  --color-social-vk: #0077FF;
+  --color-social-instagram: #E1306C;
+  --color-social-facebook: #1877F2;
+  --color-social-whatsapp: #25D366;
+  --color-social-youtube: #FF0000;
+  --color-social-twitter: #009EEB;
+
   --font-heading: "Nunito Sans", sans-serif;
   --font-body: "Noto Sans", sans-serif;
 
