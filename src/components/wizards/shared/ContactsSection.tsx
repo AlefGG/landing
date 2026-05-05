@@ -111,10 +111,10 @@ export default function ContactsSection({
       )}
 
       <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
-        <div className="flex flex-col gap-2 w-full lg:w-[280px]">
-          <label className="font-body text-xl leading-6 text-neutral-600">
+        <label className="flex flex-col gap-2 w-full lg:w-[280px]">
+          <span className="font-body text-xl leading-6 text-neutral-600">
             {t(`${k}.step6Name`)}
-          </label>
+          </span>
           <BasicInput
             value={value.name}
             onChange={(e) => setField("name", e.target.value)}
@@ -127,11 +127,11 @@ export default function ContactsSection({
               {errors.name}
             </p>
           )}
-        </div>
-        <div className="flex flex-col gap-2 w-full lg:w-[280px]">
-          <label className="font-body text-xl leading-6 text-neutral-600">
+        </label>
+        <label className="flex flex-col gap-2 w-full lg:w-[280px]">
+          <span className="font-body text-xl leading-6 text-neutral-600">
             {t(`${k}.step6Phone`)}
-          </label>
+          </span>
           <BasicInput
             type="tel"
             value={value.phone}
@@ -145,11 +145,11 @@ export default function ContactsSection({
               {errors.phone}
             </p>
           )}
-        </div>
-        <div className="flex flex-col gap-2 w-full lg:w-[280px]">
-          <label className="font-body text-xl leading-6 text-neutral-600">
+        </label>
+        <label className="flex flex-col gap-2 w-full lg:w-[280px]">
+          <span className="font-body text-xl leading-6 text-neutral-600">
             {t(`${k}.step6Email`)}
-          </label>
+          </span>
           <BasicInput
             value={value.email}
             onChange={(e) => setField("email", e.target.value)}
@@ -162,7 +162,7 @@ export default function ContactsSection({
               {errors.email}
             </p>
           )}
-        </div>
+        </label>
       </div>
 
     </div>

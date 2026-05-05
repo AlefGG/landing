@@ -108,3 +108,48 @@ describe("ContactsSection (controlled, no snap-back)", () => {
     expect(getValue().email).toBe("i@x.kz");
   });
 });
+
+describe("ContactsSection programmatic label association (FE-A11Y-002)", () => {
+  beforeEach(() => {
+    authMock.status = "anonymous";
+    authMock.user = null;
+  });
+  afterEach(() => cleanup());
+
+  it("name input is reachable via getByLabelText", () => {
+    renderWithValue({
+      contactType: "individual",
+      name: "",
+      phone: "",
+      email: "",
+      useProfile: false,
+    });
+    const input = screen.getByLabelText(/Ф\.И\.О\.|ФИО|Т\.А\.Ә\.|Имя/i);
+    expect(input.tagName).toBe("INPUT");
+  });
+
+  it("phone input is reachable via getByLabelText", () => {
+    renderWithValue({
+      contactType: "individual",
+      name: "",
+      phone: "",
+      email: "",
+      useProfile: false,
+    });
+    const input = screen.getByLabelText(/Телефон/i);
+    expect(input.tagName).toBe("INPUT");
+    expect(input.getAttribute("type")).toBe("tel");
+  });
+
+  it("email input is reachable via getByLabelText", () => {
+    renderWithValue({
+      contactType: "individual",
+      name: "",
+      phone: "",
+      email: "",
+      useProfile: false,
+    });
+    const input = screen.getByLabelText(/e-mail|email|пошта/i);
+    expect(input.tagName).toBe("INPUT");
+  });
+});
