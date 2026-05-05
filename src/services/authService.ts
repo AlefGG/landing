@@ -212,6 +212,12 @@ export async function logout(): Promise<void> {
         "X-CSRFToken": getCsrfToken(),
       },
       body: "{}",
+      // Header.handleLogout calls window.location.assign("/") right after
+      // dispatching this fetch — without keepalive the navigation aborts
+      // the in-flight request (net::ERR_ABORTED), backend never clears the
+      // refresh cookie, and bootstrap-refresh on the new page resurrects
+      // the session.
+      keepalive: true,
     });
   } catch {
     // logout is best-effort; local state cleared regardless

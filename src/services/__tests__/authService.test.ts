@@ -75,7 +75,7 @@ describe("authService — cookie-mode (FE-SEC-001 step 2)", () => {
     await expect(refresh()).rejects.toMatchObject({ status: 403 });
   });
 
-  it("logout sends credentials + CSRF + empty body", async () => {
+  it("logout sends credentials + CSRF + empty body + keepalive", async () => {
     setCookie("csrftoken=ZZZ");
     fetchMock.mockResolvedValue(new Response(null, { status: 204 }));
 
@@ -85,6 +85,10 @@ describe("authService — cookie-mode (FE-SEC-001 step 2)", () => {
     expect(init.method).toBe("POST");
     expect(init.credentials).toBe("include");
     expect(init.body).toBe("{}");
+    // keepalive lets the request survive Header.handleLogout's hard-redirect
+    // (window.location.assign) — without it the browser aborts the in-flight
+    // fetch and the backend never clears the refresh cookie.
+    expect(init.keepalive).toBe(true);
     const headers = new Headers(init.headers);
     expect(headers.get("X-CSRFToken")).toBe("ZZZ");
   });
