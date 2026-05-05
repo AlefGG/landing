@@ -27,6 +27,17 @@ export default defineConfig([
         'warn',
         { prefer: 'type-imports', fixStyle: 'inline-type-imports' },
       ],
+      'no-restricted-syntax': [
+        'error',
+        {
+          selector: "JSXAttribute[name.name='className'] Literal[value=/\\[#[0-9a-fA-F]{3,8}\\]/]",
+          message: 'FE-UX-004: use @theme tokens instead of inline hex utilities. See landing/src/index.css.',
+        },
+        {
+          selector: "JSXAttribute[name.name='className'] TemplateElement[value.raw=/\\[#[0-9a-fA-F]{3,8}\\]/]",
+          message: 'FE-UX-004: use @theme tokens instead of inline hex utilities.',
+        },
+      ],
     },
   },
 ])

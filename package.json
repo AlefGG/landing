@@ -8,6 +8,7 @@
     "images:optimize": "node scripts/optimize-images.mjs",
     "build": "npm run images:optimize && tsc -b && vite build",
     "lint": "eslint .",
+    "check:tokens": "node scripts/check-tokens.mjs",
     "preview": "vite preview",
     "test": "vitest run",
     "test:unit": "vitest run",
