@@ -70,9 +70,9 @@ export default function Advantages() {
                   className="w-[104px] h-[104px]"
                   loading="lazy"
                 />
-                <h4 className="font-heading font-extrabold text-[24px] leading-[24px] text-neutral-800 mt-[24px]">
+                <h3 className="font-heading font-extrabold text-[24px] leading-[24px] text-neutral-800 mt-[24px]">
                   {t(`advantages.${adv.key}.title`)}
-                </h4>
+                </h3>
                 <p className="font-body text-[16px] leading-[24px] text-neutral-500 mt-[16px]">
                   {t(`advantages.${adv.key}.description`)}
                 </p>

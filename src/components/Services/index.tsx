@@ -14,8 +14,14 @@ export default function Services() {
   const { t } = useTranslation();
 
   return (
-    <section className="w-full pt-10 pb-[88px]" id="services">
+    <section className="w-full pt-10 pb-[88px]" id="services" aria-labelledby="services-heading">
       <div className="max-w-[1216px] mx-auto px-3 lg:px-0">
+        {/* Visually-hidden h2 to satisfy WCAG heading-order between Hero h1
+            and the h3 service cards below; visible design intentionally has
+            no header copy here (FE-A11Y-003). */}
+        <h2 id="services-heading" className="sr-only">
+          {t("services.heading")}
+        </h2>
         {/* Mobile: horizontal items with dividers */}
         <div className="flex flex-col lg:hidden">
           {services.map((service, i) => (
