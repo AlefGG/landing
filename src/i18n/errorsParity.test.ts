@@ -24,6 +24,8 @@ const PLURAL_EXEMPT = new Set<string>([
   "wizard.construction.monthsValue_many",
   "wizard.rental.cabinSelector.totalUnit_few",
   "wizard.rental.cabinSelector.totalUnit_many",
+  "wizard.rental.durationDays_few",
+  "wizard.rental.durationDays_many",
   "wizard.service.package.frequencyLabel_few",
   "wizard.service.package.frequencyLabel_many",
   "wizard.service.step3Crew_few",
@@ -34,6 +36,7 @@ const PLURAL_EXEMPT = new Set<string>([
   "wizard.service.step4DurationWeeksUnit_many",
   // KK-only _other variants (RU uses _few/_many instead):
   "wizard.rental.cabinSelector.totalUnit_other",
+  "wizard.rental.durationDays_other",
   "wizard.service.package.frequencyLabel_other",
   "wizard.service.step3Crew_other",
   "wizard.service.step3Machine_other",

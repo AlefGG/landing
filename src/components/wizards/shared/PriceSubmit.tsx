@@ -7,6 +7,7 @@ export default function PriceSubmit({
   disabled = false,
   disabledReason,
   onSubmit,
+  subtitle,
 }: {
   price: number;
   priceBefore?: number;
@@ -14,6 +15,12 @@ export default function PriceSubmit({
   disabled?: boolean;
   disabledReason?: string;
   onSubmit?: () => void;
+  /**
+   * M-4: optional caption rendered under the price (e.g. "Аренда: 3 дня").
+   * Lets the wizard reflect the computed duration / coverage so the total
+   * is not just a naked number.
+   */
+  subtitle?: string;
 }) {
   const { t } = useTranslation();
   const k = "wizard.rental" as const;
@@ -25,7 +32,8 @@ export default function PriceSubmit({
   return (
     <section className="max-w-[1216px] mx-auto px-4 lg:px-8 pt-8 lg:pt-12 pb-16 lg:pb-[104px]">
       <div className="lg:px-[104px] flex flex-col lg:flex-row items-stretch lg:items-center gap-6">
-        <div className="flex flex-wrap items-center gap-2 whitespace-nowrap justify-end lg:justify-start">
+        <div className="flex flex-col gap-1 flex-1 justify-end lg:justify-start">
+          <div className="flex flex-wrap items-center gap-2 whitespace-nowrap justify-end lg:justify-start">
           <span className="font-body text-xl leading-6 text-neutral-900">
             {t(`${k}.price`)}
           </span>
@@ -50,6 +58,15 @@ export default function PriceSubmit({
             >
               {t("wizard.construction.discountBadge", { percent: discountPercent })}
             </span>
+          )}
+          </div>
+          {subtitle && (
+            <p
+              data-testid="price-subtitle"
+              className="font-body text-sm leading-5 text-neutral-600 lg:text-left text-right"
+            >
+              {subtitle}
+            </p>
           )}
         </div>
         <div className="flex flex-col gap-2 w-full lg:w-[272px]">

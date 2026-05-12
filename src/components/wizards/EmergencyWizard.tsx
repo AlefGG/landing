@@ -168,6 +168,23 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
   const validatorBannerReason =
     validatorReason && validatorReason !== "incomplete" ? validatorReason : null;
 
+  // M-4: human-readable rental duration shown under the total.
+  const durationDays =
+    installDismantle.installDate && installDismantle.dismantleDate
+      ? Math.max(
+          1,
+          Math.round(
+            (installDismantle.dismantleDate.getTime() -
+              installDismantle.installDate.getTime()) /
+              (24 * 60 * 60 * 1000),
+          ),
+        )
+      : null;
+  const durationLabel =
+    durationDays !== null
+      ? t(`${k}.durationDays`, { count: durationDays })
+      : undefined;
+
   return (
     <>
       {/* Banner */}
@@ -309,6 +326,7 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
 
       <PriceSubmit
         price={totalPrice}
+        subtitle={durationLabel}
         disabled={submitState.buttonDisabled}
         disabledReason={computeDisabledReason({
           cabinValidation,

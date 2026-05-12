@@ -569,6 +569,8 @@
       "price": "құны",
       "currency": "₸",
       "submit": "Өтінім жіберу",
+      "durationDays_one": "Жалға алу: {{count}} күн",
+      "durationDays_other": "Жалға алу: {{count}} күн",
       "step4Address": "Мекенжай",
       "step3FleetFull": "Бос кабиналар жоқ",
       "step6NamePlaceholder": "Иванов Иван",

@@ -180,6 +180,23 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
   const validatorBannerReason =
     validatorReason && validatorReason !== "incomplete" ? validatorReason : null;
 
+  // M-4: human-readable rental duration shown under the total.
+  const durationDays =
+    installDismantle.installDate && installDismantle.dismantleDate
+      ? Math.max(
+          1,
+          Math.round(
+            (installDismantle.dismantleDate.getTime() -
+              installDismantle.installDate.getTime()) /
+              (24 * 60 * 60 * 1000),
+          ),
+        )
+      : null;
+  const durationLabel =
+    durationDays !== null
+      ? t(`${k}.durationDays`, { count: durationDays })
+      : undefined;
+
   return (
     <>
       {/* Step 1: Cabins */}
@@ -327,6 +344,7 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
       )}
 
       <PriceSubmit
+        subtitle={durationLabel}
         price={totalPrice}
         disabled={submitState.buttonDisabled}
         disabledReason={computeDisabledReason({
