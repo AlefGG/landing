@@ -1,11 +1,14 @@
 import { useTranslation } from "react-i18next";
 import { Link } from "react-router-dom";
 
+// M-9: href="#" entries are placeholders — the icons rendered but the
+// links went nowhere, eroding trust. Filtered out at render time so only
+// real URLs (when the client provides them) appear in the footer.
 const socials = [
   { name: "Telegram", icon: "/assets/icons/social-telegram.svg", href: "#", bg: "bg-[#009eeb]" },
   { name: "VK", icon: "/assets/icons/social-vk.svg", href: "#", bg: "bg-[#0077ff]" },
   { name: "YouTube", icon: "/assets/icons/social-youtube.svg", href: "#", bg: "bg-[#ff0000]" },
-];
+].filter((s) => s.href && s.href !== "#");
 
 function Divider() {
   return (
