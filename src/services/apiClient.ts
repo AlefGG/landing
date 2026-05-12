@@ -92,6 +92,21 @@ export type ApiClient = {
   requestBlob: (path: string, init?: RequestInit) => Promise<Blob>;
 };
 
+const PUBLIC_PATH_PREFIXES: ReadonlyArray<string> = [
+  "/orders/availability/calendar",
+  "/catalog/cabin-types",
+  "/catalog/sale/equipment",
+  "/public/time-slots",
+  "/public/service-packages",
+  "/public/zones",
+  "/public/pricing",
+];
+
+function isPublicPath(path: string): boolean {
+  const noQuery = path.split("?")[0] ?? path;
+  return PUBLIC_PATH_PREFIXES.some((p) => noQuery.startsWith(p));
+}
+
 function buildUrl(baseUrl: string | undefined, path: string): string {
   if (!baseUrl) return path;
   if (path.startsWith("http://") || path.startsWith("https://")) return path;
@@ -154,10 +169,14 @@ export function createApiClient(config: ApiClientConfig): ApiClient {
       ? (config.baseUrl ?? "").replace(/\/api\/?$/, "")
       : config.baseUrl;
     const url = buildUrl(baseUrl, path);
-    const accessToken = config.getAccessToken();
+    const isPublic = isPublicPath(path);
+    const accessToken = isPublic ? null : config.getAccessToken();
     const firstResponse = await fetch(url, withAuth(init, accessToken));
 
-    if (firstResponse.status !== 401) return firstResponse;
+    // Public endpoints: never retry / refresh on 401. We didn't send a
+    // token, so a 401 here is the backend genuinely refusing anonymous
+    // traffic and the caller should surface it.
+    if (firstResponse.status !== 401 || isPublic) return firstResponse;
 
     const refreshedToken = await refreshOnce();
     if (!refreshedToken) {
