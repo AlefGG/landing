@@ -745,7 +745,7 @@ export default function ServiceWizard() {
         </div>
       </section>
 
-      <Faq />
+      <Faq topic="service" />
 
       {wizardSubmit.pendingAuth && (
         <InlineOtpGate
