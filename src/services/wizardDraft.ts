@@ -1,5 +1,16 @@
 import type { z } from "zod";
 
+// ISO-8601 detection: YYYY-MM-DDTHH:MM:SS(.ms)?Z|+/-HH:MM
+const ISO_DATE_RE = /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}(\.\d{1,3})?(Z|[+-]\d{2}:?\d{2})$/;
+
+function reviveDates(_key: string, value: unknown): unknown {
+  if (typeof value === "string" && ISO_DATE_RE.test(value)) {
+    const d = new Date(value);
+    if (!Number.isNaN(d.getTime())) return d;
+  }
+  return value;
+}
+
 export type WizardSlug =
   | "service"
   | "event"
@@ -60,7 +71,7 @@ export function loadDraft<T>(
   if (!raw) return null;
   let parsed: unknown;
   try {
-    parsed = JSON.parse(raw);
+    parsed = JSON.parse(raw, reviveDates);
   } catch {
     return null;
   }

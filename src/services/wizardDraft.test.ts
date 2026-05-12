@@ -73,6 +73,46 @@ describe("wizardDraft", () => {
     setItem.mockRestore();
   });
 
+  describe("date revival", () => {
+    it("revives ISO date strings inside payload into Date objects", () => {
+      const original = {
+        installDate: new Date("2026-05-20T00:00:00.000Z"),
+        label: "test",
+      };
+      saveDraft("event", original);
+      const loaded = loadDraft<typeof original>("event");
+      expect(loaded).not.toBeNull();
+      expect(loaded!.installDate).toBeInstanceOf(Date);
+      expect(loaded!.installDate.getFullYear()).toBe(2026);
+      expect(loaded!.installDate.getMonth()).toBe(4);
+      expect(loaded!.installDate.getDate()).toBe(20);
+      expect(loaded!.label).toBe("test");
+    });
+
+    it("leaves non-date strings untouched", () => {
+      const original = { note: "hello", n: 42 };
+      saveDraft("event", original);
+      const loaded = loadDraft<typeof original>("event");
+      expect(loaded!.note).toBe("hello");
+      expect(loaded!.n).toBe(42);
+    });
+
+    it("handles nested objects with dates", () => {
+      const original = {
+        installDismantle: {
+          installDate: new Date("2026-06-01T00:00:00.000Z"),
+          installSlotId: 1,
+          dismantleDate: new Date("2026-06-03T00:00:00.000Z"),
+          dismantleSlotId: 3,
+        },
+      };
+      saveDraft("event", original);
+      const loaded = loadDraft<typeof original>("event");
+      expect(loaded!.installDismantle.installDate).toBeInstanceOf(Date);
+      expect(loaded!.installDismantle.dismantleDate).toBeInstanceOf(Date);
+    });
+  });
+
   describe("FE-TS-003 schema validation", () => {
     const PayloadSchema = z.object({
       name: z.string(),

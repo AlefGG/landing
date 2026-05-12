@@ -31,6 +31,7 @@ function slotLabel(s: TimeSlotDTO): string {
 
 function sameDay(a: Date | null, b: Date | null): boolean {
   if (!a || !b) return false;
+  if (!(a instanceof Date) || !(b instanceof Date)) return false;
   return (
     a.getFullYear() === b.getFullYear() &&
     a.getMonth() === b.getMonth() &&
