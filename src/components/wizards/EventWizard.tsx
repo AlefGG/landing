@@ -289,11 +289,17 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
         <div className="lg:px-[104px]">
           <StepLabel step={4 + stepOffset} title={t(`${k}.step5Title`)} />
           <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col lg:flex-row gap-8 lg:gap-[72px]">
-            <Toggle checked={cleaning} onChange={setCleaning} label={t(`${k}.step5Cleaning`)} />
+            <Toggle
+              checked={cleaning}
+              onChange={setCleaning}
+              label={t(`${k}.step5Cleaning`)}
+              caption={t(`${k}.step5CleaningCaption`)}
+            />
             <Toggle
               checked={expressMounting}
               onChange={setExpressMounting}
               label={t(`${k}.step5ExpressMounting`)}
+              caption={t(`${k}.step5ExpressMountingCaption`)}
             />
           </div>
           {expressMounting && (

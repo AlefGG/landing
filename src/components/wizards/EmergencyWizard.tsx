@@ -278,7 +278,12 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
         <div className="lg:px-[104px]">
           <StepLabel step={4 + stepOffset} title={t(`${k}.step5Title`)} />
           <div className="mt-8 lg:mt-4 lg:py-6 flex flex-col lg:flex-row gap-8 lg:gap-[72px]">
-            <Toggle checked={cleaning} onChange={setCleaning} label={t(`${k}.step5Cleaning`)} />
+            <Toggle
+              checked={cleaning}
+              onChange={setCleaning}
+              label={t(`${k}.step5Cleaning`)}
+              caption={t(`${k}.step5CleaningCaption`)}
+            />
           </div>
           <p className="mt-4 font-body text-base leading-6 text-neutral-600">
             {t(`${ek}.tariffNotice`)}

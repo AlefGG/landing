@@ -2,10 +2,17 @@ export default function Toggle({
   checked,
   onChange,
   label,
+  caption,
 }: {
   checked: boolean;
   onChange: (v: boolean) => void;
   label: string;
+  /**
+   * M-3: optional caption rendered under the label (e.g. price hint
+   * for a paid add-on). Helps prevent the "default-on switch with no
+   * explanation of what it costs" dark-pattern.
+   */
+  caption?: string;
 }) {
   return (
     <div className="flex items-center gap-2">
@@ -25,13 +32,20 @@ export default function Toggle({
           }`}
         />
       </button>
-      <span
-        className={`font-body text-xl leading-6 ${
-          checked ? "text-neutral-900" : "text-neutral-600"
-        }`}
-      >
-        {label}
-      </span>
+      <div className="flex flex-col">
+        <span
+          className={`font-body text-xl leading-6 ${
+            checked ? "text-neutral-900" : "text-neutral-600"
+          }`}
+        >
+          {label}
+        </span>
+        {caption && (
+          <span className="font-body text-sm leading-5 text-neutral-500">
+            {caption}
+          </span>
+        )}
+      </div>
     </div>
   );
 }
