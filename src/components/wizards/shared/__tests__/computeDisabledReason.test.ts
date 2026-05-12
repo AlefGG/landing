@@ -90,8 +90,7 @@ describe("computeDisabledReason", () => {
       ...BASE,
       submitting: true,
     });
-    // The key "payment.uploader.submitting" should resolve to something non-null.
-    expect(result).toBeTruthy();
+    expect(result).toBe(t("payment.uploader.submitting"));
   });
 
   it("priority 8: validationError", () => {
