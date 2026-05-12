@@ -26,7 +26,7 @@ export type ValidatorResult =
   | { ok: false; reason: ValidationReasonKey };
 
 const MS_PER_DAY = 24 * 60 * 60 * 1000;
-const MAX_WINDOW_DAYS = 90;
+const MAX_WINDOW_DAYS = 180;
 
 function startOfLocalDay(d: Date): Date {
   const x = new Date(d);

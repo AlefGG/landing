@@ -70,12 +70,12 @@ describe("validateInstallDismantle", () => {
     if (!r.ok) expect(r.reason).toBe("dismantleBeforeInstall");
   });
 
-  it("rejects window > 90 days", () => {
+  it("rejects window > 180 days", () => {
     const r = validateInstallDismantle(
       mkValue({
         installDate: new Date(2026, 4, 2),
         installSlotId: 1,
-        dismantleDate: new Date(2026, 7, 5),
+        dismantleDate: new Date(2026, 10, 5),
         dismantleSlotId: 2,
       }),
       slots, "rental_event", NOW,
