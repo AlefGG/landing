@@ -549,6 +549,7 @@
       },
       "step4Title": "Адрес доставки",
       "step4Placeholder": "Введите адрес",
+      "step4AddressHint": "Точку доставки уточним по телефону при подтверждении заявки.",
       "step4MapPlaceholder": "Карта загружается…",
       "step4AddAddress": "Добавить ещё адрес",
       "step4Distance": "Расстояние",

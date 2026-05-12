@@ -31,6 +31,11 @@ export default function AddressStep({ trip, zones = null }: Props) {
         placeholder={t(`${k}.step4Placeholder`)}
         addLabel={t(`${k}.step4AddAddress`)}
       />
+      {/* M-5: manage expectation — address text field has no live geocoding,
+          map pin doesn't reflect what user typed. Manager will reconcile. */}
+      <p className="font-body text-sm leading-5 text-neutral-500">
+        {t(`${k}.step4AddressHint`)}
+      </p>
       <Suspense
         fallback={
           <div className="mt-0 h-[300px] lg:h-[550px] bg-neutral-100 animate-pulse rounded-[12px]" />
