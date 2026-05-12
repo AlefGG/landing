@@ -5,6 +5,7 @@ import WizardHero from "../wizards/shared/WizardHero";
 import Seo from "../Seo";
 import SaleItemCard from "./SaleItemCard";
 import { fetchCatalog, type SaleItem } from "../../services/catalogService";
+import Faq from "../Faq";
 
 // FE-DT-013: discriminated union over the four catalog-load states so the
 // UI never sits in an indistinguishable empty grid on a backend failure.
@@ -101,6 +102,7 @@ export default function SaleCatalog() {
           </div>
         )}
       </section>
+      {state.status === "loaded" && <Faq topic="sale" />}
     </div>
   );
 }
