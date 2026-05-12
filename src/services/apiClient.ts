@@ -104,7 +104,9 @@ const PUBLIC_PATH_PREFIXES: ReadonlyArray<string> = [
 
 function isPublicPath(path: string): boolean {
   const noQuery = path.split("?")[0] ?? path;
-  return PUBLIC_PATH_PREFIXES.some((p) => noQuery.startsWith(p));
+  return PUBLIC_PATH_PREFIXES.some(
+    (p) => noQuery === p || noQuery.startsWith(p + "/"),
+  );
 }
 
 function buildUrl(baseUrl: string | undefined, path: string): string {

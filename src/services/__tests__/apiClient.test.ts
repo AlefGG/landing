@@ -365,4 +365,11 @@ describe("apiClient public-endpoint auth header", () => {
     expect(onRefresh).not.toHaveBeenCalled();
     expect(onAuthError).not.toHaveBeenCalled();
   });
+
+  it("does not match hypothetical auth path that shares a public prefix", async () => {
+    await fetchJson("/catalog/cabin-types-admin/");
+    const init = fetchSpy.mock.calls[0]?.[1] as RequestInit;
+    const headers = new Headers(init?.headers);
+    expect(headers.get("Authorization")).toBe("Bearer expired.token.value");
+  });
 });
