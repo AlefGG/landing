@@ -2,12 +2,15 @@ import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 
+// M-2: 'rental' is the primary product (highest order volume). Marked
+// with primary=true so the card gets a subtle green ring + popular
+// badge, leading the eye without breaking the three-card layout.
 const services = [
-  { key: "sale", icon: "/assets/icons/icon-sale.svg", to: "/sale" },
+  { key: "sale", icon: "/assets/icons/icon-sale.svg", to: "/sale", primary: false },
   // PR-12: i18n key flipped to "service"; static asset path
   // /assets/icons/icon-sanitation.svg kept (asset rename out of scope).
-  { key: "service", icon: "/assets/icons/icon-sanitation.svg", to: "/service" },
-  { key: "rental", icon: "/assets/icons/icon-rental.svg", to: "/rental" },
+  { key: "service", icon: "/assets/icons/icon-sanitation.svg", to: "/service", primary: false },
+  { key: "rental", icon: "/assets/icons/icon-rental.svg", to: "/rental", primary: true },
 ] as const;
 
 export default function Services() {
@@ -63,8 +66,20 @@ export default function Services() {
                 >
                   <Link
                     to={service.to}
-                    className="flex flex-col items-center text-center px-8 py-10 rounded-3xl h-full hover:bg-neutral-50 transition-colors"
+                    className={`relative flex flex-col items-center text-center px-8 py-10 rounded-3xl h-full transition-colors ${
+                      service.primary
+                        ? "bg-white ring-2 ring-cta-main/40 shadow-[0px_8px_20px_0px_rgba(89,176,2,0.08)] hover:shadow-[0px_12px_24px_0px_rgba(89,176,2,0.12)]"
+                        : "hover:bg-neutral-50"
+                    }`}
                   >
+                    {service.primary && (
+                      <span
+                        aria-hidden="true"
+                        className="absolute -top-3 left-1/2 -translate-x-1/2 inline-flex items-center px-3 py-1 rounded-full bg-cta-main text-white font-body font-semibold text-xs leading-4 shadow-sm"
+                      >
+                        {t("services.popularBadge")}
+                      </span>
+                    )}
                     <img
                       src={service.icon}
                       alt=""
