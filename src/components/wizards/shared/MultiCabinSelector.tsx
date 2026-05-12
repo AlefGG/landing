@@ -67,7 +67,18 @@ export default function MultiCabinSelector({
     );
   }
 
-  const sorted = [...types].sort((a, b) => a.id - b.id);
+  // C-1: dedup by slug to defend against multi-company backends returning
+  // multiple rows with the same identity (e.g. one CabinType per tenant
+  // sharing the canonical slug). First-occurrence wins, ordered by id.
+  const seen = new Set<string>();
+  const sorted = [...types]
+    .sort((a, b) => a.id - b.id)
+    .filter((dto) => {
+      if (!dto.slug) return false;
+      if (seen.has(dto.slug)) return false;
+      seen.add(dto.slug);
+      return true;
+    });
   let total = 0;
   for (const dto of sorted) total += quantities.get(dto.id) ?? 0;
 
