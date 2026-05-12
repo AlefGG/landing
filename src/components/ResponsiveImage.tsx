@@ -19,6 +19,12 @@ type Props = {
   className?: string;
   width?: number;
   height?: number;
+  /**
+   * C-5: shown when `src` fails to load (admin-uploaded /media/ path
+   * doesn't exist on disk, or a broken absolute URL). Used for runtime
+   * uploads where `deriveVariants` doesn't apply.
+   */
+  fallbackSrc?: string;
 };
 
 const WIDTHS = [480, 800, 1280] as const;
@@ -62,9 +68,11 @@ export default function ResponsiveImage({
   className,
   width,
   height,
+  fallbackSrc,
 }: Props) {
   const variants = deriveVariants(src);
   const [imgSrc, setImgSrc] = useState(variants?.fallback ?? src);
+  const [hasErroredOnce, setHasErroredOnce] = useState(false);
 
   useEffect(() => {
     if (!priority) return;
@@ -89,9 +97,10 @@ export default function ResponsiveImage({
 
   if (!variants) {
     // src didn't match expected pattern → render plain img.
+    // C-5: if it 404s and a fallbackSrc was provided, swap to it once.
     return (
       <img
-        src={src}
+        src={hasErroredOnce && fallbackSrc ? fallbackSrc : src}
         alt={alt}
         className={className}
         width={width}
@@ -99,6 +108,9 @@ export default function ResponsiveImage({
         loading={priority ? "eager" : "lazy"}
         decoding="async"
         fetchPriority={priority ? "high" : undefined}
+        onError={() => {
+          if (!hasErroredOnce && fallbackSrc) setHasErroredOnce(true);
+        }}
       />
     );
   }
@@ -138,7 +150,15 @@ export default function ResponsiveImage({
           decoding="async"
           fetchPriority={priority ? "high" : undefined}
           onError={() => {
-            if (imgSrc !== variants.originalSrc) setImgSrc(variants.originalSrc);
+            if (imgSrc !== variants.originalSrc) {
+              setImgSrc(variants.originalSrc);
+              return;
+            }
+            // C-5: optimized variant + original both failed — swap to
+            // caller-provided fallback if any.
+            if (fallbackSrc && imgSrc !== fallbackSrc) {
+              setImgSrc(fallbackSrc);
+            }
           }}
         />
       </picture>

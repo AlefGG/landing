@@ -77,6 +77,7 @@ export default function SaleItemDetail({ item }: { item: SaleItem }) {
               alt={name}
               sizes="(max-width:768px) 100vw, 50vw"
               className="h-[300px] lg:h-[480px] w-auto object-contain"
+              fallbackSrc="/assets/images/cabin-standard.png"
             />
           </div>
 

@@ -97,9 +97,13 @@ export default function MultiCabinSelector({
       <ul className="flex flex-col gap-3">
         {sorted.map((dto) => {
           const value = quantities.get(dto.id) ?? 0;
+          const slugFallback = fallbackImageFor(dto.slug);
+          // C-5: prefer admin-uploaded photo; fall back to a slug-mapped
+          // build-time asset if photo is empty. ResponsiveImage's
+          // fallbackSrc kicks in at runtime if the /media path 404s.
           const photo =
             (dto.photo && dto.photo.length > 0 ? dto.photo : null) ??
-            fallbackImageFor(dto.slug);
+            slugFallback;
           const label = labelFor(t, dto);
           const description = dto.description?.trim() ?? "";
           return (
@@ -113,6 +117,7 @@ export default function MultiCabinSelector({
                   alt={label}
                   sizes="(max-width:768px) 72px, 100px"
                   className="h-[72px] w-[72px] lg:h-[100px] lg:w-[100px] object-contain shrink-0"
+                  fallbackSrc={slugFallback ?? undefined}
                 />
               ) : (
                 <div className="h-[72px] w-[72px] lg:h-[100px] lg:w-[100px] shrink-0 rounded-2xl bg-neutral-100" />
