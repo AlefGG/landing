@@ -44,7 +44,7 @@ export default function QuantityStepper({
         onClick={dec}
         className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white disabled:opacity-50"
         disabled={value <= min}
-        aria-label="Уменьшить"
+        aria-label={ariaLabel ? `${ariaLabel}: уменьшить` : "Уменьшить"}
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
@@ -81,7 +81,7 @@ export default function QuantityStepper({
         onClick={inc}
         className="shrink-0 size-8 rounded-full bg-gradient-to-b from-cta-gradient-from to-cta-gradient-to flex items-center justify-center text-white disabled:opacity-50"
         disabled={value >= max}
-        aria-label="Увеличить"
+        aria-label={ariaLabel ? `${ariaLabel}: увеличить` : "Увеличить"}
       >
         <svg width="20" height="20" viewBox="0 0 20 20" fill="none">
           <path d="M10 4v12M4 10h12" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" />
