@@ -93,9 +93,18 @@ export default function SaleItemDetail({ item }: { item: SaleItem }) {
               </span>
             </div>
 
-            <p className="font-body text-base lg:text-xl leading-6 lg:leading-7 text-neutral-700">
-              {item.description}
-            </p>
+            {/* C-4: multi-paragraph rendering — split on \n so admin can
+                write 2-3 paragraphs without HTML. Filters empty lines so
+                trailing newlines from admin paste don't render empty <p>. */}
+            <div className="flex flex-col gap-3 font-body text-base lg:text-xl leading-6 lg:leading-7 text-neutral-700">
+              {item.description
+                .split(/\r?\n+/)
+                .map((para) => para.trim())
+                .filter(Boolean)
+                .map((para, i) => (
+                  <p key={i}>{para}</p>
+                ))}
+            </div>
 
             {/* F-007: specs come from Equipment.specs in the API instead of
                 hard-coded i18n catalog.sale.specs.<id>. Admin can edit them
@@ -117,6 +126,27 @@ export default function SaleItemDetail({ item }: { item: SaleItem }) {
                 {t("catalog.sale.priceFrom", { price: formattedPrice })}
               </span>
             </div>
+
+            {/* C-4: trust signals always visible — gives the page weight
+                even when admin hasn't filled rich description/specs yet. */}
+            <ul className="flex flex-col gap-2 font-body text-sm leading-5 text-neutral-700">
+              <li className="flex items-start gap-2">
+                <span aria-hidden="true" className="text-cta-main">✓</span>
+                <span>{t("catalog.sale.included.delivery")}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span aria-hidden="true" className="text-cta-main">✓</span>
+                <span>{t("catalog.sale.included.warranty")}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span aria-hidden="true" className="text-cta-main">✓</span>
+                <span>{t("catalog.sale.included.payment")}</span>
+              </li>
+              <li className="flex items-start gap-2">
+                <span aria-hidden="true" className="text-cta-main">✓</span>
+                <span>{t("catalog.sale.included.viewing")}</span>
+              </li>
+            </ul>
 
             {item.inStock ? (
               <Link to={`/sale/${item.id}/checkout`} className={buyClass}>
