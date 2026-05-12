@@ -1,23 +1,20 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useMemo } from "react";
+import { useTranslation } from "react-i18next";
 import useCalendar from "./useCalendar";
 import CalendarHeader from "./CalendarHeader";
 import CalendarDayGrid from "./CalendarDayGrid";
 import CalendarMonthGrid from "./CalendarMonthGrid";
 
-const MONTH_NAMES = [
-  "January",
-  "February",
-  "March",
-  "April",
-  "May",
-  "June",
-  "July",
-  "August",
-  "September",
-  "October",
-  "November",
-  "December",
-];
+// C-6: i18next 'ru'/'kk' → BCP-47 locale for Intl APIs.
+function bcp47For(lang: string): string {
+  if (lang === "kk" || lang === "kz") return "kk-KZ";
+  if (lang === "ru") return "ru-RU";
+  return lang;
+}
+
+function capitalize(s: string): string {
+  return s.length > 0 ? s[0]!.toUpperCase() + s.slice(1) : s;
+}
 
 export type CalendarDayMeta = {
   blocked?: boolean;
@@ -54,9 +51,12 @@ export default function Calendar({
   mode,
   value,
   onChange,
+  locale,
   className = "",
   dayMeta,
 }: CalendarProps) {
+  const { i18n } = useTranslation();
+  const bcp47 = locale ?? bcp47For(i18n.language);
   const {
     currentMonth,
     currentYear,
@@ -76,9 +76,27 @@ export default function Calendar({
   const isYearMonth = mode === "yearMonth";
   const isDayMode = mode === "single" || mode === "dateRange" || mode === "weekRange";
 
-  const headerTitle = showMonthGrid
-    ? `${currentYear}`
-    : `${MONTH_NAMES[currentMonth]} ${currentYear}`;
+  const monthLabel = useMemo(() => {
+    const ref = new Date(currentYear, currentMonth, 1);
+    const formatted = new Intl.DateTimeFormat(bcp47, {
+      month: "long",
+      year: "numeric",
+    }).format(ref);
+    return capitalize(formatted);
+  }, [bcp47, currentYear, currentMonth]);
+
+  const weekDayLabels = useMemo(() => {
+    // Anchor on a known Monday so locale weekday ordering is consistent.
+    const monday = new Date(2024, 0, 1); // Mon, 1 Jan 2024
+    const fmt = new Intl.DateTimeFormat(bcp47, { weekday: "short" });
+    return Array.from({ length: 7 }, (_, i) => {
+      const d = new Date(monday);
+      d.setDate(monday.getDate() + i);
+      return capitalize(fmt.format(d).replace(/\.$/, ""));
+    });
+  }, [bcp47]);
+
+  const headerTitle = showMonthGrid ? `${currentYear}` : monthLabel;
 
   const handleHeaderPrev = showMonthGrid ? goToPrevYear : goToPrevMonth;
   const handleHeaderNext = showMonthGrid ? goToNextYear : goToNextMonth;
@@ -155,6 +173,7 @@ export default function Calendar({
             selectedRange={selectedRange}
             mode={mode}
             onDayClick={handleDayClick}
+            weekDayLabels={weekDayLabels}
             dayMeta={dayMeta}
           />
         </>

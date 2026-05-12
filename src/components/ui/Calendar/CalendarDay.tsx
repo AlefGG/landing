@@ -51,8 +51,12 @@ export default function CalendarDay({
     classes += " text-neutral-900";
   }
 
+  // C-7: visibly distinguish disabled (past / out-of-window) days. Native
+  // <button disabled> blocks clicks and exposes aria-disabled to AT, but
+  // the visual was a low-contrast 0.4 opacity that read as "kinda
+  // clickable". Switch to muted color + strikethrough to match blocked.
   if (!isSelected && !isInRange && disabled && !blocked) {
-    classes += " opacity-40";
+    classes += " text-neutral-400 line-through";
   }
 
   if (isToday) {
