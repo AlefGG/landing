@@ -287,9 +287,13 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
         disabledReason={
           startDateMeta?.blocked
             ? t(`wizard.event.dateBlockedShort`)
-            : submitState.submitting
-              ? t("payment.uploader.submitting")
-              : submitState.validationError ?? undefined
+            : !previewPayload
+              ? t(`wizard.rental.addressRequired`)
+              : !contacts.name.trim() || !contacts.phone.trim()
+                ? t(`wizard.rental.contactsRequired`)
+                : submitState.submitting
+                  ? t("payment.uploader.submitting")
+                  : submitState.validationError ?? undefined
         }
         onSubmit={submitState.submit}
       />

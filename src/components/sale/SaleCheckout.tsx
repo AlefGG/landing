@@ -167,9 +167,13 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
 
   const disabledReason = !item.inStock
     ? t("catalog.sale.checkout.errors.outOfStock")
-    : submitState.submitting
-      ? t("catalog.sale.checkout.submitting")
-      : submitState.validationError ?? undefined;
+    : !addressValid
+      ? t("catalog.sale.checkout.addressRequired")
+      : !contacts.name.trim() || !contacts.phone.trim()
+        ? t("catalog.sale.checkout.errors.fillAll")
+        : submitState.submitting
+          ? t("catalog.sale.checkout.submitting")
+          : submitState.validationError ?? undefined;
 
   const title = t("catalog.sale.checkout.title");
 

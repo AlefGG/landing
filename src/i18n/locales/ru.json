@@ -464,6 +464,8 @@
       "slotsEmpty": "Свободных слотов нет",
       "installConsentLabel": "Я ознакомлен с условиями установки и демонтажа",
       "installConsentRequired": "Подтвердите согласие с условиями установки",
+      "addressRequired": "Укажите адрес доставки",
+      "contactsRequired": "Заполните ФИО и телефон",
       "installValidator": {
         "incomplete": "Заполните даты и слоты установки и демонтажа",
         "installInPast": "Дата установки не может быть в прошлом",

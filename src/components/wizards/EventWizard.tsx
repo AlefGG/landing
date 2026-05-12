@@ -35,6 +35,7 @@ import InstallDismantleStep from "./shared/InstallDismantleStep";
 import AddressStep from "./shared/AddressStep";
 import { InlineError, FieldErrors } from "../ui";
 import InlineOtpGate from "./shared/InlineOtpGate";
+import { computeDisabledReason } from "./shared/computeDisabledReason";
 
 const DRAFT_SLUG = "event" as const;
 
@@ -174,10 +175,10 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
       : 0
     : 0;
 
-  const validatorReason =
-    !validation.ok && validation.reason !== "incomplete"
-      ? validation.reason
-      : null;
+  const validatorReason = !validation.ok ? validation.reason : null;
+  // Banner only shows for real errors (not "incomplete" — too noisy pre-fill).
+  const validatorBannerReason =
+    validatorReason && validatorReason !== "incomplete" ? validatorReason : null;
 
   return (
     <>
@@ -246,9 +247,9 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
             consent={installConsent}
             onConsentChange={setInstallConsent}
           />
-          {validatorReason && (
+          {validatorBannerReason && (
             <div className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
-              {t(`${k}.installValidator.${validatorReason}`)}
+              {t(`${k}.installValidator.${validatorBannerReason}`)}
             </div>
           )}
         </div>
@@ -328,19 +329,16 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
       <PriceSubmit
         price={totalPrice}
         disabled={submitState.buttonDisabled}
-        disabledReason={
-          !cabinValidation.ok && cabinValidation.reason === "noCabinTypes"
-            ? t(`${k}.cabinSelector.noCabinTypes`)
-            : !cabinValidation.ok && cabinValidation.reason === "noQuantitySelected"
-              ? t(`${k}.cabinSelector.noQuantitySelected`)
-              : validatorReason
-                ? t(`${k}.installValidator.${validatorReason}`)
-                : !installConsent
-                  ? t(`${k}.installConsentRequired`)
-                  : submitState.submitting
-                    ? t("payment.uploader.submitting")
-                    : submitState.validationError ?? undefined
-        }
+        disabledReason={computeDisabledReason({
+          cabinValidation,
+          validatorReason,
+          installConsent,
+          firstLocation,
+          contacts,
+          submitting: submitState.submitting,
+          validationError: submitState.validationError,
+          t,
+        })}
         onSubmit={submitState.submit}
       />
 
