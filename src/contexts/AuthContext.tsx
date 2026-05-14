@@ -30,7 +30,7 @@ type AuthContextValue = {
   sendOtp: (phone: string) => Promise<{ expiresIn: number }>;
   login: (phone: string, code: string) => Promise<void>;
   logout: () => Promise<void>;
-  updateProfile: (patch: ProfilePatch) => Promise<void>;
+  updateProfile: (patch: ProfilePatch) => Promise<AuthUser>;
 };
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -156,6 +156,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const updateProfile = useCallback(async (patch: ProfilePatch) => {
     const next = await updateProfileRequest(patch);
     setUser(next);
+    return next;
   }, []);
 
   const value = useMemo<AuthContextValue>(
