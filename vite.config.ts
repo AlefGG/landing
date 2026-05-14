@@ -85,5 +85,23 @@ export default defineConfig(({ mode }): UserConfig => {
         },
       },
     },
+    // `vite preview` (used by the E2E `webServer` in
+    // tests/e2e/playwright.config.ts) needs the same /api proxy as `vite
+    // dev` — otherwise the bundle's cross-origin calls to the E2E
+    // backend bypass the HttpOnly SameSite=Lax refresh cookie set by
+    // VerifyOTPView, breaking every authed test. Default target is the
+    // E2E backend on :8001; override with VITE_DEV_BACKEND_URL.
+    preview: {
+      proxy: {
+        "/api": {
+          target: env.VITE_DEV_BACKEND_URL || "http://localhost:8001",
+          changeOrigin: true,
+        },
+        "/media": {
+          target: env.VITE_DEV_BACKEND_URL || "http://localhost:8001",
+          changeOrigin: true,
+        },
+      },
+    },
   };
 });
