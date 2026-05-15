@@ -69,7 +69,7 @@
         "summaryDelivery": "в т.ч. доставка {{amount}} ₸",
         "addressStep": "Адрес доставки",
         "addressPlaceholder": "г. Алматы, ул. ...",
-        "addressRequired": "Укажите адрес доставки"
+        "addressRequired": "Выберите адрес из подсказок или укажите точку на карте"
       },
       "items": {
         "standard": {
@@ -529,7 +529,7 @@
       "slotsEmpty": "Свободных слотов нет",
       "installConsentLabel": "Я ознакомлен с условиями установки и демонтажа",
       "installConsentRequired": "Подтвердите согласие с условиями установки",
-      "addressRequired": "Укажите адрес доставки",
+      "addressRequired": "Выберите адрес из подсказок или укажите точку на карте",
       "contactsRequired": "Заполните ФИО и телефон",
       "installValidator": {
         "incomplete": "Заполните даты и слоты установки и демонтажа",

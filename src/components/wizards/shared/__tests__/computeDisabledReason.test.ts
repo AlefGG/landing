@@ -66,7 +66,7 @@ describe("computeDisabledReason", () => {
       ...BASE,
       firstLocation: null,
     });
-    expect(result).toBe("Укажите адрес доставки");
+    expect(result).toBe("Выберите адрес из подсказок или укажите точку на карте");
   });
 
   it("priority 6: name empty", () => {

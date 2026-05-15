@@ -107,18 +107,29 @@ export default function AddressAutocomplete({
           // onBlur on the input — so suggestions[] is still populated here.
           // Skip if the user already picked one (skipSearchRef set by handlePick).
           if (skipSearchRef.current) return;
-          const top = suggestions[0];
-          if (top && value.trim().length >= 3) {
-            // Defer one tick so a suggestion-button click that's already in
-            // flight wins over our auto-pick (avoids double-fire).
-            window.setTimeout(() => {
-              if (skipSearchRef.current) return;
-              skipSearchRef.current = true;
-              onChange(top.displayName);
-              onSelect(top);
-              setOpen(false);
-            }, 200);
-          }
+          if (value.trim().length < 3) return;
+          // Defer one tick so a suggestion-button click that's already in
+          // flight wins over our auto-pick (avoids double-fire).
+          window.setTimeout(async () => {
+            if (skipSearchRef.current) return;
+            let top = suggestions[0];
+            if (!top) {
+              // User typed and blurred before the 400 ms debounce fired —
+              // do a one-shot lookup so we don't strand them at "address
+              // not picked" with no live feedback.
+              try {
+                const fresh = await searchAddress(value);
+                top = fresh[0];
+              } catch {
+                // ignore — leave submit disabled with the addressRequired hint
+              }
+            }
+            if (!top || skipSearchRef.current) return;
+            skipSearchRef.current = true;
+            onChange(top.displayName);
+            onSelect(top);
+            setOpen(false);
+          }, 200);
         }}
         placeholder={placeholder}
         aria-label={placeholder}

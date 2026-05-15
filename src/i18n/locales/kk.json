@@ -69,7 +69,7 @@
         "summaryDelivery": "оның ішінде жеткізу {{amount}} ₸",
         "addressStep": "Жеткізу мекенжайы",
         "addressPlaceholder": "Алматы қ., ... көш.",
-        "addressRequired": "Жеткізу мекенжайын көрсетіңіз"
+        "addressRequired": "Тізімнен таңдаңыз немесе картадан нүкте белгілеңіз"
       },
       "items": {
         "standard": {
@@ -529,7 +529,7 @@
       "slotsEmpty": "Бос слоттар жоқ",
       "installConsentLabel": "Орнату және бөлшектеу шарттарымен таныстым",
       "installConsentRequired": "Орнату шарттарымен келісімді растаңыз",
-      "addressRequired": "Жеткізу мекенжайын көрсетіңіз",
+      "addressRequired": "Тізімнен таңдаңыз немесе картадан нүкте белгілеңіз",
       "contactsRequired": "Аты-жөні мен телефонды толтырыңыз",
       "installValidator": {
         "incomplete": "Орнату және бөлшектеу күндері мен слоттарын толтырыңыз",
