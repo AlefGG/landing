@@ -35,6 +35,22 @@ type AuthContextValue = {
 
 const AuthContext = createContext<AuthContextValue | null>(null);
 
+// Post-logout flag resolved once at module import — before any
+// AuthProvider effect runs. The sessionStorage entry is cleared on read
+// so a subsequent login → logout cycle in the same tab can re-arm it,
+// but the captured boolean stays true for the lifetime of this page load.
+// Both passes of React StrictMode's double-invoked bootstrap effect read
+// the same captured value here, so neither pass fires the refresh probe.
+const justLoggedOutOnBootstrap: boolean = (() => {
+  try {
+    const v = window.sessionStorage.getItem("auth.justLoggedOut") === "1";
+    if (v) window.sessionStorage.removeItem("auth.justLoggedOut");
+    return v;
+  } catch {
+    return false;
+  }
+})();
+
 export function AuthProvider({ children }: { children: ReactNode }) {
   const accessTokenRef = useRef<string | null>(null);
   // Incremented on every logout(); handleRefresh captures it before the
@@ -108,6 +124,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setStatus("anonymous");
         return;
       }
+      // Skip the probe right after logout — refresh_token cookie was
+      // cleared server-side but csrftoken survives, so without this guard
+      // every post-logout page load hits /api/auth/refresh/ → 400.
+      if (justLoggedOutOnBootstrap) {
+        if (cancelled) return;
+        accessTokenRef.current = null;
+        setStatus("anonymous");
+        return;
+      }
       try {
         const { access } = await refresh();
         if (cancelled) return;
@@ -150,6 +175,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessTokenRef.current = null;
     setUser(null);
     setStatus("anonymous");
+    // Mark the just-completed logout so the next AuthProvider bootstrap
+    // skips its refresh probe — csrftoken cookie survives logout, so
+    // without this flag the post-logout page reload always hits
+    // /api/auth/refresh/ → 400 (refresh_token cookie cleared) and pollutes
+    // the console. sessionStorage scope = single browser tab, cleared
+    // on tab close.
+    try {
+      window.sessionStorage.setItem("auth.justLoggedOut", "1");
+    } catch {
+      // ignore (storage may be blocked)
+    }
     await logoutRequest(accessToken);
   }, []);
 
