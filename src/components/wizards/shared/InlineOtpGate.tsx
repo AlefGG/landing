@@ -56,7 +56,7 @@ export default function InlineOtpGate({ phone, onSuccess, onChangePhone }: Inlin
       aria-modal="true"
       aria-label={t("wizard.auth.title")}
       data-testid="inline-otp-gate"
-      className="fixed inset-0 z-40 flex items-center justify-center bg-neutral-900/40 backdrop-blur-sm px-4 py-8"
+      className="fixed inset-0 z-[1100] flex items-center justify-center bg-neutral-900/40 backdrop-blur-sm px-4 py-8"
     >
       <div className="w-full max-w-[480px] bg-white rounded-[12px] p-6 shadow-xl">
         <h2 className="font-heading text-[24px] font-extrabold leading-tight text-cta-main mb-2">
