@@ -1,10 +1,9 @@
 /**
- * Landing contact-form lead submission (mock).
+ * Landing CTA lead submission.
  *
- * Wizards no longer use this — they go through orderService for real orders.
- * This file only serves the landing CTA modal (ContactForm), which is not
- * in-scope for backend integration. Replace with a real POST /leads/ endpoint
- * when the CRM side is ready.
+ * Posts to POST /api/public/leads/ (unauthenticated). The backend forwards
+ * the lead to the landing-tenant manager via WhatsApp and records a
+ * NotificationLog row. 202 Accepted = lead persisted, async delivery to manager.
  */
 
 export type ServiceKind = "rental" | "sanitation" | "sale";
@@ -28,12 +27,36 @@ export class LeadSubmissionError extends Error {
   }
 }
 
-const MOCK_DELAY_MS = 500;
+function getApiBaseUrl(): string {
+  return (import.meta.env.VITE_API_URL as string | undefined) ?? "/api";
+}
 
-export async function createLead(payload: LeadPayload): Promise<{ id: string }> {
-  if (import.meta.env.DEV) {
-    console.info("[leadsService:mock] createLead", payload);
+export async function createLead(payload: LeadPayload): Promise<{ id: string | null }> {
+  const baseUrl = getApiBaseUrl();
+  let response: Response;
+  try {
+    response = await fetch(`${baseUrl}/public/leads/`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload),
+    });
+  } catch (err) {
+    throw new LeadSubmissionError("Network error", err);
   }
-  await new Promise((resolve) => setTimeout(resolve, MOCK_DELAY_MS));
-  return { id: `mock-${Date.now()}` };
+
+  if (!response.ok) {
+    let body: unknown = null;
+    try {
+      body = await response.json();
+    } catch {
+      // ignore parse failure — body stays null
+    }
+    throw new LeadSubmissionError(
+      `Lead submission failed (HTTP ${response.status})`,
+      body,
+    );
+  }
+
+  const data = (await response.json()) as { id: string | number | null };
+  return { id: data.id == null ? null : String(data.id) };
 }
