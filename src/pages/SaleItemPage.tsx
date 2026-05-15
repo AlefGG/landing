@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Navigate, useParams } from "react-router-dom";
+import { Link, useParams } from "react-router-dom";
 import { useTranslation } from "react-i18next";
 import SaleItemDetail from "../components/sale/SaleItemDetail";
 import { fetchCatalogItem, type SaleItem } from "../services/catalogService";
@@ -68,7 +68,22 @@ export default function SaleItemPage() {
     );
   }
   if (state.status === "not-found") {
-    return <Navigate to="/sale" replace />;
+    return (
+      <div
+        role="alert"
+        className="min-h-[50vh] flex flex-col items-center justify-center gap-4 px-4 text-center"
+      >
+        <p className="text-lg font-medium text-gray-900">
+          {t("catalog.sale.notFound")}
+        </p>
+        <Link
+          to="/sale"
+          className="px-4 py-2 rounded-xl bg-cta-main text-white font-medium"
+        >
+          {t("catalog.sale.notFoundCta")}
+        </Link>
+      </div>
+    );
   }
   return <SaleItemDetail item={state.item} />;
 }
