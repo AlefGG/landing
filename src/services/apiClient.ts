@@ -93,7 +93,7 @@ export type ApiClient = {
 };
 
 const PUBLIC_PATH_PREFIXES: ReadonlyArray<string> = [
-  "/orders/availability/calendar",
+  "/availability/calendar",
   "/catalog/cabin-types",
   "/catalog/sale/equipment",
   "/public/time-slots",

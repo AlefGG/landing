@@ -9,7 +9,7 @@ import {
 } from "../apiClient";
 
 const PUBLIC_PATHS = [
-  "/orders/availability/calendar/?service_type=rental_event",
+  "/availability/calendar/?service_type=rental_event",
   "/catalog/cabin-types/?scenario=rental",
   "/catalog/sale/equipment/",
   "/catalog/sale/equipment/1/",
@@ -360,7 +360,7 @@ describe("apiClient public-endpoint auth header", () => {
       }),
     );
     await expect(
-      fetchJson("/orders/availability/calendar/?service_type=rental_event"),
+      fetchJson("/availability/calendar/?service_type=rental_event"),
     ).rejects.toThrow(); // ApiError with status 401, NOT AuthExpiredError
     expect(onRefresh).not.toHaveBeenCalled();
     expect(onAuthError).not.toHaveBeenCalled();

@@ -55,7 +55,7 @@ export async function fetchRentalCalendar(
     date_to: iso(params.dateTo),
   });
   return fetchJson<RentalCalendar>(
-    `/orders/availability/calendar/?${qs}`,
+    `/availability/calendar/?${qs}`,
     opts?.signal ? { signal: opts.signal } : undefined,
   );
 }
@@ -73,7 +73,7 @@ export async function fetchSanitationCalendar(
     date_to: iso(params.dateTo),
   });
   return fetchJson<SanitationCalendar>(
-    `/orders/availability/calendar/?${qs}`,
+    `/availability/calendar/?${qs}`,
     opts?.signal ? { signal: opts.signal } : undefined,
   );
 }
