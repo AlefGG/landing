@@ -21,7 +21,15 @@ export default function LoginPage() {
   const { sendOtp, status } = useAuth();
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const redirect = params.get("redirect");
+  // Only honour same-origin redirects (must start with single "/").
+  // "//evil.tld" and "https://…" are both rejected to close the open-
+  // redirect vector that arises from copying a user-controlled query
+  // straight into navigate().
+  const rawRedirect = params.get("redirect");
+  const redirect =
+    rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : null;
 
   const [phoneInput, setPhoneInput] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -52,7 +60,7 @@ export default function LoginPage() {
 
   useEffect(() => {
     if (status === "authenticated") {
-      navigate(redirect || "/", { replace: true });
+      navigate(redirect || "/account", { replace: true });
     }
   }, [status, redirect, navigate]);
 

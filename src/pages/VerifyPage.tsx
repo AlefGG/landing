@@ -10,7 +10,12 @@ export default function VerifyPage() {
   const [params] = useSearchParams();
 
   const phone = params.get("phone") ?? "";
-  const redirect = params.get("redirect");
+  // Only honour same-origin redirects — see LoginPage for the same guard.
+  const rawRedirect = params.get("redirect");
+  const redirect =
+    rawRedirect && rawRedirect.startsWith("/") && !rawRedirect.startsWith("//")
+      ? rawRedirect
+      : null;
 
   if (!phone) {
     return <Navigate to="/login" replace />;
@@ -60,7 +65,7 @@ export default function VerifyPage() {
 
         <OtpCodeForm
           phone={phone}
-          onSuccess={() => navigate(redirect || "/", { replace: true })}
+          onSuccess={() => navigate(redirect || "/account", { replace: true })}
         />
       </div>
     </div>

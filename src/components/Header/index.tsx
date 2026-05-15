@@ -16,6 +16,16 @@ export default function Header() {
   const location = useLocation();
   const { user, status, logout } = useAuth();
 
+  // Carry the current path through the login flow so verify-OTP success
+  // returns the user to where they pressed "Войти" (handled by Login/Verify
+  // pages via ?redirect=). Skip on auth pages themselves to avoid a
+  // /login?redirect=/login loop, and avoid pinning the redirect to a
+  // throwaway query string by using pathname only.
+  const isAuthPath = location.pathname === "/login" || location.pathname === "/verify";
+  const loginHref = isAuthPath
+    ? "/login"
+    : `/login?redirect=${encodeURIComponent(location.pathname)}`;
+
   useEffect(() => {
     if (!accountMenuOpen) return;
     function onClick(event: MouseEvent) {
@@ -138,7 +148,7 @@ export default function Header() {
             </div>
           ) : (
             <Link
-              to="/login"
+              to={loginHref}
               className="flex items-center gap-1 text-sm font-semibold font-body text-neutral-700 hover:text-neutral-900"
               data-testid="header-login-link"
             >
@@ -383,7 +393,7 @@ export default function Header() {
               ) : (
                 <li className="border-b border-neutral-200">
                   <Link
-                    to="/login"
+                    to={loginHref}
                     onClick={() => setMenuOpen(false)}
                     className="flex items-center gap-2 py-2 pl-2 text-neutral-900 text-base leading-6 font-body"
                   >
