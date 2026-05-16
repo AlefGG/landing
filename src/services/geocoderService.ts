@@ -40,7 +40,7 @@ function extractKeyword(query: string): string | null {
   // bubbles up; we accept a small false-negative rate over false-
   // positives, since false-positives are what the audit caught.
   candidates.sort((a, b) => b.length - a.length);
-  return candidates[0];
+  return candidates[0] ?? null;
 }
 
 export async function searchAddress(
