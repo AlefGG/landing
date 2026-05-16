@@ -94,6 +94,15 @@ export default function SaleCatalog() {
               <Link
                 key={item.id}
                 to={`/sale/${item.id}`}
+                // F-004: screen-reader accessible name without this prop
+                // collapses to the image alt only (the Link's traversal
+                // of an <article>+<h2>+<p> descendant tree drops the
+                // text on Chrome+Edge). Spelling the label out keeps
+                // both the product name and the price in the AT tree.
+                aria-label={t("catalog.sale.cardAria", {
+                  name: item.name,
+                  price: item.price.toLocaleString("ru-RU"),
+                })}
                 className="block focus:outline-none focus-visible:ring-2 focus-visible:ring-cta-main rounded-3xl"
               >
                 <SaleItemCard item={item} />

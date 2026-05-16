@@ -40,6 +40,7 @@
     "sale": {
       "title": "Каталог",
       "buyButton": "Өтінім қалдыру",
+      "cardAria": "{{name}}, {{price}} теңгеден",
       "priceFrom": "{{price}} ₸-ден",
       "inStock": "Қоймада бар",
       "outOfStock": "Қоймада жоқ",
