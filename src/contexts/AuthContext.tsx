@@ -185,31 +185,47 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, []);
 
+  const logoutInFlightRef = useRef<Promise<void> | null>(null);
   const logout = useCallback(async () => {
-    sessionEpochRef.current += 1;
-    // Capture the Bearer access token before we drop it — backend
-    // LogoutView is IsAuthenticated and needs Authorization: Bearer to
-    // clear the refresh cookie. Local state is cleared optimistically so
-    // the UI flips to anonymous immediately; then we await the backend
-    // round-trip so the cookie is gone before any caller (e.g. Header)
-    // hard-redirects.
-    const accessToken = accessTokenRef.current;
-    accessTokenRef.current = null;
-    setUser(null);
-    setStatus("anonymous");
-    // Mark the just-completed logout so the next AuthProvider bootstrap
-    // skips its refresh probe — csrftoken cookie survives logout, so
-    // without this flag the post-logout page reload always hits
-    // /api/auth/refresh/ → 400 (refresh_token cookie cleared) and pollutes
-    // the console. sessionStorage scope = single browser tab, cleared
-    // on tab close.
-    try {
-      window.sessionStorage.setItem("auth.justLoggedOut", "1");
-      window.localStorage.removeItem("auth.hadSession");
-    } catch {
-      // ignore (storage may be blocked)
+    // LOGOUT-DOUBLE-CALL: in dev StrictMode (and on rare prod double-clicks)
+    // logout() can fire twice in quick succession. Coalesce concurrent
+    // calls onto the same in-flight promise so we hit POST /api/auth/logout/
+    // exactly once per session-end.
+    if (logoutInFlightRef.current) {
+      return logoutInFlightRef.current;
     }
-    await logoutRequest(accessToken);
+    const run = (async () => {
+      sessionEpochRef.current += 1;
+      // Capture the Bearer access token before we drop it — backend
+      // LogoutView is IsAuthenticated and needs Authorization: Bearer to
+      // clear the refresh cookie. Local state is cleared optimistically so
+      // the UI flips to anonymous immediately; then we await the backend
+      // round-trip so the cookie is gone before any caller (e.g. Header)
+      // hard-redirects.
+      const accessToken = accessTokenRef.current;
+      accessTokenRef.current = null;
+      setUser(null);
+      setStatus("anonymous");
+      // Mark the just-completed logout so the next AuthProvider bootstrap
+      // skips its refresh probe — csrftoken cookie survives logout, so
+      // without this flag the post-logout page reload always hits
+      // /api/auth/refresh/ → 400 (refresh_token cookie cleared) and pollutes
+      // the console. sessionStorage scope = single browser tab, cleared
+      // on tab close.
+      try {
+        window.sessionStorage.setItem("auth.justLoggedOut", "1");
+        window.localStorage.removeItem("auth.hadSession");
+      } catch {
+        // ignore (storage may be blocked)
+      }
+      try {
+        await logoutRequest(accessToken);
+      } finally {
+        logoutInFlightRef.current = null;
+      }
+    })();
+    logoutInFlightRef.current = run;
+    return run;
   }, []);
 
   const updateProfile = useCallback(async (patch: ProfilePatch) => {

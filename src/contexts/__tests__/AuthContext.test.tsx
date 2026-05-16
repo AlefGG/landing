@@ -286,6 +286,28 @@ describe("AuthContext — cookie-mode (FE-SEC-001 step 2)", () => {
     expect(refreshReads).toHaveLength(0);
   });
 
+  it("LOGOUT-DOUBLE-CALL: concurrent logout() calls coalesce to one POST", async () => {
+    vi.spyOn(authService, "refresh").mockResolvedValue({ access: "A1" });
+    vi.spyOn(authService, "fetchMe").mockResolvedValue(FAKE_USER);
+    const logoutSpy = vi.spyOn(authService, "logout").mockResolvedValue();
+
+    let captured: ReturnType<typeof useAuth> | null = null;
+    const { findByTestId } = render(
+      <MemoryRouter>
+        <AuthProvider>
+          <Capture onReady={(a) => (captured = a)} />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+    const status = await findByTestId("status");
+    await waitFor(() => expect(status.textContent).toBe("authenticated"));
+
+    await act(async () => {
+      await Promise.all([captured!.logout(), captured!.logout()]);
+    });
+    expect(logoutSpy).toHaveBeenCalledTimes(1);
+  });
+
   it("logout-mid-refresh: epoch guard prevents resurrection", async () => {
     // Bootstrap into authenticated state via the initial /refresh/ call.
     const bootstrapRefresh = vi
