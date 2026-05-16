@@ -70,11 +70,14 @@ async function processFile(filename, cache) {
     );
     return { warned: err.message };
   }
-  const maxWidth = metadata.width ?? Infinity;
   const variants = [];
 
+  // IMG-FALLBACK-WIDTH: always emit the full WIDTHS × FORMATS matrix +
+  // a 1280w fallback so ResponsiveImage's hard-coded `@<w>w.<fmt>` URLs
+  // never 404. sharp's .resize() never upscales by default, so a source
+  // narrower than the requested width still produces a valid file (its
+  // actual pixel width equals min(requestedWidth, sourceWidth)).
   for (const width of WIDTHS) {
-    if (width > maxWidth) continue;
     for (const format of FORMATS) {
       const out = `${basename}@${width}w.${format}`;
       const outPath = join(OUT_DIR, out);
@@ -94,19 +97,19 @@ async function processFile(filename, cache) {
     }
   }
 
-  // Fallback: largest fitting width in the original format.
-  const fallbackWidth = Math.min(1280, maxWidth);
-  const fallbackName = `${basename}@${fallbackWidth}w${lowerExt}`;
+  // Fallback: 1280w in the original format. Matches ResponsiveImage's
+  // hard-coded `@1280w.<ext>` <img src>.
+  const fallbackName = `${basename}@1280w${lowerExt}`;
   const fallbackPath = join(OUT_DIR, fallbackName);
   try {
     if (lowerExt === ".png") {
       await sharp(buf)
-        .resize(fallbackWidth)
+        .resize(1280)
         .png({ compressionLevel: 9, palette: true })
         .toFile(fallbackPath);
     } else {
       await sharp(buf)
-        .resize(fallbackWidth)
+        .resize(1280)
         .jpeg({ mozjpeg: true, quality: 82 })
         .toFile(fallbackPath);
     }
