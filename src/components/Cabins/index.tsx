@@ -1,16 +1,37 @@
+import { useEffect, useState } from "react";
 import { useTranslation } from "react-i18next";
 import { motion } from "framer-motion";
 import { Tag, Button } from "../ui";
 import ResponsiveImage from "../ResponsiveImage";
+import { fetchCatalog } from "../../services/catalogService";
 
 const cabins = [
-  { key: "standard", image: "/assets/images/cabin-standard.png", saleId: 1 },
-  { key: "lux", image: "/assets/images/cabin-lux.png", saleId: 2 },
-  { key: "vip", image: "/assets/images/cabin-vip.png", saleId: 3 },
+  { key: "standard", image: "/assets/images/cabin-standard.png" },
+  { key: "lux", image: "/assets/images/cabin-lux.png" },
+  { key: "vip", image: "/assets/images/cabin-vip.png" },
 ] as const;
 
 export default function Cabins() {
   const { t } = useTranslation();
+  // F-005: pull real sale ids from API instead of hardcoded 1/2/3.
+  // First three catalog items map to standard/lux/vip cards in display order.
+  // Fallback to /sale catalog if fetch fails or yields fewer items.
+  const [saleIds, setSaleIds] = useState<(number | null)[]>([null, null, null]);
+  useEffect(() => {
+    let cancelled = false;
+    fetchCatalog()
+      .then((items) => {
+        if (cancelled) return;
+        const ids = items.slice(0, 3).map((it) => it.id);
+        setSaleIds([ids[0] ?? null, ids[1] ?? null, ids[2] ?? null]);
+      })
+      .catch(() => {
+        /* keep nulls — buttons fall back to /sale catalog */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <section className="w-full bg-[#efefef] py-[88px]" id="cabins">
@@ -96,7 +117,7 @@ export default function Cabins() {
                 <Button
                   variant="blue-ghost"
                   size="sm"
-                  href={`/sale/${cabin.saleId}`}
+                  href={saleIds[i] != null ? `/sale/${saleIds[i]}` : "/sale"}
                   className="flex-1 h-8"
                 >
                   {t("buttons.buy")}
