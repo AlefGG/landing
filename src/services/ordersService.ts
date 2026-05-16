@@ -26,6 +26,31 @@ export type PaymentChannel = z.infer<typeof PaymentChannelSchema>;
 
 export type OrderService = "rental" | "sanitation" | "sale";
 
+// BUG-070: construction multi-address group payload. Master order
+// surfaces the combined total + per-leg breakdown so PaymentPage can
+// render one Kaspi CTA for the whole group.
+export const OrderGroupMemberSchema = z
+  .object({
+    order_number: z.string(),
+    address_text: z.string(),
+    total_price: z.string(),
+    status: OrderStatusSchema,
+  })
+  .describe("OrderGroupMemberSchema");
+
+export const OrderGroupSchema = z
+  .object({
+    master_order_number: z.string(),
+    is_master: z.boolean(),
+    order_numbers: z.array(z.string()),
+    total: z.string(),
+    size: z.number(),
+    members: z.array(OrderGroupMemberSchema),
+  })
+  .describe("OrderGroupSchema");
+
+export type OrderGroup = z.infer<typeof OrderGroupSchema>;
+
 // FE-TS-002 — pairs with backend/apps/orders/serializers.py::OrderSerializer
 export const OrderDTOSchema = z
   .object({
@@ -38,6 +63,7 @@ export const OrderDTOSchema = z
     pricing_snapshot: z.record(z.string(), z.unknown()).nullable(),
     has_id_document_front: z.boolean(),
     has_id_document_back: z.boolean(),
+    group: OrderGroupSchema.nullable().optional(),
   })
   .describe("OrderDTOSchema");
 

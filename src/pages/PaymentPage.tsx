@@ -93,7 +93,16 @@ export default function PaymentPage() {
   const { order } = state;
   const title = t("payment.title");
   const serviceLabel = t(deriveServiceLabelKey(order.service_type) as "payment.serviceLabels.sale");
-  const amount = Number(order.total_price);
+  // BUG-070: multi-address construction → combined Kaspi tx. The master
+  // pays for the whole group; siblings keep their own subtotal for
+  // accounting but the user pays once via the master. If the user
+  // landed on a sibling URL by mistake, send them to the master.
+  const group = order.group ?? null;
+  if (group !== null && !group.is_master) {
+    return <Navigate to={`/orders/${group.master_order_number}/pay`} replace />;
+  }
+  const isGroupMaster = group !== null && group.is_master;
+  const amount = isGroupMaster ? Number(group!.total) : Number(order.total_price);
   const formattedAmount = amount.toLocaleString("ru-RU");
 
   return (
@@ -151,6 +160,28 @@ export default function PaymentPage() {
             <strong className="text-cta-main">{formattedAmount} ₸</strong>
           </span>
         </div>
+        {isGroupMaster && group && (
+          <div className="mt-4 rounded-[8px] bg-[#f4f7fa] border border-neutral-300 p-4 font-body text-base leading-6">
+            <p className="font-semibold text-neutral-900 mb-2">
+              {t("payment.groupTitle", { count: group.size })}
+            </p>
+            <ul className="flex flex-col gap-1">
+              {group.members.map((m) => (
+                <li key={m.order_number} className="flex justify-between gap-2">
+                  <span className="text-neutral-700">
+                    #{m.order_number} — {m.address_text}
+                  </span>
+                  <span className="text-neutral-900 whitespace-nowrap">
+                    {Number(m.total_price).toLocaleString("ru-RU")} ₸
+                  </span>
+                </li>
+              ))}
+            </ul>
+            <p className="mt-3 text-sm text-neutral-500">
+              {t("payment.groupCombinedHint")}
+            </p>
+          </div>
+        )}
       </section>
 
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-8 lg:py-12">
