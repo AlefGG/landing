@@ -82,6 +82,10 @@ describe("AuthContext — cookie-mode (FE-SEC-001 step 2)", () => {
     // a csrftoken to enter the refresh branch, mirroring a returning user
     // whose Django middleware seeded the cookie on a prior 2xx.
     document.cookie = "csrftoken=test-csrf-token; path=/";
+    // AUTH-GUEST-REFRESH-400: bootstrap also gates on a localStorage marker
+    // set on login / cleared on logout. Tests that exercise the bootstrap
+    // refresh branch simulate a returning user by seeding it here.
+    localStorage.setItem("auth.hadSession", "1");
     mockNavigate.mockReset();
     __resetApiClient();
     fetchMock = vi.fn();
@@ -153,6 +157,55 @@ describe("AuthContext — cookie-mode (FE-SEC-001 step 2)", () => {
     const status = await findByTestId("status");
     await waitFor(() => expect(status.textContent).toBe("anonymous"));
     expect(refreshSpy).not.toHaveBeenCalled();
+  });
+
+  it("AUTH-GUEST-REFRESH-400: bootstrap with csrftoken but no hadSession marker → skips refresh", async () => {
+    // Guest who browsed enough to receive csrftoken from a 2xx GET but
+    // never logged in: marker is absent, so the refresh probe is skipped
+    // (it would 400 otherwise — no refresh_token cookie).
+    localStorage.removeItem("auth.hadSession");
+    const refreshSpy = vi.spyOn(authService, "refresh");
+
+    const { findByTestId } = render(
+      <MemoryRouter>
+        <AuthProvider>
+          <Capture onReady={() => {}} />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+
+    const status = await findByTestId("status");
+    await waitFor(() => expect(status.textContent).toBe("anonymous"));
+    expect(refreshSpy).not.toHaveBeenCalled();
+  });
+
+  it("AUTH-GUEST-REFRESH-400: login sets hadSession, logout clears it", async () => {
+    localStorage.removeItem("auth.hadSession");
+    vi.spyOn(authService, "verifyOtp").mockResolvedValue({
+      access: "A1",
+      user: FAKE_USER,
+    });
+    vi.spyOn(authService, "logout").mockResolvedValue(undefined);
+
+    let captured: ReturnType<typeof useAuth> | null = null;
+    render(
+      <MemoryRouter>
+        <AuthProvider>
+          <Capture onReady={(a) => (captured = a)} />
+        </AuthProvider>
+      </MemoryRouter>,
+    );
+    await waitFor(() => expect(captured).not.toBeNull());
+
+    await act(async () => {
+      await captured!.login("+77001234567", "1234");
+    });
+    expect(localStorage.getItem("auth.hadSession")).toBe("1");
+
+    await act(async () => {
+      await captured!.logout();
+    });
+    expect(localStorage.getItem("auth.hadSession")).toBeNull();
   });
 
   it("legacy localStorage purge on first mount", async () => {

@@ -124,6 +124,23 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         setStatus("anonymous");
         return;
       }
+      // AUTH-GUEST-REFRESH-400: guests pick up csrftoken from any backend
+      // 2xx GET (CsrfViewMiddleware), so the !csrf gate above does not
+      // catch a guest who browsed before reload. localStorage marker is
+      // set on login, cleared on logout — absent marker = never logged in
+      // in this browser, so the refresh probe is guaranteed to 400.
+      let hadSession = false;
+      try {
+        hadSession = window.localStorage.getItem("auth.hadSession") === "1";
+      } catch {
+        // ignore
+      }
+      if (!hadSession) {
+        if (cancelled) return;
+        accessTokenRef.current = null;
+        setStatus("anonymous");
+        return;
+      }
       // Skip the probe right after logout — refresh_token cookie was
       // cleared server-side but csrftoken survives, so without this guard
       // every post-logout page load hits /api/auth/refresh/ → 400.
@@ -161,6 +178,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     accessTokenRef.current = access;
     setUser(nextUser);
     setStatus("authenticated");
+    try {
+      window.localStorage.setItem("auth.hadSession", "1");
+    } catch {
+      // ignore
+    }
   }, []);
 
   const logout = useCallback(async () => {
@@ -183,6 +205,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     // on tab close.
     try {
       window.sessionStorage.setItem("auth.justLoggedOut", "1");
+      window.localStorage.removeItem("auth.hadSession");
     } catch {
       // ignore (storage may be blocked)
     }
