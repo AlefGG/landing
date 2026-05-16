@@ -230,7 +230,12 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
               const minInstall = new Date();
               minInstall.setHours(0, 0, 0, 0);
               minInstall.setDate(minInstall.getDate() + 1);
-              if (startOfDay < minInstall) return { disabled: true };
+              if (startOfDay < minInstall) {
+                return {
+                  disabled: true,
+                  reason: t(`${k}.installTodayBlockedReason`),
+                };
+              }
               const meta = availability.dayMap.get(dateKey(d));
               if (meta) {
                 return {
