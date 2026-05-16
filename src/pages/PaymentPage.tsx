@@ -4,6 +4,7 @@ import { Link, Navigate, useLocation, useNavigate, useParams } from "react-route
 import Seo from "../components/Seo";
 import KaspiPayment from "../components/payment/KaspiPayment";
 import LegalPayment from "../components/payment/LegalPayment";
+import PaymentCountdown from "../components/payment/PaymentCountdown";
 import { PageError } from "../components/ui";
 import { normalizeError, type NormalizedError } from "../services/errors";
 import { getOrder, type OrderDTO } from "../services/ordersService";
@@ -127,17 +128,37 @@ export default function PaymentPage() {
         />
 
         <div className="relative max-w-[1216px] mx-auto px-4 lg:px-8 pt-4 lg:pt-6">
-          <nav aria-label="Breadcrumb" className="flex items-center gap-0.5 text-xs font-body mb-2 lg:mb-8">
-            <Link to="/" className="text-[#1F5F8F] underline leading-4 text-xs px-[10px] py-[8px]">
-              {t("success.breadcrumbHome")}
-            </Link>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 text-neutral-500" aria-hidden="true">
-              <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-            <span className="text-neutral-500 leading-4 text-xs px-[10px] py-[8px]">
-              {t("payment.breadcrumb")}
-            </span>
-          </nav>
+          {(() => {
+            // F-012 — full breadcrumb chain: Главная > <Каталог/Аренда/Услуги> >
+            // Заказ #N > Оплата. Each non-current segment is a link so the
+            // user can back out at any step without using the browser button.
+            const serviceSlug = order.service_type === "sale"
+              ? "sale"
+              : order.service_type === "sanitation"
+                ? "sanitation"
+                : "rental";
+            const catalogLabel = t(`payment.breadcrumbCatalog.${serviceSlug}` as "payment.breadcrumbCatalog.sale");
+            const catalogHref = t(`payment.breadcrumbCatalogHref.${serviceSlug}` as "payment.breadcrumbCatalogHref.sale");
+            const orderLabel = t("payment.breadcrumbOrder", { order: order.order_number });
+            const Separator = () => (
+              <svg width="16" height="16" viewBox="0 0 16 16" fill="none" className="shrink-0 text-neutral-500" aria-hidden="true">
+                <path d="M6 4l4 4-4 4" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            );
+            const linkCls = "text-[#1F5F8F] underline leading-4 text-xs px-[10px] py-[8px]";
+            const currentCls = "text-neutral-500 leading-4 text-xs px-[10px] py-[8px]";
+            return (
+              <nav aria-label="Breadcrumb" className="flex flex-wrap items-center gap-0.5 text-xs font-body mb-2 lg:mb-8">
+                <Link to="/" className={linkCls}>{t("success.breadcrumbHome")}</Link>
+                <Separator />
+                <Link to={catalogHref} className={linkCls}>{catalogLabel}</Link>
+                <Separator />
+                <span className={currentCls} data-testid="breadcrumb-order">{orderLabel}</span>
+                <Separator />
+                <span className={currentCls} aria-current="page">{t("payment.breadcrumb")}</span>
+              </nav>
+            );
+          })()}
 
           <h1 className="font-heading text-[28px] lg:text-[56px] font-extrabold leading-[32px] lg:leading-[56px] text-cta-main">
             {title}
@@ -146,6 +167,10 @@ export default function PaymentPage() {
       </section>
 
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 pt-4 lg:pt-8">
+        <PaymentCountdown
+          expiresAt={order.pending_payment_expires_at ?? null}
+          onExpired={loadOrder}
+        />
         <div className="flex flex-col lg:flex-row gap-2 lg:gap-8 font-body text-base lg:text-xl leading-6 text-neutral-700">
           <span>
             {t("payment.orderNumber")}{" "}

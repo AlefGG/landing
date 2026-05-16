@@ -64,6 +64,9 @@ export const OrderDTOSchema = z
     has_id_document_front: z.boolean(),
     has_id_document_back: z.boolean(),
     group: OrderGroupSchema.nullable().optional(),
+    // F-014: ISO timestamp when a pending_payment order auto-cancels.
+    // Null for any other status — PaymentPage hides the timer on null.
+    pending_payment_expires_at: z.string().nullable().optional(),
   })
   .describe("OrderDTOSchema");
 

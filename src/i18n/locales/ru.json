@@ -785,6 +785,25 @@
   },
   "payment": {
     "breadcrumb": "Оплата",
+    "breadcrumbOrder": "Заказ №{{order}}",
+    "breadcrumbCatalog": {
+      "sale": "Каталог биотуалетов",
+      "rental": "Аренда биотуалетов",
+      "sanitation": "Обслуживание"
+    },
+    "breadcrumbCatalogHref": {
+      "sale": "/sale",
+      "rental": "/rental",
+      "sanitation": "/service"
+    },
+    "countdown": {
+      "label": "Оплатите в течение",
+      "value": "{{minutes}}:{{seconds}}",
+      "suffix": "иначе заказ автоматически отменится",
+      "expiredTitle": "Время оплаты истекло",
+      "expiredBody": "Заказ автоматически отменён. Оформите его заново через каталог.",
+      "expiredCta": "Вернуться в каталог"
+    },
     "title": "Оплата заказа",
     "orderNumber": "Заказ №",
     "service": "Услуга",

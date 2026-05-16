@@ -777,6 +777,25 @@
   },
   "payment": {
     "breadcrumb": "Төлем",
+    "breadcrumbOrder": "Тапсырыс №{{order}}",
+    "breadcrumbCatalog": {
+      "sale": "Биотуалеттер каталогы",
+      "rental": "Биотуалет жалға алу",
+      "sanitation": "Қызмет көрсету"
+    },
+    "breadcrumbCatalogHref": {
+      "sale": "/sale",
+      "rental": "/rental",
+      "sanitation": "/service"
+    },
+    "countdown": {
+      "label": "Төлеу уақыты",
+      "value": "{{minutes}}:{{seconds}}",
+      "suffix": "әйтпесе тапсырыс автоматты түрде жойылады",
+      "expiredTitle": "Төлеу уақыты аяқталды",
+      "expiredBody": "Тапсырыс автоматты түрде жойылды. Каталог арқылы қайта рәсімдеңіз.",
+      "expiredCta": "Каталогқа қайту"
+    },
     "title": "Тапсырысты төлеу",
     "orderNumber": "Тапсырыс №",
     "service": "Қызмет",
