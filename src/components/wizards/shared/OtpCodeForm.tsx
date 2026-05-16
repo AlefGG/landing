@@ -98,14 +98,22 @@ export default function OtpCodeForm({ phone, onSuccess, onChangePhone }: OtpCode
       }
       return;
     }
-    const trimmed = cleaned.slice(0, CODE_LENGTH - index);
-    const newDigits = [...digits];
+    // F-009 — iOS / Android one-time-code autofill writes the entire OTP
+    // into the input that carries autocomplete="one-time-code" (always
+    // the first cell). When the inserted value is at least CODE_LENGTH
+    // long, treat it as a full-code fill regardless of which cell fired
+    // the event so the user does not have to start over in the rare
+    // case the autofill targeted a non-first cell.
+    const startAt = cleaned.length >= CODE_LENGTH ? 0 : index;
+    const trimmed = cleaned.slice(0, CODE_LENGTH - startAt);
+    const newDigits =
+      startAt === 0 ? (Array(CODE_LENGTH).fill("") as string[]) : [...digits];
     for (let i = 0; i < trimmed.length; i += 1) {
-      newDigits[index + i] = trimmed[i] ?? "";
+      newDigits[startAt + i] = trimmed[i] ?? "";
     }
     setDigits(() => newDigits);
     setSubmitErrorState(null);
-    const target = Math.min(index + trimmed.length, CODE_LENGTH - 1);
+    const target = Math.min(startAt + trimmed.length, CODE_LENGTH - 1);
     inputsRef.current[target]?.focus();
     if (newDigits.every((d) => d !== "")) {
       void submitCode(newDigits.join(""));
@@ -178,7 +186,11 @@ export default function OtpCodeForm({ phone, onSuccess, onChangePhone }: OtpCode
             type="text"
             inputMode="numeric"
             autoComplete="one-time-code"
-            maxLength={1}
+            // F-009 — drop maxLength={1}. The browser otherwise truncates
+            // an autofill payload (full code) to its first char before our
+            // onChange handler sees it, leaving the form stuck in cell 0.
+            // The rendered value still shows a single digit because state
+            // is normalized to one char per cell in onDigitChange.
             value={digit}
             disabled={submitting}
             onChange={(e) => onDigitChange(index, e.target.value)}

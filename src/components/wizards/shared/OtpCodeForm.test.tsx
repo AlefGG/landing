@@ -107,6 +107,32 @@ describe("OtpCodeForm", () => {
     });
   });
 
+  it("F-009: iOS one-time-code autofill dumps full 6-digit string into input[0] and still submits", async () => {
+    // iOS SMS autofill dispatches a single `input` event on the field
+    // carrying autocomplete="one-time-code" with the entire code as
+    // value. Before the F-009 fix maxLength=1 truncated this to a
+    // single char, leaving the form stuck.
+    mockLogin.mockResolvedValue(undefined);
+    renderForm();
+    fireEvent.change(screen.getByTestId("otp-input-0"), {
+      target: { value: "943186" },
+    });
+    await waitFor(() =>
+      expect(mockLogin).toHaveBeenCalledWith("+77001234567", "943186"),
+    );
+  });
+
+  it("F-009: paste event on any cell also distributes from index 0", async () => {
+    mockLogin.mockResolvedValue(undefined);
+    renderForm();
+    fireEvent.paste(screen.getByTestId("otp-input-3"), {
+      clipboardData: { getData: () => "654321" },
+    });
+    await waitFor(() =>
+      expect(mockLogin).toHaveBeenCalledWith("+77001234567", "654321"),
+    );
+  });
+
   it("renders 'change phone' button only when onChangePhone provided", () => {
     const { unmount } = renderForm();
     expect(screen.queryByTestId("otp-change-phone")).toBeNull();
