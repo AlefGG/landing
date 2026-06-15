@@ -561,6 +561,14 @@
       "step4DeliveryCost": "Доставка",
       "step4RouteLoading": "Прокладываем маршрут…",
       "step4RouteError": "Не удалось проложить маршрут",
+      "destinationToggleAddress": "Обычный адрес",
+      "destinationToggleNamed": "Выбрать направление",
+      "destinationLabel": "Направление",
+      "destinationPlaceholder": "Выберите направление",
+      "destinationLoading": "Загрузка направлений…",
+      "destinationEmpty": "Нет доступных направлений",
+      "destinationError": "Не удалось загрузить направления",
+      "fleetExceeded": "Превышен доступный парк. Свяжитесь с менеджером.",
       "step5Title": "Доп. опции",
       "step5Cleaning": "Клининг",
       "step5CleaningCaption": "Платная опция — точная сумма в финальной стоимости",
@@ -955,7 +963,8 @@
   },
   "delivery": {
     "zone": "Доставка в зону «{{name}}»",
-    "routing": "Доставка по маршруту ({{km}} км)"
+    "routing": "Доставка по маршруту ({{km}} км)",
+    "fixed_destination": "Доставка: {{destination}}"
   },
   "errorBoundary": {
     "title": "Что-то пошло не так",

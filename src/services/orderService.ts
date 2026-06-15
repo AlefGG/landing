@@ -37,6 +37,10 @@ export type RentalOrderPayload = {
   logistics_type: LogisticsType;
   payment_channel: PaymentChannel;
   items: OrderItemInput[];
+  // BE-2: optional named fixed destination (event/emergency only). When set,
+  // backend skips zone/OSRM and prices logistics flat. Absent → today's
+  // behaviour unchanged.
+  fixed_destination?: number;
 };
 
 export type ConstructionOrderPayload = {
@@ -89,6 +93,12 @@ export type PreviewResponse = {
   total_before_discount?: string;
   discount_amount?: string;
   discount_percent?: string;
+  // BE-2: rental preview emits the delivery source so the wizard can render
+  // the right logistics line. "fixed_destination" → flat logistics from
+  // pricing_snapshot.trace.delivery_fee; "zone" | "routing" → per-leg.
+  delivery_source?: "zone" | "routing" | "fixed_destination";
+  delivery_zone_id?: number | null;
+  fixed_destination_id?: number | null;
 };
 
 export type PreviewKind = "rental" | "construction" | "sanitation" | "sale";

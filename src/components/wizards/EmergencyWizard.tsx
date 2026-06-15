@@ -28,9 +28,13 @@ import {
   useWizardDraft,
   useRentalSubmit,
   rentalServerFieldMap,
+  FixedDestinationPicker,
+  isFleetExceededError,
+  fixedDeliveryFromPreview,
   type CabinQuantityMap,
   type ContactsValue,
 } from "./shared";
+import { useFixedDestinations } from "../../hooks/useFixedDestinations";
 import InstallDismantleStep from "./shared/InstallDismantleStep";
 import AddressStep from "./shared/AddressStep";
 import { InlineError, FieldErrors } from "../ui";
@@ -44,6 +48,9 @@ type EmergencyDraft = {
   installDismantle: InstallDismantleValue;
   installConsent: boolean;
   cleaning: boolean;
+  // BE-2: named fixed destination override (see EventWizard for rationale).
+  destinationEnabled: boolean;
+  fixedDestinationId: number | null;
   contacts: ContactsValue;
 };
 
@@ -57,6 +64,8 @@ const DRAFT_DEFAULTS: EmergencyDraft = {
   },
   installConsent: false,
   cleaning: true,
+  destinationEnabled: false,
+  fixedDestinationId: null,
   contacts: {
     contactType: "individual",
     name: "",
@@ -81,9 +90,29 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
       setDraft((d) => ({ ...d, cabinQuantities: Array.from(next.entries()) })),
     [setDraft],
   );
-  const { installDismantle, installConsent, cleaning, contacts } = draft;
+  const {
+    installDismantle,
+    installConsent,
+    cleaning,
+    destinationEnabled,
+    fixedDestinationId,
+    contacts,
+  } = draft;
   const setInstallDismantle = useCallback(
     (next: InstallDismantleValue) => setDraft((d) => ({ ...d, installDismantle: next })),
+    [setDraft],
+  );
+  const setDestinationEnabled = useCallback(
+    (next: boolean) =>
+      setDraft((d) => ({
+        ...d,
+        destinationEnabled: next,
+        fixedDestinationId: next ? d.fixedDestinationId : null,
+      })),
+    [setDraft],
+  );
+  const setFixedDestinationId = useCallback(
+    (next: number | null) => setDraft((d) => ({ ...d, fixedDestinationId: next })),
     [setDraft],
   );
   const setInstallConsent = useCallback(
@@ -135,6 +164,10 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
           logistics_type: "standard",
           payment_channel: contacts.contactType,
           items: cabinValidation.payload,
+          fixed_destination:
+            destinationEnabled && fixedDestinationId != null
+              ? fixedDestinationId
+              : undefined,
         }
       : null;
 
@@ -167,6 +200,19 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
   // Banner only shows for real errors (not "incomplete" — too noisy pre-fill).
   const validatorBannerReason =
     validatorReason && validatorReason !== "incomplete" ? validatorReason : null;
+
+  // BE-2: fixed-destination delivery line + fleet-exceeded block (mirror of
+  // EventWizard).
+  const { destinations } = useFixedDestinations();
+  const selectedDestinationName =
+    destinations.find((d) => d.id === fixedDestinationId)?.name ?? null;
+  const fixedDelivery = fixedDeliveryFromPreview(
+    preview.data,
+    selectedDestinationName,
+  );
+  const fleetBlocked =
+    isFleetExceededError(preview.error) ||
+    isFleetExceededError(submitState.submitError);
 
   // M-4: human-readable rental duration shown under the total.
   const durationDays =
@@ -267,7 +313,27 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px]">
           <StepLabel step={3 + stepOffset} title={t(`${k}.step4Title`)} />
-          <AddressStep trip={trip} zones={zones} />
+          <AddressStep
+            trip={trip}
+            zones={zones}
+            picker={
+              <FixedDestinationPicker
+                enabled={destinationEnabled}
+                value={fixedDestinationId}
+                onToggle={setDestinationEnabled}
+                onSelect={setFixedDestinationId}
+              />
+            }
+            fixedDelivery={fixedDelivery}
+          />
+          {fleetBlocked && (
+            <div
+              data-testid="fleet-exceeded-banner"
+              className="mt-2 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900"
+            >
+              {t(`${k}.fleetExceeded`)}
+            </div>
+          )}
         </div>
       </section>
 
@@ -332,17 +398,21 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
       <PriceSubmit
         price={totalPrice}
         subtitle={durationLabel}
-        disabled={submitState.buttonDisabled}
-        disabledReason={computeDisabledReason({
-          cabinValidation,
-          validatorReason,
-          installConsent,
-          firstLocation,
-          contacts,
-          submitting: submitState.submitting,
-          validationError: submitState.validationError,
-          t,
-        })}
+        disabled={submitState.buttonDisabled || fleetBlocked}
+        disabledReason={
+          fleetBlocked
+            ? t(`${k}.fleetExceeded`)
+            : computeDisabledReason({
+                cabinValidation,
+                validatorReason,
+                installConsent,
+                firstLocation,
+                contacts,
+                submitting: submitState.submitting,
+                validationError: submitState.validationError,
+                t,
+              })
+        }
         onSubmit={submitState.submit}
       />
 

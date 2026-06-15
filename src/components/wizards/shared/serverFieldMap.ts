@@ -27,6 +27,10 @@ export const rentalServerFieldMap = (field: string): string | null => {
     return "address";
   if (field === "logistics_type") return "logistics";
   if (field === "payment_channel") return "paymentChannel";
+  // BE-2: a bad/foreign fixed_destination id surfaces under {fixed_destination}.
+  // The fleet-exceeded block is a non-field error (top-level detail), handled
+  // separately in the wizard banner.
+  if (field === "fixed_destination") return "fixedDestination";
   return null;
 };
 

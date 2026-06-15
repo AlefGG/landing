@@ -560,6 +560,14 @@
       "step4DeliveryCost": "Жеткізу",
       "step4RouteLoading": "Маршрут салынуда…",
       "step4RouteError": "Маршрут салу мүмкін болмады",
+      "destinationToggleAddress": "Қарапайым мекенжай",
+      "destinationToggleNamed": "Бағытты таңдау",
+      "destinationLabel": "Бағыт",
+      "destinationPlaceholder": "Бағытты таңдаңыз",
+      "destinationLoading": "Бағыттар жүктелуде…",
+      "destinationEmpty": "Қолжетімді бағыттар жоқ",
+      "destinationError": "Бағыттарды жүктеу мүмкін болмады",
+      "fleetExceeded": "Қолжетімді парк асып кетті. Менеджерге хабарласыңыз.",
       "step5Title": "Қос. опциялар",
       "step5Cleaning": "Тазалау",
       "step5CleaningCaption": "Ақылы опция — нақты сома қорытынды құнда",
@@ -947,7 +955,8 @@
   },
   "delivery": {
     "zone": "«{{name}}» аймағына жеткізу",
-    "routing": "Маршрут бойынша жеткізу ({{km}} км)"
+    "routing": "Маршрут бойынша жеткізу ({{km}} км)",
+    "fixed_destination": "Жеткізу: {{destination}}"
   },
   "errorBoundary": {
     "title": "Қате орын алды",

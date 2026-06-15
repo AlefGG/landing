@@ -8,8 +8,13 @@ export type DeliveryPreview = {
   durationMin: number;
   deliveryFee: number;
   routeGeometry: Array<[number, number]> | null;
-  deliverySource: "zone" | "routing";
+  // BE-2: "fixed_destination" is never returned by /orders/delivery/preview/
+  // (per-leg routing). It only appears on a synthetic preview the rental
+  // wizard builds from the rental preview response to label the flat
+  // logistics line. `fixedDestinationName` carries the label text.
+  deliverySource: "zone" | "routing" | "fixed_destination";
   deliveryZone: { id: number; name: string; price: number } | null;
+  fixedDestinationName?: string;
 };
 
 type RawDeliveryPreview = {

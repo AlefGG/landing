@@ -5,6 +5,7 @@ import type { DeliveryPreview } from "../services/deliveryService";
 const tFake = (key: string, params?: Record<string, unknown>): string => {
   if (key === "delivery.zone") return `ZONE:${params?.name}`;
   if (key === "delivery.routing") return `ROUTE:${params?.km}`;
+  if (key === "delivery.fixed_destination") return `FIXED:${params?.destination}`;
   return key;
 };
 
@@ -42,5 +43,21 @@ describe("deliveryLabel", () => {
   it("formats distance with one decimal in routing branch", () => {
     const p = preview({ deliverySource: "routing", distanceKm: 7.0 });
     expect(deliveryLabel(p, tFake)).toBe("ROUTE:7.0");
+  });
+
+  it("returns the fixed-destination label when source is fixed_destination", () => {
+    const p = preview({
+      deliverySource: "fixed_destination",
+      fixedDestinationName: "Алматы–Кольсай",
+    });
+    expect(deliveryLabel(p, tFake)).toBe("FIXED:Алматы–Кольсай");
+  });
+
+  it("falls back to routing when fixed source has no name", () => {
+    const p = preview({
+      deliverySource: "fixed_destination",
+      distanceKm: 9.99,
+    });
+    expect(deliveryLabel(p, tFake)).toBe("ROUTE:10.0");
   });
 });

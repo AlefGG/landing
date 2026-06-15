@@ -12,6 +12,14 @@ export function deliveryLabel(
   t: Translator,
 ): string {
   if (!preview) return "";
+  if (
+    preview.deliverySource === "fixed_destination" &&
+    preview.fixedDestinationName
+  ) {
+    return t("delivery.fixed_destination", {
+      destination: preview.fixedDestinationName,
+    });
+  }
   if (preview.deliverySource === "zone" && preview.deliveryZone) {
     return t("delivery.zone", { name: preview.deliveryZone.name });
   }

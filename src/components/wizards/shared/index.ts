@@ -33,3 +33,9 @@ export {
   rentalServerFieldMap,
   constructionServerFieldMap,
 } from "./serverFieldMap";
+export { default as FixedDestinationPicker } from "./FixedDestinationPicker";
+export {
+  isFleetExceededError,
+  fixedDeliveryFromPreview,
+} from "./fixedDestinationDelivery";
+export type { FixedDeliveryLine } from "./AddressStep";
