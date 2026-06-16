@@ -57,16 +57,12 @@ export type ServiceOrderPayload = {
   address_text?: string;
   num_toilets: number;
   payment_channel: PaymentChannel;
-  service_type: "ONE_TIME" | "MONTHLY";
+  // BE-4: MONTHLY hidden from the customer flow — only ONE_TIME ships.
+  service_type: "ONE_TIME";
   has_pumping: boolean;
   has_washing: boolean;
-  // ONE_TIME-only:
-  one_time_date?: string;
-  one_time_slot?: number;
-  // MONTHLY-only:
-  service_package?: number;
-  period_start?: string;
-  period_end?: string;
+  one_time_date: string;
+  one_time_slot: number;
 };
 
 export type SaleOrderPayload = {

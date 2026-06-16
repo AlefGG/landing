@@ -9,14 +9,12 @@ const MapPicker = lazy(() => import("../ui/MapPicker"));
 import { useAddressTrip } from "../../hooks/useAddressTrip";
 import { useZones } from "../../hooks/useZones";
 import { useTimeSlots } from "../../hooks/useTimeSlots";
-import { useServicePackages } from "../../hooks/useServicePackages";
 import { deliveryLabel } from "../../utils/deliveryLabel";
 import { useOrderSubmit } from "../../hooks/useOrderSubmit";
 import { useOrderPreview } from "../../hooks/useOrderPreview";
 import { useSanitationAvailability, dateKey } from "../../hooks/useAvailabilityCalendar";
 import {
   validateServiceSubtype,
-  type ServiceSubtype,
   type SanitationSubtypeReason,
 } from "../../utils/serviceSubtypeValidator";
 import {
@@ -28,9 +26,6 @@ import {
   ContactsSection,
   Toggle,
   Separator,
-  SubtypeSelector,
-  ServicePackageSelector,
-  PeriodPicker,
   type ContactsValue,
 } from "./shared";
 import Faq from "../Faq";
@@ -44,14 +39,10 @@ const DRAFT_SLUG = "service" as const;
 
 type ServiceDraft = {
   cabinCount: number;
-  subtype: ServiceSubtype;
   hasPumping: boolean;
   hasWashing: boolean;
   oneTimeDate: string | null;
   oneTimeSlotId: number | null;
-  packageId: number | null;
-  periodStart: string | null;
-  periodEnd: string | null;
   contacts: ContactsValue;
 };
 
@@ -81,11 +72,7 @@ export default function ServiceWizard() {
   const { zones } = useZones("sanitation");
   const firstLocation = trip.locations[0] ?? null;
 
-  // --- Step 3: subtype + options + package/one-time ---
-  const [subtype, setSubtype] = useState<ServiceSubtype>(() => {
-    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
-    return draft?.subtype ?? "MONTHLY";
-  });
+  // --- Step 3: options + one-time date/slot ---
   const [hasPumping, setHasPumping] = useState(() => {
     const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
     return draft?.hasPumping ?? true;
@@ -96,7 +83,6 @@ export default function ServiceWizard() {
   });
 
   const { slots, loading: slotsLoading } = useTimeSlots();
-  const { packages, loading: packagesLoading } = useServicePackages();
 
   const [oneTimeDate, setOneTimeDate] = useState<Date | null>(() => {
     const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
@@ -109,22 +95,7 @@ export default function ServiceWizard() {
   const [oneTimeCalendarOpen, setOneTimeCalendarOpen] = useState(false);
   const oneTimeCalendarRef = useRef<HTMLDivElement>(null);
 
-  const [packageId, setPackageId] = useState<number | null>(() => {
-    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
-    return draft?.packageId ?? null;
-  });
-
-  // --- Step 4: period (MONTHLY only) ---
-  const [periodStart, setPeriodStart] = useState<Date | null>(() => {
-    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
-    return draft?.periodStart ? new Date(draft.periodStart) : null;
-  });
-  const [periodEnd, setPeriodEnd] = useState<Date | null>(() => {
-    const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
-    return draft?.periodEnd ? new Date(draft.periodEnd) : null;
-  });
-
-  // --- Step N: contacts ---
+  // --- Step 4: contacts ---
   const [contacts, setContacts] = useState<ContactsValue>(() => {
     const draft = loadDraft<ServiceDraft>(DRAFT_SLUG);
     return draft?.contacts ?? {
@@ -139,28 +110,20 @@ export default function ServiceWizard() {
     const timer = window.setTimeout(() => {
       saveDraft<ServiceDraft>(DRAFT_SLUG, {
         cabinCount,
-        subtype,
         hasPumping,
         hasWashing,
         oneTimeDate: oneTimeDate ? oneTimeDate.toISOString() : null,
         oneTimeSlotId,
-        packageId,
-        periodStart: periodStart ? periodStart.toISOString() : null,
-        periodEnd: periodEnd ? periodEnd.toISOString() : null,
         contacts,
       });
     }, 300);
     return () => window.clearTimeout(timer);
   }, [
     cabinCount,
-    subtype,
     hasPumping,
     hasWashing,
     oneTimeDate,
     oneTimeSlotId,
-    packageId,
-    periodStart,
-    periodEnd,
     contacts,
   ]);
 
@@ -171,25 +134,13 @@ export default function ServiceWizard() {
   const subtypeValidation = useMemo(
     () =>
       validateServiceSubtype({
-        subtype,
+        subtype: "ONE_TIME",
         hasPumping,
         hasWashing,
         oneTimeDate,
         oneTimeSlotId,
-        servicePackageId: packageId,
-        periodStart,
-        periodEnd,
       }),
-    [
-      subtype,
-      hasPumping,
-      hasWashing,
-      oneTimeDate,
-      oneTimeSlotId,
-      packageId,
-      periodStart,
-      periodEnd,
-    ],
+    [hasPumping, hasWashing, oneTimeDate, oneTimeSlotId],
   );
 
   const previewPayload: ServiceOrderPayload | null =
@@ -207,9 +158,8 @@ export default function ServiceWizard() {
   const preview = useOrderPreview(previewPayload, previewServiceOrder);
   const totalPrice = preview.data ? Number(preview.data.total) : 0;
 
-  // Availability tied to whichever date is "the start" — period_start for MONTHLY,
-  // one_time_date for ONE_TIME.
-  const startDate = subtype === "MONTHLY" ? periodStart : oneTimeDate;
+  // Availability tied to the chosen one-time visit date.
+  const startDate = oneTimeDate;
   const availability = useSanitationAvailability();
   const startDateAvailability = startDate ? availability.dayMap.get(dateKey(startDate)) : null;
   const insufficientTrucks =
@@ -232,14 +182,10 @@ export default function ServiceWizard() {
       if (pending) {
         saveDraft<ServiceDraft>(DRAFT_SLUG, {
           cabinCount,
-          subtype,
           hasPumping,
           hasWashing,
           oneTimeDate: oneTimeDate ? oneTimeDate.toISOString() : null,
           oneTimeSlotId,
-          packageId,
-          periodStart: periodStart ? periodStart.toISOString() : null,
-          periodEnd: periodEnd ? periodEnd.toISOString() : null,
           contacts,
         });
       }
@@ -269,20 +215,14 @@ export default function ServiceWizard() {
     noOptionSelected: t(`${k}.options.atLeastOne`),
     noDateSelected: t(`${k}.oneTimeStep.noDateSelected`),
     noSlotSelected: t(`${k}.oneTimeStep.noSlotSelected`),
-    noPackageSelected: t(`${k}.package.noneSelected`),
-    noStart: t(`${k}.period.noStart`),
-    noEnd: t(`${k}.period.noEnd`),
-    endBeforeStart: t(`${k}.period.endBeforeStart`),
-    periodTooShort: t(`${k}.period.tooShort`),
-    periodTooLong: t(`${k}.period.tooLong`),
   };
   const subtypeReasonText: string | undefined = subtypeValidation.ok
     ? undefined
     : reasonMap[subtypeValidation.reason];
 
-  // Step number bookkeeping (4 for ONE_TIME, 5 for MONTHLY).
-  const periodStepNumber = subtype === "MONTHLY" ? 4 : null;
-  const contactsStepNumber = subtype === "MONTHLY" ? 5 : 4;
+  // Step numbering — ONE_TIME is the only path: 1 count, 2 address,
+  // 3 options+date/slot, 4 contacts.
+  const contactsStepNumber = 4;
 
   return (
     <div className="bg-white overflow-x-clip">
@@ -514,8 +454,7 @@ export default function ServiceWizard() {
       {/* Step 3: subtype + options + package OR one-time picker + resources */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
-          <StepHeader step={3} title={t(`${k}.subtype.title`)} />
-          <SubtypeSelector value={subtype} onChange={setSubtype} />
+          <StepHeader step={3} title={t(`${k}.oneTimeStep.title`)} />
 
           <div className="mt-8 flex flex-col gap-3">
             <h3 className="font-body text-lg lg:text-xl leading-6 text-neutral-900">
@@ -540,23 +479,8 @@ export default function ServiceWizard() {
             )}
           </div>
 
-          {subtype === "MONTHLY" && (
-            <div className="mt-8">
-              <h3 className="font-body text-lg lg:text-xl leading-6 text-neutral-900">
-                {t(`${k}.package.title`)}
-              </h3>
-              <ServicePackageSelector
-                packages={packages}
-                loading={packagesLoading}
-                value={packageId}
-                onChange={setPackageId}
-              />
-            </div>
-          )}
-
-          {subtype === "ONE_TIME" && (
-            <div className="mt-8 flex flex-col lg:flex-row gap-4 lg:gap-8">
-              <div className="flex flex-col gap-2 w-full lg:w-[280px]">
+          <div className="mt-8 flex flex-col lg:flex-row gap-4 lg:gap-8">
+            <div className="flex flex-col gap-2 w-full lg:w-[280px]">
                 <label className="font-body text-base lg:text-xl leading-6 text-neutral-600">
                   {t(`${k}.oneTimeStep.dateLabel`)}
                 </label>
@@ -613,8 +537,7 @@ export default function ServiceWizard() {
                   ))}
                 </select>
               </div>
-            </div>
-          )}
+          </div>
 
           <h3 className="font-heading text-[20px] lg:text-[32px] font-extrabold leading-[24px] lg:leading-[32px] text-neutral-900 mt-10 lg:mt-12">
             {t(`${k}.step3Resources`)}
@@ -657,25 +580,7 @@ export default function ServiceWizard() {
 
       <Separator />
 
-      {/* Step 4: period (MONTHLY only) */}
-      {subtype === "MONTHLY" && periodStepNumber !== null && (
-        <>
-          <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
-            <div className="lg:px-[104px] px-[12px] lg:px-0">
-              <StepHeader step={periodStepNumber} title={t(`${k}.period.title`)} />
-              <PeriodPicker
-                start={periodStart}
-                end={periodEnd}
-                onStartChange={setPeriodStart}
-                onEndChange={setPeriodEnd}
-              />
-            </div>
-          </section>
-          <Separator />
-        </>
-      )}
-
-      {/* Step N: Contacts */}
+      {/* Step 4: Contacts */}
       <section className="max-w-[1216px] mx-auto px-4 lg:px-8 py-6">
         <div className="lg:px-[104px] px-[12px] lg:px-0">
           <StepHeader step={contactsStepNumber} title={t(`${k}.step5Title`)} />

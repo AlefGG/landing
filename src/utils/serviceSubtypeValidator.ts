@@ -1,4 +1,7 @@
-export type ServiceSubtype = "ONE_TIME" | "MONTHLY";
+// BE-4: MONTHLY ("помесячное обслуживание") is hidden from the customer flow.
+// Only ONE_TIME remains. The backend keeps MONTHLY models/admin, gated behind
+// SANITATION_MONTHLY_ENABLED — re-widen this type to restore the customer path.
+export type ServiceSubtype = "ONE_TIME";
 
 export type SanitationSubtypeInput = {
   subtype: ServiceSubtype;
@@ -7,40 +10,23 @@ export type SanitationSubtypeInput = {
   // ONE_TIME inputs
   oneTimeDate: Date | null;
   oneTimeSlotId: number | null;
-  // MONTHLY inputs
-  servicePackageId: number | null;
-  periodStart: Date | null;
-  periodEnd: Date | null;
 };
 
 export type SanitationSubtypeReason =
   | "noOptionSelected"
   | "noDateSelected"
-  | "noSlotSelected"
-  | "noPackageSelected"
-  | "noStart"
-  | "noEnd"
-  | "endBeforeStart"
-  | "periodTooShort"
-  | "periodTooLong";
+  | "noSlotSelected";
 
 type CommonPayload = {
   has_pumping: boolean;
   has_washing: boolean;
 };
 
-export type SanitationSubtypePayload =
-  | (CommonPayload & {
-      service_type: "ONE_TIME";
-      one_time_date: string;
-      one_time_slot: number;
-    })
-  | (CommonPayload & {
-      service_type: "MONTHLY";
-      service_package: number;
-      period_start: string;
-      period_end: string;
-    });
+export type SanitationSubtypePayload = CommonPayload & {
+  service_type: "ONE_TIME";
+  one_time_date: string;
+  one_time_slot: number;
+};
 
 export type SanitationSubtypeResult =
   | { ok: true; payload: SanitationSubtypePayload }
@@ -53,11 +39,6 @@ function isoDate(d: Date): string {
   return `${y}-${m}-${dd}`;
 }
 
-function diffDays(a: Date, b: Date): number {
-  const ms = b.getTime() - a.getTime();
-  return Math.round(ms / (1000 * 60 * 60 * 24));
-}
-
 export function validateServiceSubtype(
   input: SanitationSubtypeInput,
 ): SanitationSubtypeResult {
@@ -65,41 +46,17 @@ export function validateServiceSubtype(
     return { ok: false, reason: "noOptionSelected" };
   }
 
-  if (input.subtype === "ONE_TIME") {
-    if (!input.oneTimeDate) return { ok: false, reason: "noDateSelected" };
-    if (input.oneTimeSlotId == null)
-      return { ok: false, reason: "noSlotSelected" };
-    return {
-      ok: true,
-      payload: {
-        service_type: "ONE_TIME",
-        has_pumping: input.hasPumping,
-        has_washing: input.hasWashing,
-        one_time_date: isoDate(input.oneTimeDate),
-        one_time_slot: input.oneTimeSlotId,
-      },
-    };
-  }
-
-  // MONTHLY
-  if (input.servicePackageId == null)
-    return { ok: false, reason: "noPackageSelected" };
-  if (!input.periodStart) return { ok: false, reason: "noStart" };
-  if (!input.periodEnd) return { ok: false, reason: "noEnd" };
-  const span = diffDays(input.periodStart, input.periodEnd);
-  if (span < 0) return { ok: false, reason: "endBeforeStart" };
-  if (span < 7) return { ok: false, reason: "periodTooShort" };
-  if (span > 365) return { ok: false, reason: "periodTooLong" };
+  if (!input.oneTimeDate) return { ok: false, reason: "noDateSelected" };
+  if (input.oneTimeSlotId == null)
+    return { ok: false, reason: "noSlotSelected" };
   return {
     ok: true,
     payload: {
-      service_type: "MONTHLY",
+      service_type: "ONE_TIME",
       has_pumping: input.hasPumping,
       has_washing: input.hasWashing,
-      service_package: input.servicePackageId,
-      period_start: isoDate(input.periodStart),
-      period_end: isoDate(input.periodEnd),
+      one_time_date: isoDate(input.oneTimeDate),
+      one_time_slot: input.oneTimeSlotId,
     },
   };
 }
-
