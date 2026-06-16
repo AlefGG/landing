@@ -21,6 +21,7 @@ import {
   Separator,
   MultiCabinSelector,
   ContactsSection,
+  contactPayload,
   PriceSubmit,
   Toggle,
   SurchargeNotice,
@@ -189,6 +190,10 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
             destinationEnabled && fixedDestinationId != null
               ? fixedDestinationId
               : undefined,
+          // BE-6: contact block (orderer + optional on-site contact + install
+          // note). Doesn't affect price, so it rides on the preview payload
+          // which is reused verbatim for create.
+          ...contactPayload(contacts),
         }
       : null;
 

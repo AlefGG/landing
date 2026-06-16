@@ -17,6 +17,7 @@ import {
   StepLabel,
   Separator,
   ContactsSection,
+  contactPayload,
   PriceSubmit,
   ConstructionDiscountTable,
   constructionCabins,
@@ -136,6 +137,9 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
           payment_channel: contacts.contactType,
           addresses: addressesPayload,
           wash_twice_weekly: washTwiceWeekly,
+          // BE-6: contact applies to the whole construction project; the
+          // backend stores it on every order in the group.
+          ...contactPayload(contacts),
         }
       : null;
 

@@ -13,6 +13,11 @@ export type ContactsValue = {
   phone: string;
   email: string;
   useProfile?: boolean;
+  // BE-6: optional on-site contact person (may differ from the orderer) +
+  // free-text install-address / landmark note, on top of the map pin.
+  siteContactName?: string;
+  siteContactPhone?: string;
+  installNote?: string;
 };
 
 export type ContactsFieldErrors = {
@@ -165,6 +170,55 @@ export default function ContactsSection({
         </div>
       </div>
 
+      {/* BE-6: optional on-site contact person + install-address note. */}
+      <div className="flex flex-col gap-4 border-t border-neutral-200 pt-6">
+        <div className="flex flex-col gap-1">
+          <h3 className="font-body text-xl leading-6 text-neutral-900">
+            {t(`${k}.step6SiteContactTitle`)}
+          </h3>
+          <p className="font-body text-sm leading-5 text-neutral-500">
+            {t(`${k}.step6SiteContactHint`)}
+          </p>
+        </div>
+        <div className="flex flex-col lg:flex-row gap-4 lg:gap-8">
+          <div className="flex flex-col gap-2 w-full lg:w-[280px]">
+            <label className="font-body text-xl leading-6 text-neutral-600">
+              {t(`${k}.step6SiteContactName`)}
+            </label>
+            <BasicInput
+              value={value.siteContactName ?? ""}
+              onChange={(e) => set("siteContactName", e.target.value)}
+              placeholder={t(`${k}.step6SiteContactNamePlaceholder`)}
+              className="!h-10"
+            />
+          </div>
+          <div className="flex flex-col gap-2 w-full lg:w-[280px]">
+            <label className="font-body text-xl leading-6 text-neutral-600">
+              {t(`${k}.step6SiteContactPhone`)}
+            </label>
+            <BasicInput
+              type="tel"
+              value={value.siteContactPhone ?? ""}
+              onChange={(e) => set("siteContactPhone", formatPhone(e.target.value))}
+              placeholder="+7 XXX XXX-XX-XX"
+              className="!h-10"
+            />
+          </div>
+        </div>
+        <div className="flex flex-col gap-2 w-full">
+          <label className="font-body text-xl leading-6 text-neutral-600">
+            {t(`${k}.step6InstallNoteLabel`)}
+          </label>
+          <textarea
+            value={value.installNote ?? ""}
+            onChange={(e) => set("installNote", e.target.value)}
+            placeholder={t(`${k}.step6InstallNotePlaceholder`)}
+            rows={3}
+            maxLength={500}
+            className="w-full rounded-lg border border-neutral-300 px-4 py-2 font-body text-lg leading-6 text-neutral-900 placeholder:text-neutral-400 focus:border-cta-main focus:outline-none resize-none"
+          />
+        </div>
+      </div>
     </div>
   );
 }

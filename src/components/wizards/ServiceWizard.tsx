@@ -24,6 +24,7 @@ import {
 } from "../../services/orderService";
 import {
   ContactsSection,
+  contactPayload,
   Toggle,
   Separator,
   type ContactsValue,
@@ -152,6 +153,8 @@ export default function ServiceWizard() {
           num_toilets: cabinCount,
           payment_channel: contacts.contactType,
           ...subtypeValidation.payload,
+          // BE-6: contact block — see EventWizard note.
+          ...contactPayload(contacts),
         }
       : null;
 

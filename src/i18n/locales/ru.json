@@ -598,7 +598,14 @@
       "step4Address": "Адрес",
       "step3FleetFull": "Нет свободных кабин",
       "step6NamePlaceholder": "Иванов Иван",
-      "step6EmailPlaceholder": "name@mail.kz"
+      "step6EmailPlaceholder": "name@mail.kz",
+      "step6SiteContactTitle": "Контактное лицо на месте",
+      "step6SiteContactHint": "если на месте вас встретит другой человек — необязательно",
+      "step6SiteContactName": "Имя контактного лица",
+      "step6SiteContactNamePlaceholder": "Арман",
+      "step6SiteContactPhone": "Телефон контактного лица",
+      "step6InstallNoteLabel": "Адрес установки / как найти",
+      "step6InstallNotePlaceholder": "вход со двора, спросить Армана (необязательно)"
     },
     "rentalFaq": {
       "title": "Часто задаваемые ",

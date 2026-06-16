@@ -21,6 +21,7 @@ import {
   Separator,
   MultiCabinSelector,
   ContactsSection,
+  contactPayload,
   PriceSubmit,
   Toggle,
   SurchargeNotice,
@@ -168,6 +169,8 @@ export default function EmergencyWizard({ stepOffset = 0 }: { stepOffset?: numbe
             destinationEnabled && fixedDestinationId != null
               ? fixedDestinationId
               : undefined,
+          // BE-6: contact block — see EventWizard note.
+          ...contactPayload(contacts),
         }
       : null;
 

@@ -596,7 +596,14 @@
       "step4Address": "Мекенжай",
       "step3FleetFull": "Бос кабиналар жоқ",
       "step6NamePlaceholder": "Иванов Иван",
-      "step6EmailPlaceholder": "name@mail.kz"
+      "step6EmailPlaceholder": "name@mail.kz",
+      "step6SiteContactTitle": "Орындағы байланыс адамы",
+      "step6SiteContactHint": "егер орында сізді басқа адам қарсы алса — міндетті емес",
+      "step6SiteContactName": "Байланыс адамының аты",
+      "step6SiteContactNamePlaceholder": "Арман",
+      "step6SiteContactPhone": "Байланыс адамының телефоны",
+      "step6InstallNoteLabel": "Орнату мекенжайы / қалай табуға болады",
+      "step6InstallNotePlaceholder": "аула жағынан кіру, Арманды сұраңыз (міндетті емес)"
     },
     "rentalFaq": {
       "title": "Жиі қойылатын ",

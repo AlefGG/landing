@@ -19,7 +19,19 @@ export type OrderAddressInput = {
   quantity: number;
 };
 
-export type RentalOrderPayload = {
+// BE-6: orderer contact block (BASE FIX — historically dropped) + optional
+// on-site contact person + free-text install note. Shared by rental /
+// construction / service payloads. NOT sent for sale.
+export type ContactFields = {
+  contact_name?: string;
+  contact_phone?: string;
+  contact_email?: string;
+  site_contact_name?: string;
+  site_contact_phone?: string;
+  install_note?: string;
+};
+
+export type RentalOrderPayload = ContactFields & {
   service_type: RentalServiceType;
   // Legacy: kept optional for emergency rollback. New wizard payloads
   // omit these and use install/dismantle instead — backend (PR-2)
@@ -43,7 +55,7 @@ export type RentalOrderPayload = {
   fixed_destination?: number;
 };
 
-export type ConstructionOrderPayload = {
+export type ConstructionOrderPayload = ContactFields & {
   months: number;
   start_date: string;
   logistics_type: LogisticsType;
@@ -55,7 +67,7 @@ export type ConstructionOrderPayload = {
   wash_twice_weekly?: boolean;
 };
 
-export type ServiceOrderPayload = {
+export type ServiceOrderPayload = ContactFields & {
   address_lat: number;
   address_lon: number;
   address_text?: string;

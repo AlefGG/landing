@@ -5,6 +5,8 @@ export { default as Separator } from "./Separator";
 export { default as WizardHero } from "./WizardHero";
 export { default as ContactsSection } from "./ContactsSection";
 export type { ContactType, ContactsValue } from "./ContactsSection";
+export { contactPayload } from "./contactPayload";
+export type { ContactPayload } from "./contactPayload";
 export { default as PriceSubmit } from "./PriceSubmit";
 export { formatPhone, formatDate } from "./phoneFormat";
 export { rentalCabins, constructionCabins } from "./cabinData";
