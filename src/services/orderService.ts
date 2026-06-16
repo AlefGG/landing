@@ -49,6 +49,10 @@ export type ConstructionOrderPayload = {
   logistics_type: LogisticsType;
   payment_channel: PaymentChannel;
   addresses: OrderAddressInput[];
+  // BE-5: optional "wash + service 2×/week" add-on (flat +75 000 ₸, group
+  // level). Absent/false → today's behaviour unchanged. Backend caps total
+  // construction quantity at 10 cabins when this is true.
+  wash_twice_weekly?: boolean;
 };
 
 export type ServiceOrderPayload = {

@@ -34,11 +34,22 @@ const DRAFT_SLUG = "construction" as const;
 
 type ConstructionDraft = {
   months: number;
+  // BE-5: "мойка + обслуживание 2×/нед" add-on (flat +75 000 ₸). Default off.
+  washTwiceWeekly: boolean;
   contacts: ContactsValue;
 };
 
+// BE-5: flat add-on price; the live total comes from the backend preview —
+// this literal only feeds the public/anonymous fallback approximation, and
+// mirrors the backend default (config key construction_wash_twice_weekly_price).
+const WASH_ADDON_PRICE = 75000;
+// BE-5 (decision #1): the add-on caps total construction quantity at 10. The
+// construction wizard sends quantity=1 per address, so the cap == address count.
+const WASH_MAX_CABINS = 10;
+
 const DRAFT_DEFAULTS: ConstructionDraft = {
   months: 1,
+  washTwiceWeekly: false,
   // BUG-055: default to individual — payment_channel must mirror an
   // explicit Физлицо/Юрлицо click, not a hard-coded default.
   contacts: {
@@ -55,9 +66,13 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
   const ck = "wizard.construction" as const;
 
   const { draft, setDraft } = useWizardDraft<ConstructionDraft>(DRAFT_SLUG, DRAFT_DEFAULTS);
-  const { months, contacts } = draft;
+  const { months, washTwiceWeekly, contacts } = draft;
   const setMonths = useCallback(
     (next: number) => setDraft((d) => ({ ...d, months: next })),
+    [setDraft],
+  );
+  const setWashTwiceWeekly = useCallback(
+    (next: boolean) => setDraft((d) => ({ ...d, washTwiceWeekly: next })),
     [setDraft],
   );
   const setContacts = useCallback(
@@ -120,10 +135,19 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
           logistics_type: "standard",
           payment_channel: contacts.contactType,
           addresses: addressesPayload,
+          wash_twice_weekly: washTwiceWeekly,
         }
       : null;
 
-  const canProceed = !!previewPayload && !(startDateMeta?.blocked ?? false);
+  // BE-5 (decision #1): when the add-on is selected, total construction
+  // quantity is capped at 10. The wizard sends quantity=1 per address, so the
+  // cap equals the address count. Surface it client-side (immediate, no
+  // round-trip) AND let the backend 400 be the authoritative guard.
+  const washCapExceeded =
+    washTwiceWeekly && addressesPayload.length > WASH_MAX_CABINS;
+
+  const canProceed =
+    !!previewPayload && !(startDateMeta?.blocked ?? false) && !washCapExceeded;
 
   const { preview, submitState } = useRentalSubmit({
     draftSlug: DRAFT_SLUG,
@@ -141,8 +165,12 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
 
   // BUG-017: only fall back to a heuristic total when the user has already
   // started the wizard; otherwise show 0 so the widget doesn't lie.
+  // BE-5: the flat add-on is post-discount, so it's added AFTER the discounted
+  // rental approximation (never scaled by the discount). The live total still
+  // comes from the backend preview (authoritative).
   const fallbackTotal = previewPayload
-    ? Math.round(monthlyPriceApprox * months * (1 - discount))
+    ? Math.round(monthlyPriceApprox * months * (1 - discount)) +
+      (washTwiceWeekly ? WASH_ADDON_PRICE : 0)
     : 0;
   const totalPrice = preview.data ? Number(preview.data.total) : fallbackTotal;
 
@@ -224,6 +252,37 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
                 })}
               </p>
             )}
+
+            {/* BE-5: wash + service 2×/week add-on (flat +75 000 ₸) */}
+            <div className="mt-6">
+              <label className="flex items-start gap-3 cursor-pointer">
+                <input
+                  type="checkbox"
+                  data-testid="wash-twice-weekly"
+                  checked={washTwiceWeekly}
+                  onChange={(e) => setWashTwiceWeekly(e.target.checked)}
+                  className="mt-1 h-4 w-4 shrink-0"
+                />
+                <span className="font-body text-base leading-6 text-neutral-900">
+                  {t(`${ck}.washAddonLabel`)}{" "}
+                  <span className="text-cta-main font-semibold">
+                    {t(`${ck}.washAddonPrice`)}
+                  </span>
+                </span>
+              </label>
+              <p className="mt-1 ml-7 font-body text-sm leading-4 text-neutral-500">
+                {t(`${ck}.washAddonHint`)}
+              </p>
+              {washCapExceeded && (
+                <div
+                  data-testid="wash-cap-exceeded"
+                  className="mt-3 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900"
+                >
+                  {t(`${ck}.washAddonCapExceeded`)}
+                </div>
+              )}
+            </div>
+
             {startDateMeta?.blocked && (
               <div className="mt-4 rounded-[8px] bg-[#fee7e2] border border-[#f2704f] p-4 font-body text-base leading-6 text-neutral-900">
                 {t(`wizard.event.dateBlocked`, {
@@ -287,13 +346,15 @@ export default function ConstructionWizard({ stepOffset = 0 }: { stepOffset?: nu
         disabledReason={
           startDateMeta?.blocked
             ? t(`wizard.event.dateBlockedShort`)
-            : !previewPayload
-              ? t(`wizard.rental.addressRequired`)
-              : !contacts.name.trim() || !contacts.phone.trim()
-                ? t(`wizard.rental.contactsRequired`)
-                : submitState.submitting
-                  ? t("payment.uploader.submitting")
-                  : submitState.validationError ?? undefined
+            : washCapExceeded
+              ? t(`${ck}.washAddonCapExceeded`)
+              : !previewPayload
+                ? t(`wizard.rental.addressRequired`)
+                : !contacts.name.trim() || !contacts.phone.trim()
+                  ? t(`wizard.rental.contactsRequired`)
+                  : submitState.submitting
+                    ? t("payment.uploader.submitting")
+                    : submitState.validationError ?? undefined
         }
         onSubmit={submitState.submit}
       />
