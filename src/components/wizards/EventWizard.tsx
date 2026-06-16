@@ -45,6 +45,10 @@ const DRAFT_SLUG = "event" as const;
 
 type EventDraft = {
   cabinQuantities: Array<[number, number]>;
+  // FE-6: UI-only EVENT date. The customer picks this; install_date is derived
+  // as eventDate−1 and written into installDismantle.installDate. eventDate is
+  // never sent to the backend — only the derived install_date flows through.
+  eventDate: Date | null;
   installDismantle: InstallDismantleValue;
   installConsent: boolean;
   cleaning: boolean;
@@ -59,6 +63,7 @@ type EventDraft = {
 
 const DRAFT_DEFAULTS: EventDraft = {
   cabinQuantities: [],
+  eventDate: null,
   installDismantle: {
     installDate: null,
     installSlotId: null,
@@ -95,6 +100,7 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
     [setDraft],
   );
   const {
+    eventDate,
     installDismantle,
     installConsent,
     cleaning,
@@ -105,6 +111,10 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
   } = draft;
   const setInstallDismantle = useCallback(
     (next: InstallDismantleValue) => setDraft((d) => ({ ...d, installDismantle: next })),
+    [setDraft],
+  );
+  const setEventDate = useCallback(
+    (next: Date | null) => setDraft((d) => ({ ...d, eventDate: next })),
     [setDraft],
   );
   // BE-2: toggling OFF clears the destination so the preview falls back to
@@ -278,16 +288,24 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
             slots={slots}
             slotsLoading={slotsLoading}
             serviceType="rental_event"
-            installDayMeta={(d) => {
+            eventMode
+            eventDate={eventDate}
+            onEventDateChange={setEventDate}
+            eventDayMeta={(d) => {
+              // FE-6: event date min = today+2 so the derived install
+              // (event−1) is ≥ today+1, which the unchanged validator's EVENT
+              // branch requires. Availability is keyed by the event date's day
+              // (close enough to the install day for fleet hints; the backend
+              // is the source of truth on submit).
               const startOfDay = new Date(d);
               startOfDay.setHours(0, 0, 0, 0);
-              const minInstall = new Date();
-              minInstall.setHours(0, 0, 0, 0);
-              minInstall.setDate(minInstall.getDate() + 1);
-              if (startOfDay < minInstall) {
+              const minEvent = new Date();
+              minEvent.setHours(0, 0, 0, 0);
+              minEvent.setDate(minEvent.getDate() + 2);
+              if (startOfDay < minEvent) {
                 return {
                   disabled: true,
-                  reason: t(`${k}.installTodayBlockedReason`),
+                  reason: t(`${k}.eventDateMinReason`),
                 };
               }
               const meta = availability.dayMap.get(dateKey(d));
@@ -296,9 +314,7 @@ export default function EventWizard({ stepOffset = 0 }: { stepOffset?: number } 
                   blocked: meta.blocked,
                   reason:
                     meta.reason ??
-                    (meta.blocked
-                      ? t(`${k}.step3FleetFull`)
-                      : null),
+                    (meta.blocked ? t(`${k}.step3FleetFull`) : null),
                 };
               }
               return undefined;
