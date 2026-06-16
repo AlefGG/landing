@@ -388,6 +388,10 @@ export default function ServiceWizard() {
               placeholder={t(`${k}.step2Placeholder`)}
               addLabel={t(`${k}.step2AddAddress`)}
             />
+            {/* FE-7: always-shown hint — address may fall outside any delivery zone. */}
+            <p className="font-body text-sm leading-5 text-neutral-500">
+              {t("wizard.rental.zoneNotFoundHint")}
+            </p>
             <Suspense
               fallback={
                 <div className="mt-0 h-[374px] lg:h-[550px] bg-neutral-100 animate-pulse rounded-[12px]" />

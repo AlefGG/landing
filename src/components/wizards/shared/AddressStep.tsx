@@ -56,6 +56,10 @@ export default function AddressStep({
       <p className="font-body text-sm leading-5 text-neutral-500">
         {t(`${k}.step4AddressHint`)}
       </p>
+      {/* FE-7: always-shown hint — address may fall outside any delivery zone. */}
+      <p className="font-body text-sm leading-5 text-neutral-500">
+        {t(`${k}.zoneNotFoundHint`)}
+      </p>
       <Suspense
         fallback={
           <div className="mt-0 h-[300px] lg:h-[550px] bg-neutral-100 animate-pulse rounded-[12px]" />

@@ -313,6 +313,10 @@ export default function SaleCheckout({ item }: { item: SaleItem }) {
             placeholder={t("catalog.sale.checkout.addressPlaceholder")}
             className="max-w-full lg:max-w-[488px]"
           />
+          {/* FE-7: always-shown hint — address may fall outside any delivery zone. */}
+          <p className="font-body text-sm leading-5 text-neutral-500">
+            {t("wizard.rental.zoneNotFoundHint")}
+          </p>
           <Suspense
             fallback={
               <div className="mt-0 h-[374px] lg:h-[450px] bg-neutral-100 animate-pulse rounded-[12px]" />
